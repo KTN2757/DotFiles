@@ -95,7 +95,8 @@ bars:
     widgets:
       left: ["komorebi_workspaces", "komorebi_active_layout", "active_window"]
       center: ["clock"]
-      right: ["explorer_button", "wifi", "cpu", "memory", "battery"]
+      right:
+        ["wifi", "explorer_button", "trash_button", "cpu", "memory", "battery"]
 
 # widgets:
 # my-clock-widget:
@@ -377,8 +378,8 @@ widgets:
   clock:
     type: "yasb.clock.ClockWidget"
     options:
+      label: "{20%y-%h-%d %m:%M:%S}"
       label_alt: "{%H:%M:%S}"
-      label: "{20%y-%m-%d %H:%M:%S}"
       timezones: ["Asia/Kathmandu"]
       callbacks:
         on_middle: "exec explorer.exe shell:Appsfolder\\Microsoft.WindowsAlarms_8wekyb3d8bbwe!App"
@@ -387,8 +388,8 @@ widgets:
   cpu:
     type: "yasb.cpu.CpuWidget"
     options:
-      label: "\uf200 {info[histograms][cpu_percent]}"
-      label_alt: "\uf200 CPU: {info[percent][total]}% | freq: {info[freq][current]:.2f} Mhz"
+      label_alt: "\uf200 {info[histograms][cpu_percent]}"
+      label: "\uf200 CPU: {info[percent][total]}% | freq: {info[freq][current]:.2f} Mhz"
       update_interval: 500
       histogram_icons:
         - '\u2581' # 0%
@@ -405,8 +406,8 @@ widgets:
   memory:
     type: "yasb.memory.MemoryWidget"
     options:
-      label: "\uf538 {virtual_mem_free}"
-      label_alt: "\uf538 {virtual_mem_percent}%"
+      label_alt: "\uf538 {virtual_mem_free}"
+      label: "\uf538 {virtual_mem_percent}%"
       update_interval: 5000
       callbacks:
         on_right: "exec cmd /c Taskmgr"
@@ -467,15 +468,23 @@ widgets:
         on_right: "exec cmd /c Taskmgr"
 
   # Some custom widgets
+  trash_button:
+    type: "yasb.traffic.TrafficWidget"
+    options:
+      label: "\uf1f8"
+      label_alt: "Trash"
+      callbacks:
+        on_left: "exec cmd /c start shell:RecycleBinFolder"
+        on_right: "toggle_label"
 
   explorer_button:
-    type: "yasb.custom.CustomWidget"
+    type: "yasb.traffic.TrafficWidget"
     options:
-      label_alt: "\uf07b"
-      label: "Exp"
-      class_name: "explorer-widget"
-      exec_options:
-        run_once: true
+      label: "\uf07b"
+      label_alt: "Exp"
+      #class_name: "explorer-widget"
+      #exec_options:
+      #run_once: true
       callbacks:
         on_left: "exec explorer.exe"
         on_right: "toggle_label"
