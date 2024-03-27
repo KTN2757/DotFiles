@@ -378,7 +378,7 @@ widgets:
   clock:
     type: "yasb.clock.ClockWidget"
     options:
-      label: "{20%y-%h-%d %m:%M:%S}"
+      label: "{%Y-%b-%d(%a) %I:%M:%S %p}"
       label_alt: "{%H:%M:%S}"
       timezones: ["Asia/Kathmandu"]
       callbacks:

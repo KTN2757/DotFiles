@@ -102,7 +102,7 @@
     "disk"
     "battery"
     # "locale"
-    "weather"
+    # "weather"
     # "local_ip"
     # "public_ip"
     "blank"
