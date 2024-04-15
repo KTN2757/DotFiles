@@ -2,19 +2,21 @@
 
 # Reload whkd configuration
 # alt + o                 : taskkill /f /im whkd.exe && start /b whkd # if shell is cmd
+# alt + shift + o         : komorebic reload-configuration
+
 alt + o                 : taskkill /f /im whkd.exe; Start-Process whkd -WindowStyle hidden # if shell is pwsh / powershell
-alt + shift + o         : komorebic reload-configuration
+alt + shift + r		    : taskkill /f /im python.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; Start-Process C:\Github\yasb\src\yasb.ps1 -WindowStyle Hidden
 
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
 alt + f                 : if ($wshell.AppActivate('Firefox') -eq $False) { Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'}
 alt + b                 : if ($wshell.AppActivate('Chrome') -eq $False) { Start-Process 'chrome' }
-ctrl + alt + t		: if ($wshell.AppActivate('wt.exe') -eq $False) {Start-Process wt}
-alt+c			: if($wshell.AppActivate('codium') -eq $False) {Start-Process codium}
+ctrl + alt + t	    	: if ($wshell.AppActivate('wt.exe') -eq $False) {Start-Process wt}
+alt+c			        : if($wshell.AppActivate('codium') -eq $False) {Start-Process codium}
 
 # Focus windows
 alt + h                 : komorebic focus left
-alt + j                 : komorebic focus down
+alt + j                 : komorebic focus down	
 alt + k                 : komorebic focus up
 alt + l                 : komorebic focus right
 alt + shift + oem_4     : komorebic cycle-focus previous # oem_4 is [
@@ -28,10 +30,10 @@ alt + shift + l         : komorebic move right
 alt + shift + return    : komorebic promote
 
 # Stack windows
-ctrl + alt + left              : komorebic stack left
-ctrl + alt + down              : komorebic stack down
-ctrl + alt + up                : komorebic stack up
-ctrl + alt + right             : komorebic stack right
+ctrl + alt + left       : komorebic stack left
+ctrl + alt + down       : komorebic stack down
+ctrl + alt + up         : komorebic stack up
+ctrl + alt + right      : komorebic stack right
 alt + oem_1             : komorebic unstack # oem_1 is ;
 alt + oem_4             : komorebic cycle-stack previous # oem_4 is [
 alt + oem_6             : komorebic cycle-stack next # oem_6 is ]
@@ -47,23 +49,23 @@ alt + t                 : komorebic toggle-float
 alt + shift + f         : komorebic toggle-monocle
 
 # Window manager options
-alt + shift + r         : komorebic retile
+alt + ctrl + r          : komorebic retile
 alt + p                 : komorebic toggle-pause
 
 # Layouts
-alt + shift + x                 : komorebic flip-layout horizontal
-alt + shift + y                 : komorebic flip-layout vertical
+alt + shift + x         : komorebic flip-layout horizontal
+alt + shift + y		    : komorebic flip-layout vertical
 
 # Workspaces
 alt + 1                 : komorebic focus-workspace 0
 alt + 2                 : komorebic focus-workspace 1
 alt + 3                 : komorebic focus-workspace 2
-alt + 4			: komorebic focus-workspace 3
-alt + 5			: komorebic focus-workspace 4
+alt + 4			        : komorebic focus-workspace 3
+alt + 5			        : komorebic focus-workspace 4
 
 # Move windows across workspaces
 alt + shift + 1         : komorebic move-to-workspace 0
 alt + shift + 2         : komorebic move-to-workspace 1
 alt + shift + 3         : komorebic move-to-workspace 2
-alt + shift + 4		: komorebic move-to-workspace 3
-alt + shift + 5		: komorebic move-to-workspace 4
+alt + shift + 4		    : komorebic move-to-workspace 3
+alt + shift + 5		    : komorebic move-to-workspace 4
