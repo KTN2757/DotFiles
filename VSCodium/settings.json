@@ -1,0 +1,50 @@
+{
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Community Material Theme Ocean High Contrast",
+  "workbench.startupEditor": "none",
+  "editor.fontFamily": "'CaskaydiaCove Nerd Font', 'cascadia code', Consolas, 'Courier New', monospace",
+  "editor.fontSize": 16,
+  "editor.fontLigatures": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "godot_tools.editor_path": "C:\\Coding\\Godot_v4.2.1-stable_win64.exe\\Godot_v4.2.1-stable_win64.exe",
+  "godot_tools.gdscript_lsp_server_port": 6005,
+  "editor.wordWrap": "on",
+  "cmake.configureOnOpen": true,
+  "git.openRepositoryInParentFolders": "always",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "editor.formatOnSave": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": true,
+  "godotTools.editorPath.godot3": "C:\\Coding\\Godot_v4.2.1-stable_win64.exe\\Godot_v4.2.1-stable_win64.exe",
+  "godotTools.editorPath.godot4": "C:\\Coding\\Godot_v4.2.1-stable_win64.exe\\Godot_v4.2.1-stable_win64.exe",
+  "godotTools.lsp.serverPort": 6005,
+  "[gdscript]": {
+    "editor.defaultFormatter": "geequlim.godot-tools"
+  },
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools"
+  },
+  "redhat.telemetry.enabled": true,
+  "cmake.options.statusBarVisibility": "visible",
+  "C_Cpp.default.compilerPath": "C:\\MinGW\\bin\\gcc.exe",
+  "tabnine.experimentalAutoImports": true,
+  "window.titleBarStyle": "custom",
+  "workbench.preferredDarkColorTheme": "Community Material Theme Ocean High Contrast",
+  "workbench.preferredHighContrastColorTheme": "Community Material Theme Ocean High Contrast",
+  "security.workspace.trust.untrustedFiles": "open",
+  "workbench.sideBar.location": "right",
+  "code-runner.runInTerminal": true,
+  "notebook.codeActionsOnSave": {},
+  "code-runner.saveFileBeforeRun": true,
+  "editor.codeActionsOnSave": {},
+  "liveServer.settings.donotVerifyTags": true,
+  "html.validate.styles": false,
+  "vim.vimrc.enable": true,
+  "vim.vimrc.path": "~/.vimrc",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "json.schemas": [],
+  "git.path": ""
+}
