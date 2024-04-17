@@ -1,4 +1,4 @@
-taskkill /f /im python.exe
+taskkill /f /im pythonw.exe
 taskkill /f /im komorebi.exe
 komorebic start --whkd
-Start-Process "C:\Github\yasb\src\main.py" -WindowStyle hidden 
+start pythonw C:\Github\yasb\src\main.pyw
