@@ -11,7 +11,7 @@ alt + shift + r		    : taskkill /f /im pythonw.exe; taskkill /f /im komorebi.exe
 alt + f                 : if ($wshell.AppActivate('Firefox') -eq $False) { Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'}
 alt + b                 : if ($wshell.AppActivate('Chrome') -eq $False) { Start-Process 'chrome' }
 ctrl + alt + t	    	: if ($wshell.AppActivate('wt.exe') -eq $False) {Start-Process wt}
-alt+c			        : if($wshell.AppActivate('codium') -eq $False) {Start-Process codium}
+alt+c			        : if($wshell.AppActivate('codium') -eq $False) {Start-Process codium -WindowStyle hidden}
 
 # Focus windows
 alt + h                 : komorebic focus left
