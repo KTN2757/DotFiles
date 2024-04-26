@@ -1,13 +1,17 @@
 set number
 set relativenumber
 
+set termguicolors
+
 set tabstop=4
 set expandtab
-set softtabstop=4
 set shiftwidth=4
 
 set autoindent
 set smartindent
+set expandtab
+
+set undofile
 
 set mouse=a
 
@@ -23,9 +27,11 @@ set hidden
 set laststatus=2
 syntax on
 
-set updatetime=50
+set splitbelow
+set splitright
 
-set termguicolors
+set updatetime=300
+set timeoutlen=1000
 
 inoremap jk <Esc>
 xnoremap jk <Esc> 
