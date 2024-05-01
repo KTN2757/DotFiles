@@ -4,8 +4,8 @@ local has_words_before = function()
   return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 end
 
-local cmp = require('cmp')
-local luasnip = require('luasnip')
+local cmp = require("cmp")
+local luasnip = require("luasnip")
 
 cmp.setup({
   snippet = {
@@ -14,6 +14,7 @@ cmp.setup({
     end
   },
   completion = {
+    completeopt = "menu, menuone, preview, noselect",
     autocomplete = false
   },
   mapping = cmp.mapping.preset.insert({
@@ -43,5 +44,7 @@ cmp.setup({
   sources = {
     { name = "nvim_lsp" },
     { name = "luasnip" },
+    { name = "buffer" },
+    { name = "path" },
   }
 })

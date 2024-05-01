@@ -12,7 +12,7 @@ require("rose-pine").setup({
     styles = {
         bold = true,
         italic = true,
-        transparency = false,
+        transparency = true,
     },
     groups = {
         border = "muted",
@@ -49,8 +49,6 @@ require("rose-pine").setup({
 function ColorShit(color)
     color = color or "rose-pine-main"
     vim.cmd.colorscheme(color)
-    vim.api.nvim_set_hl(0, "Normal", { bg = "none" }) --191724
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
 end
 
 ColorShit()
