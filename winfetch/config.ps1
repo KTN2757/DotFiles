@@ -33,7 +33,7 @@
 # )
 
 # Make the logo blink
-# $blink = $true
+$blink = $true
 
 # Display all built-in info segments.
 # $all = $true
