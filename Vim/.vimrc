@@ -9,13 +9,16 @@ set shiftwidth=4
 
 set autoindent
 set smartindent
+set breakindent
 
 set undofile
 
 set mouse=a
+set scrolloff=10
 
 set showcmd
 set showmatch
+set hlsearch
 
 set ignorecase
 set smartcase
@@ -29,8 +32,9 @@ syntax on
 set splitbelow
 set splitright
 
-set updatetime=300
-set timeoutlen=1000
+set updatetime=250
+set timeoutlen=300
 
 inoremap jk <Esc>
 xnoremap jk <Esc> 
+nnoremap <Esc> :set nohlsearch<CR>
