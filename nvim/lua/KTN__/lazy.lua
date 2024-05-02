@@ -53,6 +53,12 @@ require("lazy").setup({
         }
     },
     {
+        "mbbill/undotree"
+    },
+    {
+        "tpope/vim-fugitive"
+    },
+    {
         "szw/vim-maximizer",
         keys = {
             { "<leader>sm", "<cmd>MaximizerToggle<CR>", desc = "Maximize/Minimize a Split" },
@@ -124,7 +130,6 @@ require("lazy").setup({
             "rafamadriz/friendly-snippets",
         }
     },
-
     {
         "windwp/nvim-autopairs",
         event = "InsertEnter",

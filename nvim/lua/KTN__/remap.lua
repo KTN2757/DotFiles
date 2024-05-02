@@ -44,3 +44,7 @@ vim.keymap.set("n", "<leader>tp", "<cmd>tabp<CR>", { desc = "Go to Previous Tab"
 vim.keymap.set("n", "<leader>td", "<cmd>tabnew %<CR>", { desc = "Duplicate Tab" })
 
 vim.keymap.set("i", "<A-W>", "<Esc>l<Cmd>lua require('nvim-autopairs.fastwarp').show()<CR>", { desc = "Fast Warp" })
+
+vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle, { desc = "Toggle Undotree Menu" })
+
+vim.keymap.set("n", "<leader>gs", vim.cmd.Git, { desc = "Configure Git Stuff" })
