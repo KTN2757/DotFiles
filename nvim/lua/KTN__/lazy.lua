@@ -174,6 +174,7 @@ require("lazy").setup({
             css = { { "prettier" } },
             json = { "prettier" },
             yaml = { "prettier" },
+            gdscript = { "gdtoolkit" },
         },
     },
 })
