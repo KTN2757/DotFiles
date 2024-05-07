@@ -38,3 +38,7 @@ set timeoutlen=300
 inoremap jk <Esc>
 xnoremap jk <Esc> 
 nnoremap <Esc> :set nohlsearch<CR>
+nnoremap <A-Up> :m-2<CR>
+nnoremap <A-Down> :m+<CR>
+xnoremap <A-Up> <Esc>:m-2<CR>
+xnoremap <A-Down> <Esc>:m+<CR>
