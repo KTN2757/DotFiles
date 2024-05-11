@@ -81,6 +81,7 @@ vim.list_extend(ensure_installed, {
   "prettier",
   "prettierd",
   "isort",
+  "ast_grep"
 })
 require("mason-tool-installer").setup { ensure_installed = ensure_installed }
 

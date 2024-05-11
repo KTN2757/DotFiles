@@ -5,6 +5,11 @@ vim.keymap.set("i", "jk", "<Esc>")
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
+vim.keymap.set("n", "<leader>k", "<cmd>m-2<CR>", { desc = "Move line up in normal mode" })
+vim.keymap.set("n", "<leader>j", "<cmd>m+<CR>", { desc = "Move line down in normal mode" })
+vim.keymap.set("v", "<leader>k", "<Esc><cmd>m-2<CR>", { desc = "Move line up in visual mode" })
+vim.keymap.set("v", "<leader>j", "<Esc><cmd>m+<CR>", { desc = "Move line down in visual mode" })
+
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic message" })
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
