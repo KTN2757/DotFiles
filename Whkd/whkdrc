@@ -8,10 +8,10 @@ alt + shift + r		    : taskkill /f /im python.exe; taskkill /f /im komorebi.exe;
 
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
-alt + f                 : if ($wshell.AppActivate('Firefox') -eq $False) { Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'}
-alt + b                 : if ($wshell.AppActivate('Chrome') -eq $False) { Start-Process 'chrome' }
-ctrl + alt + t	    	: if ($wshell.AppActivate('wt.exe') -eq $False) {Start-Process wt}
-alt+c			        : if($wshell.AppActivate('codium') -eq $False) {Start-Process codium -WindowStyle hidden}
+alt + f                 : Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'
+alt + b                 : Start-Process 'chrome'
+ctrl + alt + t	    	: Start-Process wt
+alt+c			        : Start-Process codium -WindowStyle hidden
 
 # Focus windows
 alt + h                 : komorebic focus left
