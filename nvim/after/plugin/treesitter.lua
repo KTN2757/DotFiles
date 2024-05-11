@@ -1,7 +1,7 @@
 require "nvim-treesitter.install".compilers = { vim.fn.getenv("CC"), "cc", "gcc", "clang", "cl", "zig" }
 require "nvim-treesitter.install".prefer_git = true
 require "nvim-treesitter.configs".setup({
-    ensure_installed = { "c", "html", "lua", "python", "vim", "vimdoc", "javascript", "css", "gdscript" },
+    ensure_installed = { "c", "html", "python", "lua", "vim", "vimdoc", "javascript", "css", "gdscript" },
     auto_install = true,
     sync_install = false,
     ignore_install = {},

@@ -26,6 +26,8 @@ vim.keymap.set("n", "<leader>y", '"+y', { desc = "Yank in PC Clipboard" })
 vim.keymap.set("v", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 vim.keymap.set("n", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 
+vim.keymap.set("n", "x", '"_x', { desc = "Remove(x) doesn't store its shit in normal clipboard" })
+
 vim.keymap.set("n", "<leader>f", function()
         require "conform".format {
                 async = true, lsp_fallback = true

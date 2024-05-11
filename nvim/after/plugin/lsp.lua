@@ -62,7 +62,8 @@ vim.api.nvim_create_autocmd("LspDetach", {
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 local servers = {
-
+  pylsp = {},
+  ast_grep = {},
   lua_ls = {
     settings = {
       Lua = {
@@ -81,7 +82,9 @@ vim.list_extend(ensure_installed, {
   "prettier",
   "prettierd",
   "isort",
-  "ast_grep"
+  "ast_grep",
+  "gdtoolkit",
+  "pylsp"
 })
 require("mason-tool-installer").setup { ensure_installed = ensure_installed }
 

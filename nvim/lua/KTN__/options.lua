@@ -19,6 +19,7 @@ vim.opt.scrolloff = 10
 vim.opt.cursorline = true
 
 vim.opt.showcmd = true
+vim.opt.inccommand = "split"
 vim.opt.showmatch = true
 vim.opt.showmode = false
 vim.opt.breakindent = true
