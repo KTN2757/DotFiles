@@ -7,16 +7,20 @@ Invoke-Expression (& { (zoxide init powershell | Out-String) })
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -PredictionViewStyle ListView
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
+if (Test-Path($ChocolateyProfile))
+{
   Import-Module "$ChocolateyProfile"
 }
-function touch($file){
-  "" | Out-File $file -Encoding ASCII 
+function touch($file)
+{
+  "" | Out-File test.py -Append -NoNewLine -NoClobber -Encoding ASCII
 }
-function which($name){
+function which($name)
+{
   Get-Command $name | Select-Object -ExpandProperty Definition
 }
-function digclk {
- $scriptPath = Resolve-Path -Path 'C:\Github\Digital Clock\digclk.ps1'
- & $scriptPath
+function digclk
+{
+  $scriptPath = Resolve-Path -Path 'C:\Github\Digital Clock\digclk.ps1'
+  & $scriptPath
 }
