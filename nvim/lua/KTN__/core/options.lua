@@ -3,9 +3,9 @@ vim.opt.relativenumber = true
 
 vim.opt.termguicolors = true
 
-vim.opt.tabstop = 4
+vim.opt.tabstop = 2
 vim.opt.expandtab = true
-vim.opt.shiftwidth = 4
+vim.opt.shiftwidth = 2
 
 vim.opt.wrap = false
 vim.opt.autoindent = true
@@ -45,11 +45,11 @@ vim.opt.incsearch = true
 vim.opt.guifont = "CaskaydiaCove Nerd Font"
 
 vim.api.nvim_create_autocmd("TextYankPost", {
-    desc = "Highlight when yanking (copying) text",
-    group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
-    callback = function()
-        vim.highlight.on_yank()
-    end,
+	desc = "Highlight when yanking (copying) text",
+	group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
 })
 
 vim.g.have_nerd_font = true
@@ -60,6 +60,6 @@ vim.cmd.aunmenu("PopUp.-1-")
 
 -- Don"t auto comment new lines
 vim.api.nvim_create_autocmd("BufEnter", {
-    pattern = "",
-    command = "set fo-=c fo-=r fo-=o"
+	pattern = "",
+	command = "set fo-=c fo-=r fo-=o",
 })

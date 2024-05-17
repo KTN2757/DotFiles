@@ -1,186 +1,21 @@
-local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-    local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-    vim.fn.system { "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath }
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/folke/lazy.nvim.git",
+		"--branch=stable", -- latest stable release
+		lazypath,
+	})
 end
 vim.opt.rtp:prepend(lazypath)
-require("lazy").setup({
-    { "tpope/vim-sleuth" },
-    { "numtostr/comment.nvim" },
-    {
-        "lewis6991/gitsigns.nvim",
-        opts = {
-            signs = {
-                add = { text = "+" },
-                change = { text = "~" },
-                delete = { text = "_" },
-                topdelete = { text = "‾" },
-                changedelete = { text = "~" },
-            }
-        }
-    },
-    {
-        "nvim-telescope/telescope.nvim",
-        event = "VimEnter",
-        branch = "0.1.x",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            {
-                "nvim-telescope/telescope-fzf-native.nvim",
-                build = "make",
-                cond = function()
-                    return vim.fn.executable "make" == 1
-                end,
-            },
-            { "nvim-telescope/telescope-ui-select.nvim" },
-            {
-                "nvim-tree/nvim-web-devicons",
-                enabled = vim.g.have_nerd_font,
-                lazy = true
-            },
-        }
-    },
-    {
-        "rose-pine/neovim",
-        name = "rose-pine"
-    },
-    {
-        "lukas-reineke/indent-blankline.nvim",
-        event = { "BufReadPre", "BufNewFile" },
-        main = "ibl",
-        opts = {
-            indent = { char = "┊" }
-        }
-    },
-    {
-        "mbbill/undotree"
-    },
-    {
-        "tpope/vim-fugitive"
-    },
-    {
-        "szw/vim-maximizer",
-        keys = {
-            { "<leader>sm", "<cmd>MaximizerToggle<CR>", desc = "Maximize/Minimize a Split" },
-        },
-    },
-    {
-        "akinsho/bufferline.nvim",
-        version = "*",
-        dependencies = "nvim-tree/nvim-web-devicons",
-        opts = {
-            options = {
-                mode = "tabs",
-                separator_style = "slope",
-            },
-        },
-    },
-    {
-        "nvim-lualine/lualine.nvim",
-        dependencies = "nvim-tree/nvim-web-devicons",
-    },
-    {
-        "nvim-tree/nvim-tree.lua",
-        dependencies = "nvim-tree/nvim-web-devicons",
-    },
-    {
-        "stevearc/dressing.nvim",
-        event = "VeryLazy",
-    },
-    {
-        "folke/which-key.nvim",
-        event = "VeryLazy",
-        init = function()
-            vim.o.timeout = true
-            vim.o.timeoutlen = 500
-        end,
-        opts = {},
-    },
-    {
-        "VonHeikemen/lsp-zero.nvim",
-        branch = "v3.x"
-    },
-    {
-        "neovim/nvim-lspconfig",
-        dependencies = {
-            {
-                "williamboman/mason.nvim",
-                config = true
-            },
-            "williamboman/mason-lspconfig.nvim",
-            "WhoIsSethDaniel/mason-tool-installer.nvim",
-            {
-                "j-hui/fidget.nvim",
-                opts = {}
-            },
-            {
-                "folke/neodev.nvim",
-                opts = {}
-            },
-        }
-    },
-    {
-        "hrsh7th/nvim-cmp",
-        dependencies = {
-            "hrsh7th/cmp-nvim-lsp",
-            {
-                "L3MON4D3/LuaSnip",
-                version = "v2.*",
-            },
-            "saadparwaiz1/cmp_luasnip",
-            "hrsh7th/cmp-buffer",
-            "hrsh7th/cmp-path",
-            "rafamadriz/friendly-snippets",
-            "onsails/lspkind.nvim",
-        }
-    },
-    {
-        "windwp/nvim-autopairs",
-        event = "InsertEnter",
-        dependencies = { "hrsh7th/nvim-cmp" }
-    },
-    config = function()
-        require("nvim-autopairs").setup {}
-        local cmp_autopairs = require "nvim-autopairs.completion.cmp"
-        local cmp = require "cmp"
-        cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-    end,
-    {
-        "nvim-treesitter/nvim-treesitter",
-        version = false,
-        build = function()
-            require("nvim-treesitter.install").update({ with_sync = true })
-            "TSUpdate"
-        end
-    },
-    {
-        "stevearc/conform.nvim",
-        lazy = false,
-        opts = {
-            notify_on_error = false,
-            format_on_save = {
-                timeout_ms = 500,
-                lsp_fallback = true,
-            },
-            formatters_by_ft = {
-                python = { "isort", "black", "ast_grep" },
-                javascript = { "ast_grep", "prettierd", "prettier" },
-                html = { "ast_grep", "prettier", "prettierd" },
-                css = { "ast_grep", "prettier", "prettierd" },
-                yaml = { "prettier", "prettierd" },
-            },
-        },
-    },
-    opts = {
-        notify_on_error = false,
-        format_on_save = {
-            timeout_ms = 500,
-            lsp_fallback = true,
-        },
-        formatters_by_ft = {
-            json = { "prettier", "prettierd" },
-            lua = { "stylua" },
-            gdscript = { "gdtoolkit" },
-        },
-    },
+require("lazy").setup({ { import = "KTN__.plugins" }, { import = "KTN__.plugins.lsp" } }, {
+	checker = {
+		enabled = true,
+		notify = false,
+	},
+	change_detection = {
+		notify = false,
+	},
 })

@@ -10,8 +10,6 @@ vim.keymap.set("n", "<leader>j", "<cmd>m+<CR>", { desc = "Move line down in norm
 vim.keymap.set("v", "<leader>k", "<Esc><cmd>m-2<CR>", { desc = "Move line up in visual mode" })
 vim.keymap.set("v", "<leader>j", "<Esc><cmd>m+<CR>", { desc = "Move line down in visual mode" })
 
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]iagnostic message" })
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
@@ -26,11 +24,7 @@ vim.keymap.set("n", "<leader>y", '"+y', { desc = "Yank in PC Clipboard" })
 vim.keymap.set("v", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 vim.keymap.set("n", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 
-vim.keymap.set("n", "<leader>f", function()
-        require "conform".format {
-                async = true, lsp_fallback = true
-        }
-end, { desc = "[F]ormat buffer" })
+vim.keymap.set("n", "x", '"_x', { desc = "Remove(x) doesn't store its shit in normal clipboard" })
 
 vim.keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split Window Vertically" })
 vim.keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split Window Horizontally" })
@@ -47,8 +41,6 @@ vim.keymap.set("n", "<leader>tx", "<cmd>tabclose<CR>", { desc = "Close Current T
 vim.keymap.set("n", "<leader>tn", "<cmd>tabn<CR>", { desc = "Go to Next Tab" })
 vim.keymap.set("n", "<leader>tp", "<cmd>tabp<CR>", { desc = "Go to Previous Tab" })
 vim.keymap.set("n", "<leader>td", "<cmd>tabnew %<CR>", { desc = "Duplicate Tab" })
-
-vim.keymap.set("i", "<A-W>", "<Esc>l<Cmd>lua require('nvim-autopairs.fastwarp').show()<CR>", { desc = "Fast Warp" })
 
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle, { desc = "Toggle Undotree Menu" })
 

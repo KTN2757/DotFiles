@@ -1,1 +1,2 @@
-require("KTN__")
+require("KTN__.core")
+require("KTN__.lazy")
