@@ -89,16 +89,20 @@ param(
     [array]$showpkgs = @("scoop", "choco")
 )
 
-if (-not ($IsWindows -or $PSVersionTable.PSVersion.Major -eq 5)) {
+if (-not ($IsWindows -or $PSVersionTable.PSVersion.Major -eq 5))
+{
     Write-Error "Only supported on Windows."
     exit 1
 }
 
 # ===== DISPLAY HELP =====
-if ($help) {
-    if (Get-Command -Name less -ErrorAction Ignore) {
+if ($help)
+{
+    if (Get-Command -Name less -ErrorAction Ignore)
+    {
         Get-Help ($MyInvocation.MyCommand.Definition) -Full | less
-    } else {
+    } else
+    {
         Get-Help ($MyInvocation.MyCommand.Definition) -Full
     }
     exit 0
@@ -220,38 +224,50 @@ $defaultConfig = @'
 
 '@
 
-if (-not $configPath) {
-    if ($env:WINFETCH_CONFIG_PATH) {
+if (-not $configPath)
+{
+    if ($env:WINFETCH_CONFIG_PATH)
+    {
         $configPath = $env:WINFETCH_CONFIG_PATH
-    } else {
+    } else
+    {
         $configPath = "${env:USERPROFILE}\.config\winfetch\config.ps1"
     }
 }
 
 # generate default config
-if ($genconf -and (Test-Path $configPath)) {
+if ($genconf -and (Test-Path $configPath))
+{
     $choiceYes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", `
         "overwrite your configuration with the default"
     $choiceNo = New-Object System.Management.Automation.Host.ChoiceDescription "&No", `
         "do nothing and exit"
     $result = $Host.UI.PromptForChoice("Resetting your config to default will overwrite it.",
         "Do you want to continue?", ($choiceYes, $choiceNo), 1)
-    if ($result -eq 0) { Remove-Item -Path $configPath } else { exit 1 }
+    if ($result -eq 0)
+    { Remove-Item -Path $configPath 
+    } else
+    { exit 1 
+    }
 }
 
-if (-not (Test-Path $configPath) -or [String]::IsNullOrWhiteSpace((Get-Content $configPath))) {
+if (-not (Test-Path $configPath) -or [String]::IsNullOrWhiteSpace((Get-Content $configPath)))
+{
     New-Item -Type File -Path $configPath -Value $defaultConfig -Force | Out-Null
-    if ($genconf) {
+    if ($genconf)
+    {
         Write-Host "Saved default config to '$configPath'."
         exit 0
-    } else {
+    } else
+    {
         Write-Host "Missing config: Saved default config to '$configPath'."
     }
 }
 
 # load config file
 $config = . $configPath
-if (-not $config -or $all) {
+if (-not $config -or $all)
+{
     $config = @(
         "title"
         "dashes"
@@ -282,7 +298,8 @@ if (-not $config -or $all) {
 }
 
 # prevent config from overriding specified parameters
-foreach ($param in $PSBoundParameters.Keys) {
+foreach ($param in $PSBoundParameters.Keys)
+{
     Set-Variable $param $PSBoundParameters[$param]
 }
 
@@ -291,29 +308,42 @@ $e = [char]0x1B
 $ansiRegex = '([\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[-a-zA-Z\d\/#&.:=?%@~_]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~])))'
 $cimSession = New-CimSession
 $os = Get-CimInstance -ClassName Win32_OperatingSystem -Property Caption,OSArchitecture,LastBootUpTime,TotalVisibleMemorySize,FreePhysicalMemory -CimSession $cimSession
-$t = if ($blink) { "5" } else { "1" }
+$t = if ($blink)
+{ "5" 
+} else
+{ "1" 
+}
 $COLUMNS = $imgwidth
 
 # ===== UTILITY FUNCTIONS =====
-function get_percent_bar {
+function get_percent_bar
+{
     param ([Parameter(Mandatory)][ValidateRange(0, 100)][int]$percent)
 
     $x = [char]9632
     $bar = $null
 
     $bar += "$e[97m[ $e[0m"
-    for ($i = 1; $i -le ($barValue = ([math]::round($percent / 10))); $i++) {
-        if ($i -le 6) { $bar += "$e[32m$x$e[0m" }
-        elseif ($i -le 8) { $bar += "$e[93m$x$e[0m" }
-        else { $bar += "$e[91m$x$e[0m" }
+    for ($i = 1; $i -le ($barValue = ([math]::round($percent / 10))); $i++)
+    {
+        if ($i -le 6)
+        { $bar += "$e[32m$x$e[0m" 
+        } elseif ($i -le 8)
+        { $bar += "$e[93m$x$e[0m" 
+        } else
+        { $bar += "$e[91m$x$e[0m" 
+        }
     }
-    for ($i = 1; $i -le (10 - $barValue); $i++) { $bar += "$e[97m-$e[0m" }
+    for ($i = 1; $i -le (10 - $barValue); $i++)
+    { $bar += "$e[97m-$e[0m" 
+    }
     $bar += "$e[97m ]$e[0m"
 
     return $bar
 }
 
-function get_level_info {
+function get_level_info
+{
     param (
         [string]$barprefix,
         [string]$style,
@@ -322,33 +352,52 @@ function get_level_info {
         [switch]$altstyle
     )
 
-    switch ($style) {
-        'bar' { return "$barprefix$(get_percent_bar $percentage)" }
-        'textbar' { return "$text $(get_percent_bar $percentage)" }
-        'bartext' { return "$barprefix$(get_percent_bar $percentage) $text" }
-        default { if ($altstyle) { return "$percentage% ($text)" } else { return "$text ($percentage%)" }}
+    switch ($style)
+    {
+        'bar'
+        { return "$barprefix$(get_percent_bar $percentage)" 
+        }
+        'textbar'
+        { return "$text $(get_percent_bar $percentage)" 
+        }
+        'bartext'
+        { return "$barprefix$(get_percent_bar $percentage) $text" 
+        }
+        default
+        { if ($altstyle)
+            { return "$percentage% ($text)" 
+            } else
+            { return "$text ($percentage%)" 
+            }
+        }
     }
 }
 
-function truncate_line {
+function truncate_line
+{
     param (
         [string]$text,
         [int]$maxLength
     )
     $length = ($text -replace $ansiRegex, "").Length
-    if ($length -le $maxLength) {
+    if ($length -le $maxLength)
+    {
         return $text
     }
     $truncateAmt = $length - $maxLength
     $trucatedOutput = ""
     $parts = $text -split $ansiRegex
 
-    for ($i = $parts.Length - 1; $i -ge 0; $i--) {
+    for ($i = $parts.Length - 1; $i -ge 0; $i--)
+    {
         $part = $parts[$i]
-        if (-not $part.StartsWith([char]27) -and $truncateAmt -gt 0) {
-            $num = if ($truncateAmt -gt $part.Length) {
+        if (-not $part.StartsWith([char]27) -and $truncateAmt -gt 0)
+        {
+            $num = if ($truncateAmt -gt $part.Length)
+            {
                 $part.Length
-            } else {
+            } else
+            {
                 $truncateAmt
             }
             $truncateAmt -= $num
@@ -361,59 +410,83 @@ function truncate_line {
 }
 
 # ===== IMAGE =====
-$img = if (-not $noimage) {
-    if ($image) {
-        if ($image -eq 'wallpaper') {
+$img = if (-not $noimage)
+{
+    if ($image)
+    {
+        if ($image -eq 'wallpaper')
+        {
             $image = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
         }
 
         Add-Type -AssemblyName 'System.Drawing'
-        $OldImage = if (Test-Path $image -PathType Leaf) {
+        $OldImage = if (Test-Path $image -PathType Leaf)
+        {
             [Drawing.Bitmap]::FromFile((Resolve-Path $image))
-        } else {
+        } else
+        {
             [Drawing.Bitmap]::FromStream((Invoke-WebRequest $image -UseBasicParsing).RawContentStream)
         }
 
         # Divide scaled height by 2.2 to compensate for ASCII characters being taller than they are wide
-        [int]$ROWS = $OldImage.Height / $OldImage.Width * $COLUMNS / $(if ($ascii) { 2.2 } else { 1 })
+        [int]$ROWS = $OldImage.Height / $OldImage.Width * $COLUMNS / $(if ($ascii)
+            { 2.2 
+            } else
+            { 1 
+            })
         $Bitmap = New-Object System.Drawing.Bitmap @($OldImage, [Drawing.Size]"$COLUMNS,$ROWS")
 
-        if ($ascii) {
+        if ($ascii)
+        {
             $chars = ' .,:;+iIH$@'
-            for ($i = 0; $i -lt $Bitmap.Height; $i++) {
-              $currline = ""
-              for ($j = 0; $j -lt $Bitmap.Width; $j++) {
-                $p = $Bitmap.GetPixel($j, $i)
-                $currline += "$e[38;2;$($p.R);$($p.G);$($p.B)m$($chars[[math]::Floor($p.GetBrightness() * $chars.Length)])$e[0m"
-              }
-              $currline
-            }
-        } else {
-            for ($i = 0; $i -lt $Bitmap.Height; $i += 2) {
+            for ($i = 0; $i -lt $Bitmap.Height; $i++)
+            {
                 $currline = ""
-                for ($j = 0; $j -lt $Bitmap.Width; $j++) {
+                for ($j = 0; $j -lt $Bitmap.Width; $j++)
+                {
+                    $p = $Bitmap.GetPixel($j, $i)
+                    $currline += "$e[38;2;$($p.R);$($p.G);$($p.B)m$($chars[[math]::Floor($p.GetBrightness() * $chars.Length)])$e[0m"
+                }
+                $currline
+            }
+        } else
+        {
+            for ($i = 0; $i -lt $Bitmap.Height; $i += 2)
+            {
+                $currline = ""
+                for ($j = 0; $j -lt $Bitmap.Width; $j++)
+                {
                     $pixel1 = $Bitmap.GetPixel($j, $i)
                     $char = [char]0x2580
-                    if ($i -ge $Bitmap.Height - 1) {
-                        if ($pixel1.A -lt $alphathreshold) {
+                    if ($i -ge $Bitmap.Height - 1)
+                    {
+                        if ($pixel1.A -lt $alphathreshold)
+                        {
                             $char = [char]0x2800
                             $ansi = "$e[49m"
-                        } else {
+                        } else
+                        {
                             $ansi = "$e[38;2;$($pixel1.R);$($pixel1.G);$($pixel1.B)m"
                         }
-                    } else {
+                    } else
+                    {
                         $pixel2 = $Bitmap.GetPixel($j, $i + 1)
-                        if ($pixel1.A -lt $alphathreshold -or $pixel2.A -lt $alphathreshold) {
-                            if ($pixel1.A -lt $alphathreshold -and $pixel2.A -lt $alphathreshold) {
+                        if ($pixel1.A -lt $alphathreshold -or $pixel2.A -lt $alphathreshold)
+                        {
+                            if ($pixel1.A -lt $alphathreshold -and $pixel2.A -lt $alphathreshold)
+                            {
                                 $char = [char]0x2800
                                 $ansi = "$e[49m"
-                            } elseif ($pixel1.A -lt $alphathreshold) {
+                            } elseif ($pixel1.A -lt $alphathreshold)
+                            {
                                 $char = [char]0x2584
                                 $ansi = "$e[49;38;2;$($pixel2.R);$($pixel2.G);$($pixel2.B)m"
-                            } else {
+                            } else
+                            {
                                 $ansi = "$e[49;38;2;$($pixel1.R);$($pixel1.G);$($pixel1.B)m"
                             }
-                        } else {
+                        } else
+                        {
                             $ansi = "$e[38;2;$($pixel1.R);$($pixel1.G);$($pixel1.B);48;2;$($pixel2.R);$($pixel2.G);$($pixel2.B)m"
                         }
                     }
@@ -426,20 +499,27 @@ $img = if (-not $noimage) {
         $Bitmap.Dispose()
         $OldImage.Dispose()
 
-    } elseif (($CustomAscii -is [Array]) -and ($CustomAscii.Length -gt 0)) {
+    } elseif (($CustomAscii -is [Array]) -and ($CustomAscii.Length -gt 0))
+    {
         $CustomAscii
-    } else {
-        if (-not $logo) {
-            if ($os -Like "*Windows 11 *") {
+    } else
+    {
+        if (-not $logo)
+        {
+            if ($os -Like "*Windows 11 *")
+            {
                 $logo = "Windows 11"
-            } elseif ($os -Like "*Windows 10 *" -Or $os -Like "*Windows 8.1 *" -Or $os -Like "*Windows 8 *") {
+            } elseif ($os -Like "*Windows 10 *" -Or $os -Like "*Windows 8.1 *" -Or $os -Like "*Windows 8 *")
+            {
                 $logo = "Windows 10"
-            } else {
+            } else
+            {
                 $logo = "Windows 7"
             }
         }
 
-        if ($logo -eq "Windows 11") {
+        if ($logo -eq "Windows 11")
+        {
             $COLUMNS = 32
             @(
                 "${e}[${t};34mlllllllllllllll   lllllllllllllll"
@@ -458,7 +538,8 @@ $img = if (-not $noimage) {
                 "${e}[${t};34mlllllllllllllll   lllllllllllllll"
                 "${e}[${t};34mlllllllllllllll   lllllllllllllll"
             )
-        } elseif ($logo -eq "Windows 10" -Or $logo -eq "Windows 8.1" -Or $logo -eq "Windows 8") {
+        } elseif ($logo -eq "Windows 10" -Or $logo -eq "Windows 8.1" -Or $logo -eq "Windows 8")
+        {
             $COLUMNS = 34
             @(
                 "${e}[${t};34m                    ....,,:;+ccllll"
@@ -480,7 +561,8 @@ $img = if (-not $noimage) {
                 "${e}[${t};34m                       ````````''*::cll"
                 "${e}[${t};34m                                 ````"
             )
-        } elseif ($logo -eq "Windows 7" -Or $logo -eq "Windows Vista" -Or $logo -eq "Windows XP") {
+        } elseif ($logo -eq "Windows 7" -Or $logo -eq "Windows Vista" -Or $logo -eq "Windows XP")
+        {
             $COLUMNS = 35
             @(
                 "${e}[${t};31m        ,.=:!!t3Z3z.,               "
@@ -500,7 +582,8 @@ $img = if (-not $noimage) {
                 "${e}[${t};34m            `` ${e}[33m:EEEEtttt::::z7       "
                 "${e}[${t};33m                'VEzjt:;;z>*``       "
             )
-        } elseif ($logo -eq "Microsoft") {
+        } elseif ($logo -eq "Microsoft")
+        {
             $COLUMNS = 13
             @(
                 "${e}[${t};31m┌─────┐${e}[32m┌─────┐"
@@ -512,7 +595,8 @@ $img = if (-not $noimage) {
                 "${e}[${t};34m│     │${e}[33m│     │"
                 "${e}[${t};34m└─────┘${e}[33m└─────┘"
             )
-        } elseif ($logo -eq "Windows 2000" -Or $logo -eq "Windows 98" -Or $logo -eq "Windows 95") {
+        } elseif ($logo -eq "Windows 2000" -Or $logo -eq "Windows 98" -Or $logo -eq "Windows 95")
+        {
             $COLUMNS = 45
             @(
                 "                         ${e}[${t};30mdBBBBBBBb"
@@ -535,7 +619,8 @@ $img = if (-not $noimage) {
                 "${e}[${t};30m   :: ====== 000000 BBf                `BBBBB"
                 "     ${c1}   ==  000000 B                     BBB"
             )
-        } else {
+        } else
+        {
             Write-Error 'The only version logos supported are Windows 11, Windows 10/8.1/8, Windows 7/Vista/XP, Windows 2000/98/95 and Microsoft.'
             exit 1
         }
@@ -544,13 +629,15 @@ $img = if (-not $noimage) {
 
 
 # ===== BLANK =====
-function info_blank {
+function info_blank
+{
     return @{}
 }
 
 
 # ===== COLORBAR =====
-function info_colorbar {
+function info_colorbar
+{
     return @(
         @{
             title   = ""
@@ -565,7 +652,8 @@ function info_colorbar {
 
 
 # ===== OS =====
-function info_os {
+function info_os
+{
     return @{
         title   = " ${e}[1;36m "
         content = "$($os.Caption.TrimStart('Microsoft ')) [$($os.OSArchitecture)]"
@@ -574,7 +662,8 @@ function info_os {
 
 
 # ===== MOTHERBOARD =====
-function info_motherboard {
+function info_motherboard
+{
     $motherboard = Get-CimInstance Win32_BaseBoard -CimSession $cimSession -Property Manufacturer,Product
     return @{
         title = "Motherboard"
@@ -584,7 +673,8 @@ function info_motherboard {
 
 
 # ===== TITLE =====
-function info_title {
+function info_title
+{
     return @{
         title   = ""
         content = "         ${e}[1;33m{0}${e}[0m ${e}[1;33m- ${e}[1;39m󰇅 ${e}[1;33m{1}${e}[0m" -f [System.Environment]::UserName,$env:COMPUTERNAME
@@ -593,7 +683,8 @@ function info_title {
 
 
 # ===== DASHES =====
-function info_dashes {
+function info_dashes
+{
     $length = [System.Environment]::UserName.Length + $env:COMPUTERNAME.Length + 1
     return @{
         title   = ""
@@ -603,7 +694,8 @@ function info_dashes {
 
 
 # ===== COMPUTER =====
-function info_computer {
+function info_computer
+{
     $compsys = Get-CimInstance -ClassName Win32_ComputerSystem -Property Manufacturer,Model -CimSession $cimSession
     return @{
         title   = "Host"
@@ -613,7 +705,8 @@ function info_computer {
 
 
 # ===== KERNEL =====
-function info_kernel {
+function info_kernel
+{
     return @{
         title   = "Kernel"
         content = "$([System.Environment]::OSVersion.Version)"
@@ -622,25 +715,41 @@ function info_kernel {
 
 
 # ===== UPTIME =====
-function info_uptime {
+function info_uptime
+{
     @{
         title   = " ${e}[1;36m "
-        content = $(switch ([System.DateTime]::Now - $os.LastBootUpTime) {
-            ({ $PSItem.Days -eq 1 }) { '1 day' }
-            ({ $PSItem.Days -gt 1 }) { "$($PSItem.Days) days" }
-            ({ $PSItem.Hours -eq 1 }) { '1 hour' }
-            ({ $PSItem.Hours -gt 1 }) { "$($PSItem.Hours) hours" }
-            ({ $PSItem.Minutes -eq 1 }) { '1 minute' }
-            ({ $PSItem.Minutes -gt 1 }) { "$($PSItem.Minutes) minutes" }
-        }) -join ' '
+        content = $(switch ([System.DateTime]::Now - $os.LastBootUpTime)
+            {
+            ({ $PSItem.Days -eq 1 })
+                { '1 day' 
+                }
+            ({ $PSItem.Days -gt 1 })
+                { "$($PSItem.Days) days" 
+                }
+            ({ $PSItem.Hours -eq 1 })
+                { '1 hour' 
+                }
+            ({ $PSItem.Hours -gt 1 })
+                { "$($PSItem.Hours) hours" 
+                }
+            ({ $PSItem.Minutes -eq 1 })
+                { '1 minute' 
+                }
+            ({ $PSItem.Minutes -gt 1 })
+                { "$($PSItem.Minutes) minutes" 
+                }
+            }) -join ' '
     }
 }
 
 
 # ===== RESOLUTION =====
-function info_resolution {
+function info_resolution
+{
     Add-Type -AssemblyName System.Windows.Forms
-    $displays = foreach ($monitor in [System.Windows.Forms.Screen]::AllScreens) {
+    $displays = foreach ($monitor in [System.Windows.Forms.Screen]::AllScreens)
+    {
         "$($monitor.Bounds.Size.Width)x$($monitor.Bounds.Size.Height)"
     }
 
@@ -653,21 +762,28 @@ function info_resolution {
 
 # ===== TERMINAL =====
 # this section works by getting the parent processes of the current powershell instance.
-function info_terminal {
+function info_terminal
+{
     $programs = 'powershell', 'pwsh', 'winpty-agent', 'cmd', 'zsh', 'bash', 'fish', 'env', 'nu', 'elvish', 'csh', 'tcsh', 'python', 'xonsh'
-    if ($PSVersionTable.PSEdition.ToString() -ne 'Core') {
+    if ($PSVersionTable.PSEdition.ToString() -ne 'Core')
+    {
         $parent = Get-Process -Id (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $PID" -Property ParentProcessId -CimSession $cimSession).ParentProcessId -ErrorAction Ignore
-        for () {
-            if ($parent.ProcessName -in $programs) {
+        for ()
+        {
+            if ($parent.ProcessName -in $programs)
+            {
                 $parent = Get-Process -Id (Get-CimInstance -ClassName Win32_Process -Filter "ProcessId = $($parent.ID)" -Property ParentProcessId -CimSession $cimSession).ParentProcessId -ErrorAction Ignore
                 continue
             }
             break
         }
-    } else {
+    } else
+    {
         $parent = (Get-Process -Id $PID).Parent
-        for () {
-            if ($parent.ProcessName -in $programs) {
+        for ()
+        {
+            if ($parent.ProcessName -in $programs)
+            {
                 $parent = (Get-Process -Id $parent.ID).Parent
                 continue
             }
@@ -675,17 +791,33 @@ function info_terminal {
         }
     }
 
-    $terminal = switch ($parent.ProcessName) {
-        { $PSItem -in 'explorer', 'conhost' } { 'Windows Console' }
-        'Console' { 'Console2/Z' }
-        'ConEmuC64' { 'ConEmu' }
-        'WindowsTerminal' { 'Windows Terminal' }
-        'FluentTerminal.SystemTray' { 'Fluent Terminal' }
-        'Code' { 'Visual Studio Code' }
-        default { $PSItem }
+    $terminal = switch ($parent.ProcessName)
+    {
+        { $PSItem -in 'explorer', 'conhost' }
+        { 'Windows Console' 
+        }
+        'Console'
+        { 'Console2/Z' 
+        }
+        'ConEmuC64'
+        { 'ConEmu' 
+        }
+        'WindowsTerminal'
+        { 'Windows Terminal' 
+        }
+        'FluentTerminal.SystemTray'
+        { 'Fluent Terminal' 
+        }
+        'Code'
+        { 'Visual Studio Code' 
+        }
+        default
+        { $PSItem 
+        }
     }
 
-    if (-not $terminal) {
+    if (-not $terminal)
+    {
         $terminal = "$e[91m(Unknown)"
     }
 
@@ -697,11 +829,20 @@ function info_terminal {
 
 
 # ===== THEME =====
-function info_theme {
+function info_theme
+{
     $themeinfo = Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name SystemUsesLightTheme, AppsUseLightTheme
     $themename = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes' -Name CurrentTheme).CurrentTheme.Split('\')[-1].Replace('.theme', '')
-    $systheme = if ($themeinfo.SystemUsesLightTheme) { "Light" } else { "Dark" }
-    $apptheme = if ($themeinfo.AppsUseLightTheme) { "Light" } else { "Dark" }
+    $systheme = if ($themeinfo.SystemUsesLightTheme)
+    { "Light" 
+    } else
+    { "Dark" 
+    }
+    $apptheme = if ($themeinfo.AppsUseLightTheme)
+    { "Light" 
+    } else
+    { "Dark" 
+    }
     return @{
         title = "Theme"
         content = "$themename (System: $systheme, Apps: $apptheme)"
@@ -710,12 +851,15 @@ function info_theme {
 
 
 # ===== CPU/GPU =====
-function info_cpu {
+function info_cpu
+{
     $cpu = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey('LocalMachine', $Env:COMPUTERNAME).OpenSubKey("HARDWARE\DESCRIPTION\System\CentralProcessor\0")
     $cpuname = $cpu.GetValue("ProcessorNameString")
-    $cpuname = if ($cpuname.Contains('@')) {
+    $cpuname = if ($cpuname.Contains('@'))
+    {
         ($cpuname -Split '@')[0].Trim()
-    } else {
+    } else
+    {
         $cpuname.Trim()
     }
     return @{
@@ -724,21 +868,24 @@ function info_cpu {
     }
 }
 
-function info_gpu {
+function info_gpu
+{
     [System.Collections.ArrayList]$lines = @()
     #loop through Win32_VideoController
-    foreach ($gpu in Get-CimInstance -ClassName Win32_VideoController -Property Name -CimSession $cimSession) {
+    foreach ($gpu in Get-CimInstance -ClassName Win32_VideoController -Property Name -CimSession $cimSession)
+    {
         [void]$lines.Add(@{
-            title   = " ${e}[1;36m󰘚 "
-            content = $gpu.Name
-        })
+                title   = " ${e}[1;36m󰘚 "
+                content = $gpu.Name
+            })
     }
     return $lines
 }
 
 
 # ===== CPU USAGE =====
-function info_cpu_usage {
+function info_cpu_usage
+{
     # Get all running processes and assign to a variable to allow reuse
     $processes = [System.Diagnostics.Process]::GetProcesses()
     $loadpercent = 0
@@ -748,7 +895,8 @@ function info_cpu_usage {
 
     $timenow = [System.Datetime]::Now
     $processes.ForEach{
-        if ($_.StartTime -gt 0) {
+        if ($_.StartTime -gt 0)
+        {
             # Replicate the functionality of New-Timespan
             $timespan = ($timenow.Subtract($_.StartTime)).TotalSeconds
 
@@ -765,7 +913,8 @@ function info_cpu_usage {
 
 
 # ===== MEMORY =====
-function info_memory {
+function info_memory
+{
     $total = $os.TotalVisibleMemorySize / 1mb
     $used = ($os.TotalVisibleMemorySize - $os.FreePhysicalMemory) / 1mb
     $usage = [math]::floor(($used / $total * 100))
@@ -777,13 +926,17 @@ function info_memory {
 
 
 # ===== DISK USAGE =====
-function info_disk {
+function info_disk
+{
     [System.Collections.ArrayList]$lines = @()
 
-    function to_units($value) {
-        if ($value -gt 1tb) {
+    function to_units($value)
+    {
+        if ($value -gt 1tb)
+        {
             return "$([math]::round($value / 1tb, 1)) TiB"
-        } else {
+        } else
+        {
             return "$([math]::floor($value / 1gb)) GiB"
         }
     }
@@ -791,22 +944,26 @@ function info_disk {
     [System.IO.DriveInfo]::GetDrives().ForEach{
         $diskLetter = $_.Name.SubString(0,2)
 
-        if ($showDisks.Contains($diskLetter) -or $showDisks.Contains("*")) {
-            try {
-                if ($_.TotalSize -gt 0) {
+        if ($showDisks.Contains($diskLetter) -or $showDisks.Contains("*"))
+        {
+            try
+            {
+                if ($_.TotalSize -gt 0)
+                {
                     $used = $_.TotalSize - $_.AvailableFreeSpace
                     $usage = [math]::Floor(($used / $_.TotalSize * 100))
     
                     [void]$lines.Add(@{
-                        title   = " ${e}[1;36m ($diskLetter)"
-                        content = get_level_info "" $diskstyle $usage "$(to_units $used) / $(to_units $_.TotalSize)"
-                    })
+                            title   = " ${e}[1;36m ($diskLetter)"
+                            content = get_level_info "" $diskstyle $usage "$(to_units $used) / $(to_units $_.TotalSize)"
+                        })
                 }
-            } catch {
+            } catch
+            {
                 [void]$lines.Add(@{
-                    title   = " ${e}[1;36m ($diskLetter)"
-                    content = "(failed to get disk usage)"
-                })
+                        title   = " ${e}[1;36m ($diskLetter)"
+                        content = "(failed to get disk usage)"
+                    })
             }
         }
     }
@@ -816,7 +973,8 @@ function info_disk {
 
 
 # ===== POWERSHELL VERSION =====
-function info_pwsh {
+function info_pwsh
+{
     return @{
         title   = " ${e}[1;36m "
         content = "PowerShell v$($PSVersionTable.PSVersion)"
@@ -825,7 +983,8 @@ function info_pwsh {
 
 
 # ===== POWERSHELL PACKAGES =====
-function info_ps_pkgs {
+function info_ps_pkgs
+{
     $ps_pkgs = @()
 
     # Get all installed packages
@@ -834,21 +993,30 @@ function info_ps_pkgs {
     $modulecount = $pgp.Where({$_.Metadata["tags"] -like "*PSModule*"}).count
     $scriptcount = $pgp.Where({$_.Metadata["tags"] -like "*PSScript*"}).count
 
-    if ($modulecount) {
-        if ($modulecount -eq 1) { $modulestring = "1 Module" }
-        else { $modulestring = "$modulecount Modules" }
+    if ($modulecount)
+    {
+        if ($modulecount -eq 1)
+        { $modulestring = "1 Module" 
+        } else
+        { $modulestring = "$modulecount Modules" 
+        }
 
         $ps_pkgs += "$modulestring"
     }
 
-    if ($scriptcount) {
-        if ($scriptcount -eq 1) { $scriptstring = "1 Script" }
-        else { $scriptstring = "$scriptcount Scripts" }
+    if ($scriptcount)
+    {
+        if ($scriptcount -eq 1)
+        { $scriptstring = "1 Script" 
+        } else
+        { $scriptstring = "$scriptcount Scripts" 
+        }
 
         $ps_pkgs += "$scriptstring"
     }
 
-    if (-not $ps_pkgs) {
+    if (-not $ps_pkgs)
+    {
         $ps_pkgs = "(none)"
     }
 
@@ -860,47 +1028,64 @@ function info_ps_pkgs {
 
 
 # ===== PACKAGES =====
-function info_pkgs {
+function info_pkgs
+{
     $pkgs = @()
 
-    if ("winget" -in $ShowPkgs -and (Get-Command -Name winget -ErrorAction Ignore)) {
+    if ("winget" -in $ShowPkgs -and (Get-Command -Name winget -ErrorAction Ignore))
+    {
         $wingetpkg = (winget list | Where-Object {$_.Trim("`n`r`t`b-\|/ ").Length -ne 0} | Measure-Object).Count - 1
 
-        if ($wingetpkg) {
+        if ($wingetpkg)
+        {
             $pkgs += "$wingetpkg (system)"
         }
     }
 
-    if ("choco" -in $ShowPkgs -and (Get-Command -Name choco -ErrorAction Ignore)) {
+    if ("choco" -in $ShowPkgs -and (Get-Command -Name choco -ErrorAction Ignore))
+    {
         $chocopkg = Invoke-Expression $(
             "(& choco list" + $(if([version](& choco --version).Split('-')[0]`
-            -lt [version]'2.0.0'){" --local-only"}) + ")[-1].Split(' ')[0] - 1")
+                        -lt [version]'2.0.0')
+                {" --local-only"
+                }) + ")[-1].Split(' ')[0] - 1")
 
-        if ($chocopkg) {
+        if ($chocopkg)
+        {
             $pkgs += "$chocopkg (choco)"
         }
     }
 
-    if ("scoop" -in $ShowPkgs) {
-        $scoopdir = if ($Env:SCOOP) { "$Env:SCOOP\apps" } else { "$Env:UserProfile\scoop\apps" }
+    if ("scoop" -in $ShowPkgs)
+    {
+        $scoopdir = if ($Env:SCOOP)
+        { "$Env:SCOOP\apps" 
+        } else
+        { "$Env:UserProfile\scoop\apps" 
+        }
 
-        if (Test-Path $scoopdir) {
+        if (Test-Path $scoopdir)
+        {
             $scooppkg = (Get-ChildItem -Path $scoopdir -Directory).Count - 1
         }
 
-        if ($scooppkg) {
+        if ($scooppkg)
+        {
             $pkgs += "$scooppkg (scoop)"
         }
     }
 
-    foreach ($pkgitem in $CustomPkgs) {
-        if (Test-Path Function:"info_pkg_$pkgitem") {
+    foreach ($pkgitem in $CustomPkgs)
+    {
+        if (Test-Path Function:"info_pkg_$pkgitem")
+        {
             $count = & "info_pkg_$pkgitem"
             $pkgs += "$count ($pkgitem)"
         }
     }
 
-    if (-not $pkgs) {
+    if (-not $pkgs)
+    {
         $pkgs = "(none)"
     }
 
@@ -912,42 +1097,49 @@ function info_pkgs {
 
 
 # ===== BATTERY =====
-function info_battery {
+function info_battery
+{
     Add-Type -AssemblyName System.Windows.Forms
     $battery = [System.Windows.Forms.SystemInformation]::PowerStatus
 
-    if ($battery.BatteryChargeStatus -eq 'NoSystemBattery') {
+    if ($battery.BatteryChargeStatus -eq 'NoSystemBattery')
+    {
         return @{
             title = "Battery"
             content = "(none)"
         }
     }
 
-    $status = if ($battery.BatteryChargeStatus -like '*Charging*') {
-        "Charging 󰂄 "
-    } elseif ($battery.PowerLineStatus -like '*Online*') {
-        "Plugged in  "
-    } else {
-        "Discharging 󰠇 "
+    $status = if ($battery.BatteryChargeStatus -like '*Charging*')
+    {
+        "Charging"
+    } elseif ($battery.PowerLineStatus -like '*Online*')
+    {
+        "Plugged in"
+    } else
+    {
+        "Discharging"
     }
 
     $timeRemaining = $battery.BatteryLifeRemaining / 60
     # Don't show time remaining if Windows hasn't properly reported it yet
-    $timeFormatted = if ($timeRemaining -ge 0) {
+    $timeFormatted = if ($timeRemaining -ge 0)
+    {
         $hours = [math]::floor($timeRemaining / 60)
         $minutes = [math]::floor($timeRemaining % 60)
         ", ${hours}h ${minutes}m"
     }
 
     return @{
-        title = " ${e}[1;36m "
+        title = " ${e}[1;36m  "
         content = get_level_info "  " $batterystyle "$([math]::round($battery.BatteryLifePercent * 100))" "$status$timeFormatted" -altstyle
     }
 }
 
 
 # ===== LOCALE =====
-function info_locale {
+function info_locale
+{
     # Hashtables for language and region codes
     $localeLookup = @{
         "10" = "American Samoa";                             "100" = "Guinea";                            "10026358" = "Americas";                                                                                                                                            
@@ -1349,12 +1541,15 @@ function info_locale {
 
 
 # ===== WEATHER =====
-function info_weather {
+function info_weather
+{
     return @{
         title = "Weather"
-        content = try {
+        content = try
+        {
             (Invoke-RestMethod wttr.in/?format="%t+-+%C+(%l)").TrimStart("+")
-        } catch {
+        } catch
+        {
             "$e[91m(Network Error)"
         }
     }
@@ -1362,61 +1557,82 @@ function info_weather {
 
 
 # ===== IP =====
-function info_local_ip {
-    try {
+function info_local_ip
+{
+    try
+    {
         # Get all network adapters
-        foreach ($ni in [System.Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces()) {
+        foreach ($ni in [System.Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces())
+        {
             # Get the IP information of each adapter
             $properties = $ni.GetIPProperties()
             # Check if the adapter is online, has a gateway address, and the adapter does not have a loopback address
-            if ($ni.OperationalStatus -eq 'Up' -and !($null -eq $properties.GatewayAddresses[0]) -and !$properties.GatewayAddresses[0].Address.ToString().Equals("0.0.0.0")) {
+            if ($ni.OperationalStatus -eq 'Up' -and !($null -eq $properties.GatewayAddresses[0]) -and !$properties.GatewayAddresses[0].Address.ToString().Equals("0.0.0.0"))
+            {
                 # Check if adapter is a WiFi or Ethernet adapter
-                if ($ni.NetworkInterfaceType -eq "Wireless80211" -or $ni.NetworkInterfaceType -eq "Ethernet") {
-                    foreach ($ip in $properties.UnicastAddresses) {
-                        if ($ip.Address.AddressFamily -eq "InterNetwork") {
-                            if (!$local_ip) { $local_ip = $ip.Address.ToString() }
+                if ($ni.NetworkInterfaceType -eq "Wireless80211" -or $ni.NetworkInterfaceType -eq "Ethernet")
+                {
+                    foreach ($ip in $properties.UnicastAddresses)
+                    {
+                        if ($ip.Address.AddressFamily -eq "InterNetwork")
+                        {
+                            if (!$local_ip)
+                            { $local_ip = $ip.Address.ToString() 
+                            }
                         }
                     }
                 }
             }
         }
-    } catch {
+    } catch
+    {
     }
     return @{
         title = "Local IP"
-        content = if (-not $local_ip) {
+        content = if (-not $local_ip)
+        {
             "$e[91m(Unknown)"
-        } else {
+        } else
+        {
             $local_ip
         }
     }
 }
 
-function info_public_ip {
+function info_public_ip
+{
     return @{
         title = "Public IP"
-        content = try {
+        content = try
+        {
             Invoke-RestMethod ifconfig.me/ip
-        } catch {
+        } catch
+        {
             "$e[91m(Network Error)"
         }
     }
 }
 
 
-if (-not $stripansi) {
+if (-not $stripansi)
+{
     # unhide the cursor after a terminating error
-    trap { "$e[?25h"; break }
+    trap
+    { "$e[?25h"; break 
+    }
 
     # reset terminal sequences and display a newline
     Write-Output "$e[0m$e[?25l"
-} else {
+} else
+{
     Write-Output ""
 }
 
 # write logo
-if (-not $stripansi) {
-    foreach ($line in $img) {
+if (-not $stripansi)
+{
+    foreach ($line in $img)
+    {
         Write-Output " $line"
     }
 }
@@ -1426,42 +1642,53 @@ $writtenLines = 0
 $freeSpace = $Host.UI.RawUI.WindowSize.Width - 1
 
 # move cursor to top of image and to its right
-if ($img -and -not $stripansi) {
+if ($img -and -not $stripansi)
+{
     $freeSpace -= 1 + $COLUMNS + $GAP
     Write-Output "$e[$($img.Length + 1)A"
 }
 
 
 # write info
-foreach ($item in $config) {
-    if (Test-Path Function:"info_$item") {
+foreach ($item in $config)
+{
+    if (Test-Path Function:"info_$item")
+    {
         $info = & "info_$item"
-    } else {
+    } else
+    {
         $info = @{ title = "$e[31mfunction 'info_$item' not found" }
     }
 
-    if (-not $info) {
+    if (-not $info)
+    {
         continue
     }
 
-    if ($info -isnot [array]) {
+    if ($info -isnot [array])
+    {
         $info = @($info)
     }
 
-    foreach ($line in $info) {
+    foreach ($line in $info)
+    {
         $output = "$e[1;33m$($line["title"])$e[0m"
 
-        if ($line["title"] -and $line["content"]) {
+        if ($line["title"] -and $line["content"])
+        {
             $output += ": "
         }
 
         $output += "$($line["content"])"
 
-        if ($img) {
-            if (-not $stripansi) {
+        if ($img)
+        {
+            if (-not $stripansi)
+            {
                 # move cursor to right of image
                 $output = "$e[$(2 + $COLUMNS + $GAP)G$output"
-            } else {
+            } else
+            {
                 # write image progressively
                 $imgline = ("$($img[$writtenLines])"  -replace $ansiRegex, "").PadRight($COLUMNS)
                 $output = " $imgline   $output"
@@ -1470,12 +1697,15 @@ foreach ($item in $config) {
 
         $writtenLines++
 
-        if ($stripansi) {
+        if ($stripansi)
+        {
             $output = $output -replace $ansiRegex, ""
-            if ($output.Length -gt $freeSpace) {
+            if ($output.Length -gt $freeSpace)
+            {
                 $output = $output.Substring(0, $output.Length - ($output.Length - $freeSpace))
             }
-        } else {
+        } else
+        {
             $output = truncate_line $output $freeSpace
         }
 
@@ -1483,24 +1713,30 @@ foreach ($item in $config) {
     }
 }
 
-if ($stripansi) {
+if ($stripansi)
+{
     # write out remaining image lines
-    for ($i = $writtenLines; $i -lt $img.Length; $i++) {
+    for ($i = $writtenLines; $i -lt $img.Length; $i++)
+    {
         $imgline = ("$($img[$i])"  -replace $ansiRegex, "").PadRight($COLUMNS)
         Write-Output " $imgline"
     }
 }
 
 # move cursor back to the bottom and print 2 newlines
-if (-not $stripansi) {
+if (-not $stripansi)
+{
     $diff = $img.Length - $writtenLines
-    if ($img -and $diff -gt 0) {
+    if ($img -and $diff -gt 0)
+    {
         Write-Output "$e[${diff}B"
-    } else {
+    } else
+    {
         Write-Output ""
     }
     Write-Output "$e[?25h"
-} else {
+} else
+{
     Write-Output "`n"
 }
 
