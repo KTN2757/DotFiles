@@ -24,8 +24,6 @@ vim.keymap.set("n", "<leader>y", '"+y', { desc = "Yank in PC Clipboard" })
 vim.keymap.set("v", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 vim.keymap.set("n", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 
-vim.keymap.set("n", "x", '"_x', { desc = "Remove(x) doesn't store its shit in normal clipboard" })
-
 vim.keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split Window Vertically" })
 vim.keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split Window Horizontally" })
 vim.keymap.set("n", "<leader>sx", "<cmd>close<CR>", { desc = "Close Current Split" })
