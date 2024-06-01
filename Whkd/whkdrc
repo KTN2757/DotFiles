@@ -4,14 +4,14 @@
 # alt + o                 : taskkill /f /im whkd.exe && start /b whkd # if shell is cmd
 # alt + shift + o         : komorebic reload-configuration
 alt + shift + w         : taskkill /f /im whkd.exe; Start-Process whkd -WindowStyle hidden # if shell is pwsh / powershell
-alt + shift + r		    : taskkill /f /im python.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; start python C:\Github\yasb\src\main.py -WindowStyle Hidden
+alt + shift + r		      : taskkill /f /im python.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; start python C:\Github\yasb\src\main.py -WindowStyle Hidden
 
 # App shortcuts - these require shell to be pwsh / powershell
 # The apps will be focused if open, or launched if not open
 alt + f                 : Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'
 alt + b                 : Start-Process 'chrome'
-ctrl + alt + t	    	: Start-Process wt
-alt+c			        : Start-Process codium -WindowStyle hidden
+ctrl + alt + t	       	: Start-Process wt
+alt+c			              : Start-Process codium -WindowStyle hidden
 
 # Focus windows
 alt + h                 : komorebic focus left
@@ -46,6 +46,8 @@ alt + shift + oem_minus : komorebic resize-axis vertical decrease
 # Manipulate windows
 alt + t                 : komorebic toggle-float
 alt + shift + f         : komorebic toggle-monocle
+alt + shift + n         : komorebic cycle-layout next
+alt + shift + p         : komorebic cycle-layout previous
 
 # Window manager options
 alt + ctrl + r          : komorebic retile
@@ -53,18 +55,18 @@ alt + p                 : komorebic toggle-pause
 
 # Layouts
 alt + shift + x         : komorebic flip-layout horizontal
-alt + shift + y		    : komorebic flip-layout vertical
+alt + shift + y		      : komorebic flip-layout vertical
 
 # Workspaces
 alt + 1                 : komorebic focus-workspace 0
 alt + 2                 : komorebic focus-workspace 1
 alt + 3                 : komorebic focus-workspace 2
-alt + 4			        : komorebic focus-workspace 3
-alt + 5			        : komorebic focus-workspace 4
+alt + 4			            : komorebic focus-workspace 3
+alt + 5			            : komorebic focus-workspace 4
 
 # Move windows across workspaces
 alt + shift + 1         : komorebic move-to-workspace 0
 alt + shift + 2         : komorebic move-to-workspace 1
 alt + shift + 3         : komorebic move-to-workspace 2
-alt + shift + 4		    : komorebic move-to-workspace 3
-alt + shift + 5		    : komorebic move-to-workspace 4
+alt + shift + 4		      : komorebic move-to-workspace 3
+alt + shift + 5		      : komorebic move-to-workspace 4
