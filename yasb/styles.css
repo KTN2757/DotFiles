@@ -20,9 +20,11 @@
 .container-right .widget * {
   color: #242424;
 }
+
 .komorebi-workspaces {
   margin-left: 0;
 }
+
 .ws-btn {
   padding: 5px;
   background: rgba(60, 56, 54, 0.4);
@@ -53,22 +55,27 @@
   font-size: 14px;
   background: #bdae93;
 }
+
 .custom-widget .icon {
   font-family: "Font Awesome 5 Free Solid";
   font-size: 13px;
 }
+
 .custom-widget:hover {
   font-family: "Font Awesome 5 Free Solid";
   background: #fbf1c7;
 }
+
 .custom-widget .icon.icon-left {
   font-family: "Font Awesome 5 Free Solid";
   margin-right: 5px;
 }
+
 .custom-widget .icon.icon-right {
   font-family: "Font Awesome 5 Free Solid";
   margin-left: 5px;
 }
+
 .custom-widget.hostname-widget {
   font-family: "Font Awesome 5 Free Solid";
   background: #83a598;
@@ -88,14 +95,17 @@
   font-size: 14px;
   border-radius: 5px;
 }
+
 .recycle-widget.label {
   font-family: "Font Awesome 5 Free Solid";
   background: #b3d3d9;
 }
+
 .traffic-widget .label {
   font-family: "Font Awesome 5 Free Solid";
   background: #b3d3d9;
 }
+
 .wifi-widget .label {
   font-family: "Font Awesome 5 Free Solid";
   background: #b8bb26;
@@ -110,26 +120,32 @@
   font-family: "Font Awesome 5 Free Solid";
   background: #fb4934;
 }
+
 .battery-widget .label.status-low {
   font-family: "Font Awesome 5 Free Solid";
   background: #fe8019;
 }
+
 .battery-widget .label.status-medium {
   font-family: "Font Awesome 5 Free Solid";
   background: #fabd2f;
 }
+
 .battery-widget .label.status-high {
   font-family: "Font Awesome 5 Free Solid";
   background: #b8bb26;
 }
+
 .battery-widget .label.status-full {
   font-family: "Font Awesome 5 Free Solid";
   background: #8ec07c;
 }
+
 .battery-widget .label.status-charging {
   font-family: "Font Awesome 5 Free Solid";
   background: #8ec07c;
 }
+
 .battery-widget,
 .memory-widget {
   font-family: "Font Awesome 5 Free Solid";
@@ -140,14 +156,17 @@
   font-family: "Font Awesome 5 Free Solid";
   background: #689d6a;
 }
+
 .memory-widget .label.status-medium {
   font-family: "Font Awesome 5 Free Solid";
   background: #fe8019;
 }
+
 .memory-widget .label.status-high {
   font-family: "Font Awesome 5 Free Solid";
   background: #cc241d;
 }
+
 .active-window-widget .label {
   padding: -5px 7px 0 7px;
   color: #242424;
