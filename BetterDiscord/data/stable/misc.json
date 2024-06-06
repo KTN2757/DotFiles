@@ -3,7 +3,11 @@
     "drawerStates": {
         "settings": {
             "addons": false,
-            "developer": false
+            "developer": false,
+            "customcss": false,
+            "editor": false,
+            "window": false,
+            "general": false
         }
     }
 }

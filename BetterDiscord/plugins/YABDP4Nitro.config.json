@@ -1,11 +1,11 @@
 {
     "currentVersionInfo": {
-        "version": "5.3.3",
+        "version": "5.3.4",
         "hasShownChangelog": true
     },
     "settings": {
         "emojiSize": 64,
-        "screenSharing": true,
+        "screenSharing": false,
         "emojiBypass": true,
         "ghostMode": true,
         "emojiBypassForValidEmoji": true,
