@@ -28,7 +28,7 @@ return {
       mapping = require("cmp").mapping.preset.insert({
         ["<s-Tab>"] = require("cmp").mapping.select_prev_item(),
         ["<Tab>"] = require("cmp").mapping.select_next_item(),
-        ["<C-e>"] = require("cmp").mapping.abort(),
+        ["<Esc>"] = require("cmp").mapping.abort(),
         ["<CR>"] = require("cmp").mapping.confirm({ select = false }),
       }),
       sources = require("cmp").config.sources({
