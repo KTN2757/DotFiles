@@ -55,6 +55,4 @@ end)
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
-vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle, { desc = "Toggle Undotree Menu" })
-
 vim.keymap.set("n", "<leader>gs", vim.cmd.Git, { desc = "Configure Git Stuff" })
