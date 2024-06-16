@@ -5,6 +5,12 @@ return {
   "tpope/vim-fugitive",
   {
     "stevearc/dressing.nvim",
-    event = "VeryLazy"
+    event = "VeryLazy",
   },
+  {
+    "norcalli/nvim-colorizer.lua",
+    config = function()
+      require 'colorizer'.setup()
+    end
+  }
 }
