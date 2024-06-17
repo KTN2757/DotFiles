@@ -7,11 +7,10 @@ alt + shift + w         : taskkill /f /im whkd.exe; Start-Process whkd -WindowSt
 alt + shift + r		      : taskkill /f /im python.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; start python C:\Github\yasb\src\main.py -WindowStyle Hidden
 
 # App shortcuts - these require shell to be pwsh / powershell
-# The apps will be focused if open, or launched if not open
 alt + f                 : Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'
 alt + b                 : Start-Process 'chrome'
 ctrl + alt + t	       	: Start-Process wt
-alt+c			              : Start-Process codium -WindowStyle hidden
+alt + c		              : Start-Process codium -WindowStyle hidden
 
 # Focus windows
 alt + h                 : komorebic focus left
@@ -63,6 +62,10 @@ alt + 2                 : komorebic focus-workspace 1
 alt + 3                 : komorebic focus-workspace 2
 alt + 4			            : komorebic focus-workspace 3
 alt + 5			            : komorebic focus-workspace 4
+alt + 6			            : komorebic focus-workspace 5
+alt + 7			            : komorebic focus-workspace 6
+alt + 8			            : komorebic focus-workspace 7
+alt + 9			            : komorebic focus-workspace 8
 
 # Move windows across workspaces
 alt + shift + 1         : komorebic move-to-workspace 0
@@ -70,3 +73,7 @@ alt + shift + 2         : komorebic move-to-workspace 1
 alt + shift + 3         : komorebic move-to-workspace 2
 alt + shift + 4		      : komorebic move-to-workspace 3
 alt + shift + 5		      : komorebic move-to-workspace 4
+alt + shift + 6		      : komorebic move-to-workspace 5
+alt + shift + 7		      : komorebic move-to-workspace 6
+alt + shift + 8		      : komorebic move-to-workspace 7
+alt + shift + 9		      : komorebic move-to-workspace 8
