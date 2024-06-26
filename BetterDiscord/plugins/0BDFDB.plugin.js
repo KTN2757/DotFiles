@@ -2,7 +2,7 @@
  * @name BDFDB
  * @author DevilBro
  * @authorId 278543574059057154
- * @version 3.6.6
+ * @version 3.7.2
  * @description Required Library for DevilBro's Plugins
  * @invite Jx3TjNS
  * @donate https://www.paypal.me/MircoWittrien
@@ -27,7 +27,9 @@ module.exports = (_ => {
 	BDFDB = {
 		started: true,
 		changeLog: {
-			
+			"fixed": {
+				"A lot of Plugin Issues": "Library should be stable again and Plugins should be running again, there will be some Issues with Plugins not working properly yet, let me know if you catch a bug"
+			}
 		}
 	};
 	
@@ -1402,7 +1404,7 @@ module.exports = (_ => {
 					let secondReturn = BDFDB.ModuleUtils.find(m => {
 						if (typeof m != "function") return false;
 						let stringified = m.toString().replace(/\s/g, "");
-						if (stringified.indexOf(".exports={") == -1 || !(/function\([A-z],[A-z],[A-z]\)\{"usestrict";[A-z]\.exports=\{/.test(stringified) || /function\([A-z]\)\{"usestrict";[A-z]\.exports=\{/.test(stringified))) return false;
+						if (stringified.indexOf(".exports={") == -1 || !(/function\([A-z],[A-z],[A-z]\)\{[A-z]\.[A-z]\([A-z]\.exports=\{/.test(stringified) || /function\([A-z],[A-z],[A-z]\)\{[A-z]\.exports=\{/.test(stringified) || /function\([A-z]\)\{[A-z]\.exports=\{/.test(stringified))) return false;
 						let amount = stringified.split(":\"").length - 1;
 						return (!config.length || (config.smaller ? amount < config.length : amount == config.length)) && [props].flat(10).every(string => stringified.indexOf(`${string}:`) > -1) && m;
 					}, {onlySearchUnloaded: true, all: config.all, defaultExport: config.defaultExport});
@@ -1410,7 +1412,14 @@ module.exports = (_ => {
 					return BDFDB.ArrayUtils.removeCopies([firstReturn].concat(secondReturn).flat(10));
 				};
 				
-				const DiscordConstantsObject = BDFDB.ModuleUtils.findByProperties("AnalyticsSections", "ChannelTypes", "MessageTypes");
+				const DiscordConstantsObject = BDFDB.ModuleUtils.find(m => {try {
+				    if (!m || !Object.keys(m)) return;
+				    if ([["CUSTOM_STATUS", "STREAMING", "WATCHING"], ["GUILD_TEXT", "GUILD_FORUM", "GUILD_STORE"], ["THREAD_CREATED", "CHAT_INPUT_COMMAND"]].every(array => Object.keys(m).some(k => {
+					if (!m[k]) return false;
+					let keys = Object.keys(m[k]);
+					if (keys && array.every(n => keys.indexOf(n) > -1)) return true;
+				    }))) return m;
+				} catch (err) {}});
 				if (InternalData.CustomDiscordConstants) DiscordConstants = Object.assign(DiscordConstants, InternalData.CustomDiscordConstants);
 				if (DiscordConstantsObject) DiscordConstants = Object.assign(DiscordConstants, DiscordConstantsObject);
 				Internal.DiscordConstants = new Proxy(DiscordConstants, {
@@ -1421,11 +1430,39 @@ module.exports = (_ => {
 							return {};
 						}
 						if (InternalData.DiscordConstants[item].strings) DiscordConstants[item] = BDFDB.ModuleUtils.findByString(InternalData.DiscordConstants[item].strings);
-						else DiscordConstants[item] = BDFDB.ModuleUtils.findByProperties(InternalData.DiscordConstants[item]);
-						if (InternalData.DiscordConstants[item].value) DiscordConstants[item] = DiscordConstants[item][InternalData.DiscordConstants[item].value] || DiscordConstants[item];
+						else {
+							if (DiscordConstantsObject) DiscordConstants[item] = DiscordConstantsObject[Object.keys(DiscordConstantsObject).find(n => {
+								let keys = Object.keys(DiscordConstantsObject[n]);
+								if (keys && keys.length < 10000 && InternalData.DiscordConstants[item].every(k => keys.indexOf(k) > -1)) return true;
+							})];
+							if (!DiscordConstants[item]) DiscordConstants[item] = BDFDB.ModuleUtils.findByProperties(InternalData.DiscordConstants[item]);
+						}
+						if (DiscordConstants[item] && InternalData.DiscordConstants[item].value) DiscordConstants[item] = DiscordConstants[item][InternalData.DiscordConstants[item].value] || DiscordConstants[item];
 						return DiscordConstants[item] ? DiscordConstants[item] : {};
 					}
 				});
+				const DiscordColors = BDFDB.ModuleUtils.findByProperties("spotify", "guild-boosting-blue") || {};
+				Internal.DiscordConstants.Colors = new Proxy(DiscordConstants, {
+					get: function (_, item) {
+						const color = DiscordColors[item] || DiscordColors[item.toLowerCase()] || DiscordColors[item.toUpperCase()];
+						if (color) return color && color.hex || color || "";
+						else {
+							const item2 = item + "-500";
+							const color2 = DiscordColors[item2] || DiscordColors[item2.toLowerCase()] || DiscordColors[item2.toUpperCase()];
+							if (color2) return color2 && color2.hex || color2 || "";
+							else {
+								const item3 = item.replace(/-/g, "_");
+								const color3 = DiscordColors[item3] || DiscordColors[item3.toLowerCase()] || DiscordColors[item3.toUpperCase()];
+								if (color3) return color3 && color3.hex || color3 || "";
+								else {
+									const item4 = item.replace(/_/g, "-");
+									const color4 = DiscordColors[item4] || DiscordColors[item4.toLowerCase()] || DiscordColors[item4.toUpperCase()];
+									return color4 && color4.hex || color4 || "";
+							}
+							}
+						}
+					}
+				})
 				BDFDB.DiscordConstants = Internal.DiscordConstants;
 				
 				Internal.DiscordObjects = new Proxy(DiscordObjects, {
@@ -2517,14 +2554,18 @@ module.exports = (_ => {
 						if (LibraryModules[item]) return LibraryModules[item];
 						if (!InternalData.LibraryModules[item]) return null;
 						
-						Internal.findModuleViaData(LibraryModules, InternalData.LibraryModules, item);
+						if (item == "HTTPUtils") {
+							const APIUtils = Internal.LibraryModules.APIUtils;
+							if (APIUtils && InternalData.LibraryModules.HTTPUtils.props) LibraryModules[item] = (Object.entries(APIUtils).find(entry => InternalData.LibraryModules.HTTPUtils.props.every(prop => entry[1][prop] !== undefined)) || [])[1];
+						}
+						else Internal.findModuleViaData(LibraryModules, InternalData.LibraryModules, item);
 						
 						return LibraryModules[item] ? LibraryModules[item] : null;
 					}
 				});
 				BDFDB.LibraryModules = Internal.LibraryModules;
 				
-				if (Internal.LibraryModules.KeyCodeUtils) {
+				if (Internal.LibraryModules.KeyCodeUtils && Internal.LibraryModules.PlatformUtils) {
 					let originalModule = LibraryModules.KeyCodeUtils;
 					LibraryModules.KeyCodeUtils = new Proxy(originalModule, {
 						get: function (_, item) {
@@ -2535,7 +2576,7 @@ module.exports = (_ => {
 						}
 					});
 					
-					let codeMap = BDFDB.ObjectUtils.invert(Internal.LibraryModules.PlatformUtils.isLinux() ? Internal.DiscordConstants.LinuxKeyToCode : Internal.LibraryModules.PlatformUtils.isMac() ? Internal.DiscordConstants.MacosKeyToCode : Internal.LibraryModules.PlatformUtils.isWindows() ? Internal.DiscordConstants.WindowsKeyToCode : {});
+					let codeMap = BDFDB.ObjectUtils.invert(Internal.LibraryModules.PlatformUtils.isLinux && Internal.LibraryModules.PlatformUtils.isLinux() ? Internal.DiscordConstants.LinuxKeyToCode : Internal.LibraryModules.PlatformUtils.isMac && Internal.LibraryModules.PlatformUtils.isMac() ? Internal.DiscordConstants.MacosKeyToCode : Internal.LibraryModules.PlatformUtils && Internal.LibraryModules.PlatformUtils.isWindows() ? Internal.DiscordConstants.WindowsKeyToCode : {});
 					let keyMap = [["META", "⌘"], ["RIGHT META", "RIGHT ⌘"], ["SHIFT", "⇧"], ["RIGHT SHIFT", "RIGHT ⇧"], ["ALT", "⌥"], ["RIGHT ALT", "RIGHT ⌥"], ["CTRL", "⌃"], ["RIGHT CTRL", "RIGHT ⌃"], ["ENTER", "↵"], ["BACKSPACE", "⌫"], ["DEL", "⌦"], ["ESC", "⎋"], ["PAGEUP", "⇞"], ["PAGEDOWN", "⇟"], ["UP", "↑"], ["DOWN", "↓"], ["LEFT", "←"], ["RIGHT", "→"], ["HOME", "↖"], ["END", "↘"], ["TAB", "⇥"], ["SPACE", "␣"]];
 					let mapKeys = key => {
 						let upperCaseKey = key.toUpperCase();
@@ -3042,7 +3083,7 @@ module.exports = (_ => {
 					return activity && activity.type == Internal.DiscordConstants.ActivityTypes.STREAMING ? "streaming" : Internal.LibraryStores.PresenceStore.getStatus(id);
 				};
 				BDFDB.UserUtils.getStatusColor = function (status, useColor) {
-					if (!Internal.DiscordConstants.Colors) return null;
+					if (!Internal.DiscordConstants.Colors || !Internal.DiscordConstants.ColorsCSS) return null;
 					status = typeof status == "string" ? status.toLowerCase() : null;
 					let color = "";
 					switch (status) {
@@ -4375,21 +4416,15 @@ module.exports = (_ => {
 						let LayersProviderIns = BDFDB.ReactUtils.findOwner(document.querySelector(BDFDB.dotCN.layers), {name: "LayersProvider", unlimited: true, up: true});
 						let LayersProviderType = LayersProviderIns && BDFDB.ObjectUtils.get(LayersProviderIns, `${BDFDB.ReactUtils.instanceKey}.type`);
 						if (!LayersProviderType) return;
-						let parentSelector = "", notices = document.querySelector("#bd-notices");
-						if (notices) {
-							let parentClasses = []
-							for (let i = 0, parent = notices.parentElement; i < 3; i++, parent = parent.parentElement) parentClasses.push(parent.className);
-							parentSelector = parentClasses.reverse().map(n => !n ? "*" : `.${n.split(" ").join(".")}`).join(" > ");
-						}
+						let notices = document.querySelector("#bd-notices:has(#outdated-plugins)");
 						BDFDB.PatchUtils.patch({name: "BDFDB DiscordUtils"}, LayersProviderType.prototype, "render", {after: e => {
 							e.returnValue = BDFDB.ReactUtils.createElement(LayersProviderType, LayersProviderIns.props);
 							BDFDB.ReactUtils.forceUpdate(LayersProviderIns);
-							if (parentSelector) BDFDB.TimeUtils.timeout(_ => {
-								if (!document.contains(notices)) {
-									let parent = document.querySelector(parentSelector) || document.querySelector(BDFDB.dotCN.app).parentElement;
-									if (parent) parent.insertBefore(notices, parent.firstElementChild);
-								}
-							}, 1000);
+							if (notices) BDFDB.TimeUtils.timeout(_ => {if (!document.contains(notices)) {
+								let ZeresPluginLibrary = BDFDB.BDUtils.getPlugin("ZeresPluginLibrary");
+								let updateChecker = ZeresPluginLibrary && ZeresPluginLibrary?.Library?.PluginUpdater?.checkAllPlugins;
+								if (typeof updateChecker == "function") updateChecker.apply(ZeresPluginLibrary.Library.PluginUpdater);
+							}}, 1000);
 						}}, {once: true});
 						BDFDB.ReactUtils.forceUpdate(LayersProviderIns);
 					}, instant ? 0 : 1000);
@@ -4424,13 +4459,13 @@ module.exports = (_ => {
 						BDFDB.LogUtils.warn([DiscordClasses[item][0], "not found in DiscordClassModules"]);
 						return className;
 					}
-					else if ([DiscordClasses[item][1]].flat().every(prop => Internal.DiscordClassModules[DiscordClasses[item][0]][prop] === undefined)) {
+					else if ([DiscordClasses[item][1]].flat().every(prop => Internal.DiscordClassModules[DiscordClasses[item][0]][prop] === undefined && !(JSON.stringify(Internal.DiscordClassModules[DiscordClasses[item][0]]).split(" ").find(n => n.startsWith(`${prop}_`)) || "").split("\"")[0])) {
 						BDFDB.LogUtils.warn([DiscordClasses[item][1], "not found in", DiscordClasses[item][0], "in DiscordClassModules"]);
 						return className;
 					}
 					else {
 						for (let prop of [DiscordClasses[item][1]].flat()) {
-							className = Internal.DiscordClassModules[DiscordClasses[item][0]][prop];
+							className = Internal.DiscordClassModules[DiscordClasses[item][0]][prop] || (JSON.stringify(Internal.DiscordClassModules[DiscordClasses[item][0]]).split(" ").find(n => n.startsWith(`${prop}_`)) || "").split("\"")[0];
 							if (className) break;
 							else className = fallbackClassName;
 						}
@@ -7108,7 +7143,7 @@ module.exports = (_ => {
 				CustomComponents.SettingsLabel = reactInitialized && class BDFDB_SettingsLabel extends Internal.LibraryModules.React.Component {
 					render() {
 						return BDFDB.ReactUtils.createElement(Internal.LibraryComponents.TextScroller, {
-							className: BDFDB.DOMUtils.formatClassName(this.props.className, BDFDB.disCN.settingsrowtitle, this.props.mini ? BDFDB.disCN.settingsrowtitlemini : BDFDB.disCN.settingsrowtitledefault, BDFDB.disCN.cursordefault),
+							className: BDFDB.DOMUtils.formatClassName(this.props.className, BDFDB.disCN.settingsrowtitle, this.props.mini && BDFDB.disCN.settingsrowtitlemini, BDFDB.disCN.cursordefault),
 							speed: 2,
 							children: this.props.label
 						});
@@ -7166,7 +7201,7 @@ module.exports = (_ => {
 					}
 					renderItem(props) {
 						return BDFDB.ReactUtils.createElement(Internal.LibraryComponents.Card, BDFDB.ObjectUtils.exclude(Object.assign({}, this.props, {
-							className: BDFDB.DOMUtils.formatClassName([this.props.cardClassName, props.className].filter(n => n).join(" ").indexOf(BDFDB.disCN.card) == -1 && BDFDB.disCN.cardprimaryoutline, BDFDB.disCN.settingstablecard, this.props.cardClassName, props.className),
+							className: BDFDB.DOMUtils.formatClassName([this.props.cardClassName, props.className].filter(n => n).join(" ").indexOf(BDFDB.disCN.card) == -1 && BDFDB.disCN.cardprimary, BDFDB.disCN.settingstablecard, this.props.cardClassName, props.className),
 							cardId: props.key,
 							backdrop: false,
 							horizontal: true,
@@ -7367,19 +7402,13 @@ module.exports = (_ => {
 				CustomComponents.SvgIcon = reactInitialized && class BDFDB_Icon extends Internal.LibraryModules.React.Component {
 					render() {
 						if (BDFDB.ObjectUtils.is(this.props.name)) {
-							let calcClassName = [];
-							if (BDFDB.ObjectUtils.is(this.props.name.getClassName)) for (let path in this.props.name.getClassName) {
-								if (!path || BDFDB.ObjectUtils.get(this, path)) calcClassName.push(BDFDB.disCN[this.props.name.getClassName[path]]);
-							}
-							if (calcClassName.length || this.props.className) this.props.nativeClass = true;
+							if (this.props.className) this.props.nativeClass = true;
 							this.props.iconSVG = this.props.name.icon;
 							let props = Object.assign({
 								width: 24,
 								height: 24,
 								color: "currentColor"
-							}, this.props.name.defaultProps, this.props, {
-								className: BDFDB.DOMUtils.formatClassName(calcClassName, this.props.className)
-							});
+							}, this.props.name.defaultProps, this.props);
 							for (let key in props) this.props.iconSVG = this.props.iconSVG.replace(new RegExp(`%%${key}`, "g"), props[key]);
 						}
 						if (this.props.iconSVG) {

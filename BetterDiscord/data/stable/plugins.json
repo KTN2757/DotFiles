@@ -1,17 +1,14 @@
 {
-    "CallTimeCounter": true,
-    "InvisibleTyping": true,
-    "PluginRepo": true,
-    "SpotifyControls": true,
     "BDFDB": true,
     "ZeresPluginLibrary": true,
-    "HideDisabledEmojis": true,
-    "ThemeRepo": true,
-    "PermissionsViewer": true,
-    "BetterAnimations": false,
+    "CallTimeCounter": true,
     "DoNotTrack": true,
+    "HideDisabledEmojis": true,
     "ImageUtilities": true,
-    "FreeEmojis": false,
-    "YABDP4Nitro": true,
-    "FreeStickers": true
+    "InvisibleTyping": true,
+    "PermissionsViewer": true,
+    "PluginRepo": true,
+    "SpotifyControls": true,
+    "ThemeRepo": true,
+    "YABDP4Nitro": true
 }
