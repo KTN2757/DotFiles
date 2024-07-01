@@ -55,11 +55,12 @@ widgets:
   komorebi_workspaces:
     type: "komorebi.workspaces.WorkspaceWidget"
     options:
-      label_offline: "Komorebi Offline"
+      # Make the thingy self._offline_text.setText() in main src.
+      label_offline: ""
       label_workspace_btn: "{name}"
       label_default_name: "{index}"
       label_zero_index: false
-      hide_empty_workspaces: false
+      hide_empty_workspaces: true
       # Check https://github.com/da-rth/yasb/compare/main...thearturca:yasb:main
       preview_workspace: true
 
