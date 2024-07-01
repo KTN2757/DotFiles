@@ -72,7 +72,7 @@
   /* Brightness of --tint-colour | 0 - 1 (decimals allowed) | DEFAULT: 0 */
 
   /* Other variables */
-  --window-padding: 20px;
+  --window-padding: 0px;
   /* Spacing around the Discord window | DEFAULT: 20px */
   --window-roundness: 10px;
   /* Roundness of Discord | DEFAULT: 10px */
