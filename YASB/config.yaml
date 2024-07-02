@@ -55,7 +55,7 @@ widgets:
   komorebi_workspaces:
     type: "komorebi.workspaces.WorkspaceWidget"
     options:
-      # Make the thingy self._offline_text.setText() in main src.
+      # Comment out all instances of _offline_text in C:\Github\yasb\src\core\widgets\komorebi\workspace.py
       label_offline: ""
       label_workspace_btn: "{name}"
       label_default_name: "{index}"
