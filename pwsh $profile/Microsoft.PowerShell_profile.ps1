@@ -12,7 +12,7 @@ if (Test-Path($ChocolateyProfile))
 }
 function touch($file)
 {
-  "" | Out-File test.py -Append -NoNewLine -NoClobber -Encoding ASCII
+  "" | Out-File $file -Append -NoNewLine -NoClobber -Encoding ASCII
 }
 function which($name)
 {
@@ -20,6 +20,6 @@ function which($name)
 }
 function digclk
 {
-  $scriptPath = Resolve-Path -Path 'C:\Github\Digital Clock\digclk.ps1'
+  $scriptPath = Resolve-Path -Path 'D:\Github\dig-clock\digclk.ps1'
   & $scriptPath
 }
