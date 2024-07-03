@@ -16,7 +16,7 @@
   margin: 0px;
   border-radius: 12px;
   margin-right: 3px;
-  background: #494949;
+  background: #343434;
 }
 
 .container-right .widget * {
@@ -26,17 +26,20 @@
 .komorebi-active-layout .label {
   font-family: Hack;
   padding: 1px 0px 0px 4px;
-  border-radius: 12px;
-  background: #494949;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  background: #343434;
   color: #ffffff;
-  margin-right: -10;
+  margin-right: -2;
   border: 2px solid #753cfe;
 }
 
 .komorebi-workspaces {
-  margin-left: -10px;
-  background: #494949;
+  margin-left: -2px;
+  background: #343434;
   border-radius: 12px;
+  border-top-left-radius:0px;
+  border-bottom-left-radius:0px;
   border: 2px solid #753cfe;
 }
 
@@ -67,7 +70,7 @@
 }
 
 .active-window-widget .label {
-  background: #494949;
+  background: #343434;
   padding: -2px 7px 0 7px;
   color: #ffffff;
   border: 2px solid #2bcfff;
@@ -78,7 +81,7 @@
 
 .clock-widget .label {
   color: #efefef;
-  background: #494949;
+  background: #343434;
   border: 2px solid #65be31;
   padding: 4px 7px;
   font-size: 15px;
@@ -87,7 +90,7 @@
 
 .custom-widget {
   font-family: "Font Awesome 5 Free Solid";
-  background: #494949;
+  background: #343434;
   padding: 2px 6px;
   font-size: 14px;
   border: 2px solid #b3d3d9;
