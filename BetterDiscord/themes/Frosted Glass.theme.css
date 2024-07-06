@@ -16,11 +16,11 @@
 @import url('https://monstrousdev.github.io/themes/addons/user-tags.css');
 
 /* Old Windows titlebar - remove this @import if you wish to use default titlebar */
-@import url("https://gibbu.github.io/BetterDiscord-Themes/addons/windows-titlebar.css");
+/* @import url("https://gibbu.github.io/BetterDiscord-Themes/addons/windows-titlebar.css"); */
 
 :root {
   /* Background image variables */
-  --background-image: background image | URL MUST BE A DIRECT LINK (ending in .jpg, .jpeg, .png, .gif) */ --background-image-blur: 69px;
+  --background-image: background image | URL MUST BE A DIRECT LINK (ending in .jpg, .jpeg, .png, .gif) */ --background-image-blur: 0px;
   /* Blur intensity of --background-image | Must end in px | DEFAULT: 5px */
   --background-image-size: cover;
   /* Size of the background image | DEFAUT: cover | OPTIONS: cover, contain */
