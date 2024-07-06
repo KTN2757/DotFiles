@@ -18,6 +18,13 @@
       "background": "#141414"
     }
   },
+  "manage_rules": [
+    {
+      "id": "- Discord",
+      "kind": "Title",
+      "matching_strategy": "EndsWith"
+    }
+  ],
   "border": true,
   "border_width": 4,
   "border_padding": 0,
