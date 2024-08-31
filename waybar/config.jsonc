@@ -2,7 +2,7 @@
 // -*- mode: jsonc -*-
     "layer": "top",
     "position": "top",
-    "height": 10,
+    "height": 50,
     "spacing": 4,
     "reload_style_on_change": true,
 
