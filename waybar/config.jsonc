@@ -21,7 +21,8 @@
         "power-profiles-daemon",
         "group/hardware",
         "battery",
-        "tray"
+        "tray",
+        "custom/power"
     ],
 
     // Hardware Group

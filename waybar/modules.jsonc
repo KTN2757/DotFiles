@@ -1,10 +1,6 @@
 {
     // -*- mode: jsonc -*-
     // Modules configuration
-    "hyprland/window":{
-        "format": " {} ",
-        "max-length": 45
-    },
     "hyprland/workspaces": { 
         "disable-scroll": true,
         "all-outputs": true,
@@ -26,8 +22,14 @@
             "default": ""
         }
     },
-    "tray": {
-        "spacing": 10
+    "hyprland/window":{
+        "format": " {} ",
+        "max-length": 45
+    },
+    "clock": {
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format": "{:%Y-%m-%d(%a) %I:%M:%S %p}",
+        "format-alt": "{:%Y-%m-%d}"
     },
     "custom/music": {
         "format": " {} ",
@@ -47,10 +49,30 @@
         "on-scroll-down": "playerctl volume 0.05-",
         "max-length": 35
     },
-    "clock": {
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": "{:%Y-%m-%d(%a) %I:%M:%S %p}",
-        "format-alt": "{:%Y-%m-%d}"
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-bluetooth": "{volume}% {icon} {format_source}",
+        "format-bluetooth-muted": " {icon} {format_source}",
+        "format-muted": "",
+        "format-source": "{volume}%",
+        "format-source-muted": "",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["", "", ""]
+        },
+        "on-click": "pavucontrol"
+    },
+    "network": {
+        "format-wifi": "\uf1eb({signalStrength}%)",
+        "format-ethernet": "{ipaddr}/{cidr} ",
+        "format-linked": "{ifname} (No IP) ",
+        "format-disconnected": "Disconnected ⚠",
+        "on-click": "kitty -e nmtui"
     },
     "cpu": {
         "format": " {usage}%"
@@ -84,29 +106,13 @@
             "power-saver": ""
         }
     },
-    "network": {
-        "format-wifi": "\uf1eb({signalStrength}%)",
-        "format-ethernet": "{ipaddr}/{cidr} ",
-        "format-linked": "{ifname} (No IP) ",
-        "format-disconnected": "Disconnected ⚠",
-        "on-click": "kitty -e nmtui"
+    "tray": {
+        "spacing": 10
     },
-    "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-bluetooth": "{volume}% {icon} {format_source}",
-        "format-bluetooth-muted": " {icon} {format_source}",
-        "format-muted": "",
-        "format-source": "{volume}%",
-        "format-source-muted": "",
-        "format-icons": {
-            "headphone": "",
-            "hands-free": "",
-            "headset": "",
-            "phone": "",
-            "portable": "",
-            "car": "",
-            "default": ["", "", ""]
-        },
-        "on-click": "pavucontrol"
+    "custom/power": {
+        "format": "",
+        "tooltip": true,
+        "tooltip-format": "Log out",
+        "on-click": "hyprctl dispatch exit"
     }
 }

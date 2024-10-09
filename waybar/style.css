@@ -1,14 +1,34 @@
-@import "../../.cache/wal/colors-waybar.css";
-
 * {
     font-family: "Font Awesome 5 Free", CaskaydiaCove NFM, Roboto, Helvetica, Arial, sans-serif;
     background: transparent;
     border-radius: 16px;
 }
 
-window#waybar {
-    font-size: 15px;
+tooltip {
+    background: rgba(0, 0, 0, 0.4);
+    color: rgba(255, 255, 255, 0.8);
 
+}
+
+label:focus {
+    background: #000000;
+}
+
+/* If workspaces is the leftmost module, omit left margin */
+.modules-left>widget:first-child>#workspaces {
+    margin-left: 0;
+}
+
+/* If workspaces is the rightmost module, omit right margin */
+.modules-right>widget:last-child>#workspaces {
+    margin-right: 0;
+}
+
+@keyframes blink {
+    to {
+        background: #ffffff;
+        color: #000000;
+    }
 }
 
 #workspaces {
@@ -42,14 +62,27 @@ window#waybar {
 }
 
 #workspaces button.urgent {
-    background-color: #eb4d4b;
+    background: #eb4d4b;
 }
 
-#pulseaudio:hover {
-    background-color: #a37800;
+window#waybar {
+    font-size: 17px;
+}
+
+#window {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 2px solid #2bcfff;
+    color: #ffffff;
+    background: #343434;
+}
+
+#window:hover {
+    background: rgba(43, 207, 255, 0.6);
 }
 
 #clock,
+#custom-power,
 #battery,
 #cpu,
 #memory,
@@ -63,44 +96,102 @@ window#waybar {
     margin-bottom: 3px;
 }
 
-#window {
-    margin-top: 3px;
-    margin-bottom: 3px;
-    border: 2px solid #2bcfff;
-    color: #ffffff;
-    background: #343434;
-}
-
-/* If workspaces is the leftmost module, omit left margin */
-.modules-left>widget:first-child>#workspaces {
-    margin-left: 0;
-}
-
-/* If workspaces is the rightmost module, omit right margin */
-.modules-right>widget:last-child>#workspaces {
-    margin-right: 0;
-}
-
 #clock {
     font-family: CaskaydiaCove NFM;
     border: 2px solid #65be31;
+}
+
+#clock:hover {
+    background: rgba(101, 190, 49, 0.6);
+}
+
+#custom-music.Playing {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background: #343434;
+    border: 2px solid #008000;
+    background-size: 400% 400%;
+    animation: gradient_f 9s cubic-bezier(.72, .39, .21, 1) infinite;
+    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.377);
+    font-weight: bold;
+    color: #ffffff;
+}
+
+#custom-music.Playing:hover {
+    background: rgba(0, 128, 0, 0.6);
+}
+
+#custom-music.Paused,
+#custom-music.Stopped {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background: #343434;
+    border: 2px solid #161925;
+    border: 2px solid;
+    color: #ffffff;
+}
+
+#custom-music.Paused:hover,
+#custom-music.Stopped:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+#pulseaudio:hover {
+    background: #a37800;
+}
+
+#pulseaudio {
+    border: 2px solid #f1c40f;
+}
+
+#pulseaudio.muted {
+    border: 2px solid #90b1b1;
+}
+
+#network {
+    border: 2px solid #2980b9;
+}
+
+#network:hover {
+    background: rgba(41, 128, 185, 0.6);
+}
+
+#network.disconnected {
+    background: #f53c3c;
+}
+
+#cpu {
+    margin-right: 2px;
+    border: 2px solid #d3869b;
+}
+
+#cpu:hover {
+    background: rgba(211, 134, 155, 0.6);
+}
+
+#memory {
+    border: 2px solid #fe8019;
+    margin-left: 2px;
+}
+
+#memory:hover {
+    background: rgba(254, 128, 25, 0.6);
 }
 
 #battery {
     border: 2px solid #8ec07c;
 }
 
+#battery:hover {
+    background: rgba(142, 192, 124, 0.6);
+}
+
 #battery.charging,
 #battery.plugged {
     color: #ffffff;
     border: 2px solid #26A65B;
-}
-
-@keyframes blink {
-    to {
-        background-color: #ffffff;
-        color: #000000;
-    }
 }
 
 #battery.critical:not(.charging) {
@@ -110,6 +201,41 @@ window#waybar {
     animation-timing-function: steps(12);
     animation-iteration-count: infinite;
     animation-direction: alternate;
+}
+
+#tray {
+    border: 2px solid #2980b9;
+}
+
+#tray:hover {
+    background: rgba(41, 128, 185, 0.6);
+}
+
+#tray>.passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray>.needs-attention {
+    -gtk-icon-effect: highlight;
+    background: #eb4d4b;
+}
+
+#tray menu {
+    min-height: 16px;
+    background: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#tray menu separator {
+    min-height: 10px;
+}
+
+#custom-power {
+    border: 2px solid #ff0000;
+}
+
+#custom-power:hover {
+    background: rgba(255, 0, 0, 0.6);
 }
 
 #power-profiles-daemon {
@@ -127,71 +253,15 @@ window#waybar {
 }
 
 #power-profiles-daemon.power-saver {
-    background-color: #2ecc71;
+    background: #2ecc71;
     color: #000000;
 }
 
-label:focus {
-    background-color: #000000;
+#idle_inhibitor {
+    background: #2d3436;
 }
 
-#cpu {
-    border: 2px solid #d3869b;
-}
-
-#memory {
-    border: 2px solid #fe8019;
-}
-
-#network {
-    border: 2px solid #2980b9;
-}
-
-#network.disconnected {
-    background-color: #f53c3c;
-}
-
-#pulseaudio {
-    border: 2px solid #f1c40f;
-}
-
-#pulseaudio.muted {
-    border: 2px solid #90b1b1;
-}
-
-#tray {
-    border: 2px solid #2980b9;
-}
-
-#tray>.passive {
-    -gtk-icon-effect: dim;
-}
-
-#tray>.needs-attention {
-    -gtk-icon-effect: highlight;
-    background-color: #eb4d4b;
-}
-
-#custom-music.Playing {
-    font-family: CaskaydiaCove NFM;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    background: #343434;
-    border: 2px solid green;
-    background-size: 400% 400%;
-    animation: gradient_f 9s cubic-bezier(.72, .39, .21, 1) infinite;
-    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.377);
-    font-weight: bold;
-    color: #ffffff;
-}
-
-#custom-music.Paused,
-#custom-music.Stopped {
-    font-family: CaskaydiaCove NFM;
-    margin-top: 3px;
-    margin-bottom: 3px;
-    background: #343434;
-    border: 2px solid #161925;
-    border: 2px solid;
-    color: #ffffff;
+#idle_inhibitor.activated {
+    background: #ecf0f1;
+    color: #2d3436;
 }
