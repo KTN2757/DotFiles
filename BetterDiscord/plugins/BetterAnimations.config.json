@@ -1,20 +1,20 @@
 {
     "currentVersionInfo": {
-        "version": "1.1.18",
+        "version": "1.1.23",
         "hasShownChangelog": true
     },
     "settings": {
         "guild": {
-            "enabled": true,
-            "type": "scaleChange",
-            "easing": "easeInOutCubic",
-            "duration": 500
-        },
-        "channel": {
-            "enabled": true,
+            "enabled": false,
             "type": "slipUp",
             "easing": "easeInOutCubic",
-            "duration": 300
+            "duration": 700
+        },
+        "channel": {
+            "enabled": false,
+            "type": "slipUp",
+            "easing": "easeInOutCubic",
+            "duration": 500
         },
         "settings": {
             "enabled": true,
@@ -23,10 +23,10 @@
             "duration": 500
         },
         "messages": {
-            "enabled": true,
+            "enabled": false,
             "type": "slip",
             "easing": "easeOutQuart",
-            "position": "top",
+            "position": "bottom",
             "duration": 200
         },
         "popouts": {

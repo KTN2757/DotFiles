@@ -1,8 +1,8 @@
 {
     "general": {
-        "voiceDisconnect": true,
+        "voiceDisconnect": false,
         "showToasts": true,
-        "mediaKeys": true,
+        "mediaKeys": false,
         "bdContextMenu": true
     },
     "addons": {

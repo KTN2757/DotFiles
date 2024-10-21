@@ -2,7 +2,7 @@
 	"all": {
 		"detailsSettings": {
 			"footnote": true,
-			"tooltip": true,
+			"tooltip": false,
 			"tooltipDelay": 0
 		},
 		"engines": {
@@ -39,7 +39,7 @@
 			"wmv": true
 		},
 		"general": {
-			"nsfwMode": true
+			"nsfwMode": false
 		},
 		"places": {
 			"userAvatars": true,
@@ -50,7 +50,8 @@
 		},
 		"rescaleSettings": {
 			"messages": "NONE",
-			"imageViewer": "NONE"
+			"imageViewer": "NONE",
+			"rescaleEmbeds": true
 		},
 		"viewerSettings": {
 			"zoomMode": true,

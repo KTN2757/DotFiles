@@ -1,5 +1,7 @@
 {
+    "PluginRepo": true,
     "BDFDB": true,
+    "BetterAnimations": true,
     "ZeresPluginLibrary": true,
     "CallTimeCounter": true,
     "DoNotTrack": true,
@@ -7,8 +9,7 @@
     "ImageUtilities": true,
     "InvisibleTyping": true,
     "PermissionsViewer": true,
-    "PluginRepo": true,
-    "SpotifyControls": true,
     "ThemeRepo": true,
+    "SpotifyControls": true,
     "YABDP4Nitro": true
 }

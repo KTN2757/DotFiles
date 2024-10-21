@@ -1,11 +1,11 @@
 {
 	"all": {
 		"changeLogs": {
-			"BDFDB": "3.7.2",
-			"ImageUtilities": "5.4.5",
-			"PluginRepo": "2.5.5",
-			"SpotifyControls": "1.4.0",
-			"ThemeRepo": "2.5.6"
+			"BDFDB": "3.8.1",
+			"ImageUtilities": "5.4.7",
+			"PluginRepo": "2.5.8",
+			"SpotifyControls": "1.4.1",
+			"ThemeRepo": "2.5.8"
 		},
 		"choices": {
 			"toastPosition": "right"
@@ -17,8 +17,8 @@
 			"useChromium": false
 		},
 		"hashes": {
-			"0BDFDB.data.json": "26c5bc06079f4e124118a949c5ba1c7abde2ad6a",
-			"0BDFDB.raw.css": "ed403dd1e22b2cb14d4153a296366cbef66e17b9"
+			"0BDFDB.data.json": "9a0cafe21be07f173fa52496dbf028019452e2f0",
+			"0BDFDB.raw.css": "81dd52fb9f66039d356f9370779b76d476321e33"
 		}
 	}
 }
