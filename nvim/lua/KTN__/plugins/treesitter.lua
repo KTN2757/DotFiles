@@ -15,7 +15,7 @@ return {
       autotag = {
         enable = true,
       },
-      ensure_installed = { "json", "javascript", "yaml", "html", "css", "markdown", "lua", "vim", "gitignore", "vimdoc", "c", "python", "gdscript" },
+      ensure_installed = { "json", "javascript", "yaml", "html", "css", "markdown", "lua", "vim", "gitignore", "vimdoc", "c", "rust", "python", "gdscript" },
       auto_install = true,
       incremental_selection = {
         enable = true,

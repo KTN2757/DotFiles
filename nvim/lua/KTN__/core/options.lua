@@ -3,11 +3,11 @@ vim.opt.relativenumber = true
 
 vim.opt.termguicolors = true
 
-vim.opt.tabstop = 2
+vim.opt.tabstop = 4
 vim.opt.expandtab = true
-vim.opt.shiftwidth = 2
+vim.opt.shiftwidth = 4
 
-vim.opt.wrap = false
+vim.opt.wrap = true
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
@@ -43,7 +43,7 @@ vim.opt.timeoutlen = 300
 vim.opt.hlsearch = true
 vim.opt.incsearch = true
 
-vim.opt.guifont = "CaskaydiaCove Nerd Font"
+vim.opt.guifont = "CaskaydiaCoveNF"
 
 vim.api.nvim_create_autocmd("TextYankPost", {
     desc = "Highlight when yanking (copying) text",
