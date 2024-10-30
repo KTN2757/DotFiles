@@ -1,0 +1,312 @@
+* {
+    font-size: 13px;
+    color: #ffffff;
+    font-family: "cascadia code", "Font Awesome 5 Free Solid";
+    border-radius: 12px;
+}
+
+.widget {
+    background: #343434;
+}
+
+.widget .label {
+    padding: 1px 2px 1px 2px;
+}
+
+.widget .label.alt {
+    padding: 1px 8px 1px 8px;
+}
+
+.container-right .widget {
+    margin-right: 3px;
+}
+
+.container-left,
+.container-center,
+.container-right {
+    margin: 0;
+    padding: 0;
+}
+
+.komorebi-active-layout {
+    font-family: Hack;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    color: #ffffff;
+    margin-right: -14;
+    border: 2px solid #753cfe;
+}
+
+.komorebi-workspaces {
+    margin-left: -2px;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border: 2px solid #753cfe;
+}
+
+.ws-btn {
+    font-family: "Font Awesome 5 Free Solid";
+    color: #ffffff;
+    padding: 3px;
+    border: 0px solid rgba(168, 153, 132, 0);
+    margin: 2px 1px;
+    font-size: 12px;
+    border-radius: 9px;
+
+}
+
+.ws-btn:hover {
+    font-weight: bold;
+    background: #888888;
+}
+
+.ws-btn.populated {
+    border: 2px solid #C5C6D0;
+}
+
+.ws-btn.active {
+    border: 2px solid rgba(168, 153, 132, 0);
+    background: #ffffff;
+    color: #000000;
+    font-size: 13px;
+}
+
+.active-window-widget {
+    padding: -2px 7px 0 7px;
+    border: 2px solid #2bcfff;
+    margin: 0px;
+    margin-left: 3px;
+}
+
+.active-window-widget:hover {
+    background: rgba(41, 205, 255, 0.6);
+}
+
+.clock-widget .label {
+    border: 2px solid #65be31;
+    padding: 4px 7px;
+    font-size: 14px;
+}
+
+.clock-widget .label:hover {
+    background: rgba(101, 191, 49, 0.6);
+}
+
+.media-widget {
+    border: 2px solid #00FF00;
+}
+
+.media-widget:hover {
+    background: rgba(0, 255, 0, 0.6);
+}
+
+.media-widget .btn {
+    padding: 0;
+    font-size: 18px;
+}
+
+.media-widget .btn:hover {
+    color: #00FF00;
+}
+
+.media-widget .btn.play {
+    font-size: 24px;
+}
+
+.media-widget .btn.prev {
+    padding: 0 4px 0 4px;
+}
+
+.media-widget .btn.next {
+    padding: 0 4px 0 4px;
+}
+
+.media-widget .btn.disabled {
+    color: #4e525c;
+}
+
+.media-widget .btn.disabled:hover {
+    border: rgba(78, 82, 92, 0.6);
+}
+
+.volume-widget .label {
+    border: 2px solid #f1c40f;
+}
+
+.volume-widget .label:hover {
+    background: rgba(241, 196, 15, 0.6);
+}
+
+.wifi-widget .label,
+.cpu-widget .label,
+.memory-widget .label,
+.battery-widget .label {
+    font-family: "Font Awesome 5 Free Solid";
+}
+
+.wifi-widget .label {
+    border: 2px solid #b8bb26;
+    padding: 0 4px 0 4px;
+}
+
+.wifi-widget .label:hover {
+    background: rgba(184, 186, 38, 0.6);
+}
+
+.cpu-widget .label {
+    border: 2px solid #d3869b;
+    padding: 5px;
+}
+
+.cpu-widget .label:hover {
+    background: rgba(212, 135, 156, 0.6);
+}
+
+.memory-widget .label.status-low {
+    border: 2px solid #689d6a;
+}
+
+.memory-widget .label.status-low:hover {
+    background: rgba(104, 156, 106, 0.6);
+}
+
+.memory-widget .label.status-medium {
+    border: 2px solid #b8bb26;
+}
+
+.memory-widget .label.status-medium:hover {
+    background: rgba(184, 186, 38, 0.6);
+}
+
+.memory-widget .label.status-high {
+    border: 2px solid #fe8019;
+}
+
+.memory-widget .label.status-high:hover {
+    background: rgba(254, 129, 27, 0.6);
+}
+
+.memory-widget .label.status-critical {
+    border: 2px solid #cc241d;
+}
+
+.battery-widget .label.status-critical {
+    border: 2px solid #fb4934;
+}
+
+.battery-widget .label.status-critical:hover {
+    background: rgba(251, 70, 50, 0.6);
+}
+
+.battery-widget .label.status-low {
+    border: 2px solid #fe8019;
+}
+
+.battery-widget .label.status-low:hover {
+    background: rgba(254, 129, 27, 0.6);
+}
+
+.battery-widget .label.status-medium {
+    border: 2px solid #fabd2f;
+}
+
+.battery-widget .label.status-medium:hover {
+    background: rgba(250, 189, 46, 0.6);
+}
+
+.battery-widget .label.status-high {
+    border: 2px solid #b8bb26;
+}
+
+.battery-widget .label.status-high:hover {
+    background: rgba(184, 186, 38, 0.6);
+}
+
+.battery-widget .label.status-full {
+    border: 2px solid #8ec07c;
+}
+
+.battery-widget .label.status-full:hover {
+    background: rgba(142, 192, 124, 0.6);
+}
+
+.battery-widget .label.status-charging {
+    border: 2px solid #8ec07c;
+}
+
+.battery-widget .label.status-charging:hover {
+    background: rgba(142, 192, 124, 0.6);
+}
+
+/*POWER MENU WIDGET*/
+.uptime {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #ffffff;
+    font-weight: 600;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.power-menu-widget .label {
+    border: 2px solid #ff0000;
+    font-size: 13px;
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.power-menu-widget .label:hover {
+    background: rgba(255, 0, 0, 0.6);
+}
+
+.power-menu-popup {
+    background-color: rgba(24, 24, 37, 0.9);
+    border-radius: 12px;
+    border: 4px solid rgb(41, 42, 58);
+}
+
+.power-menu-popup .button {
+    padding: 0;
+    width: 240px;
+    height: 120px;
+    border-radius: 8px;
+    background-color: rgb(41, 42, 58);
+    font-family: "SegoeUI";
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 8px;
+}
+
+.power-menu-popup .button.hover {
+    background-color: rgb(55, 56, 75);
+    border: 1px solid rgb(55, 56, 75);
+}
+
+.power-menu-popup .button .label {
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.power-menu-popup .button .icon {
+    font-size: 48px;
+    padding-top: 8px;
+    color: rgba(255, 255, 255, 0.25);
+}
+
+.power-menu-popup .button.cancel .icon {
+    color: rgba(243, 139, 168, 0.55);
+}
+
+.power-menu-popup .button.cancel .label {
+    color: rgba(243, 139, 168, 0.95);
+}
+
+.power-menu-popup .button.shutdown .icon {
+    color: rgba(137, 180, 250, 0.55);
+}
+
+.power-menu-popup .button.shutdown .label {
+    color: rgba(137, 180, 250, 0.95);
+}
