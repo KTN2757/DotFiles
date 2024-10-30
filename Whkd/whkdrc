@@ -1,22 +1,25 @@
 .shell pwsh
 
-# alt + o                 : taskkill /f /im whkd.exe && start /b whkd # if shell is cmd
+# alt + shift + w         : taskkill /f /im whkd.exe && start /b whkd # if shell is cmd
 # alt + shift + o         : komorebic reload-configuration
 
 # Reload whkd
 alt + shift + w         : taskkill /f /im whkd.exe; Start-Process whkd -WindowStyle hidden # if shell is pwsh / powershell
 
+# Reload yasb ONLY
+alt + shift + y         : taskkill /f /im pythonw.exe; pythonw "D:\Github\YASB Reborn\src\main.py"
+
 # Reload yasb & komorebi
-alt + shift + r		      : taskkill /f /im python.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; start python C:\Github\yasb\src\main.py -WindowStyle Hidden
+alt + shift + r		      : taskkill /f /im pythonw.exe; taskkill /f /im komorebi.exe; komorebic start --whkd; pythonw "D:\Github\YASB Reborn\src\main.py"
 
 # Close & minimize focused window
 alt + shift + c         : komorebic close
 alt + shift + m         : komorebic minimize
 
 # App shortcuts - these require shell to be pwsh / powershell
-alt + f                 : Start-Process 'C:\Users\Kritagya Dahal\AppData\Local\Mozilla Firefox\firefox.exe'
+alt + f                 : Start-Process 'C:\Program Files\Mozilla Firefox\firefox.exe'
 alt + b                 : Start-Process 'chrome'
-ctrl + alt + t	       	: Start-Process wt
+alt	+ return            : Start-Process wt
 alt + c		              : Start-Process codium -WindowStyle hidden
 
 # Focus windows
@@ -56,8 +59,8 @@ alt + shift + n         : komorebic cycle-layout next
 alt + shift + p         : komorebic cycle-layout previous
 
 # Window manager options
+alt + ctrl + p          : komorebic toggle-pause
 alt + ctrl + r          : komorebic retile
-alt + p                 : komorebic toggle-pause
 
 # Layouts
 alt + shift + x         : komorebic flip-layout horizontal
