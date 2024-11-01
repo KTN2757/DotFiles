@@ -3,6 +3,7 @@ return {
   "nvim-lua/plenary.nvim",
   "nvim-telescope/telescope-ui-select.nvim",
   "tpope/vim-fugitive",
+  "ThePrimeagen/vim-be-good",
   {
     "stevearc/dressing.nvim",
     event = "VeryLazy",
