@@ -6,7 +6,8 @@
   "default_workspace_padding": 0,
   "default_container_padding": 0,
   "mouse_follows_focus": true,
-  "focus_follows_mouse": "Windows",
+  "transparency": true,
+  "transparency_alpha": 220,
   "stackbar": {
     "height": 17,
     "mode": "OnStack",
