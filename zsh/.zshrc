@@ -24,6 +24,6 @@ current_wallpaper=$(swww query | grep -oP 'image:\s*\K.*')
 wal -i $current_wallpaper > /dev/null
 fastfetch
 
-export PATH=$PATH:/home/kritagya-dahal/.spicetify
+export PATH=$PATH:~/.spicetify
 export TERM=xterm-kitty
 export EDITOR=nvim
