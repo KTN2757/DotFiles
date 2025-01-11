@@ -16,12 +16,13 @@ return {
     })
     require("mason-lspconfig").setup({
       ensure_installed = {
+        "bashls",
         "html",
         "cssls",
         "lua_ls",
-        "ruff",
+        "pylsp",
         "jsonls",
-        "denols",
+        "ts_ls",
         "yamlls",
         "clangd",
         "rust_analyzer"
@@ -32,8 +33,6 @@ return {
         "prettier",
         "black",
         "isort",
-        "pylint",
-        "eslint_d",
         "gdtoolkit",
         "clang-format"
       },
