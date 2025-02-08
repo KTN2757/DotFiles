@@ -1,66 +1,67 @@
 {
-  "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.22/schema.json",
-  "app_specific_configuration_path": "$Env:USERPROFILE/applications.yaml",
-  "window_hiding_behaviour": "Cloak",
-  "cross_monitor_move_behaviour": "Insert",
-  "default_workspace_padding": 0,
-  "default_container_padding": 0,
-  "mouse_follows_focus": true,
-  "transparency": true,
-  "transparency_alpha": 220,
-  "stackbar": {
-    "height": 17,
-    "mode": "OnStack",
-    "label": "Title",
-    "tabs": {
-      "width": 300,
-      "focused_text": "#00a542",
-      "unfocused_text": "#b3b3b3",
-      "background": "#141414"
-    }
-  },
-  "manage_rules": [
-    {
-      "id": "- Discord",
-      "kind": "Title",
-      "matching_strategy": "EndsWith"
-    }
-  ],
-  "border": true,
-  "border_width": 4,
-  "border_padding": 0,
-  "border_offset": -1,
-  "border_style": "Square",
-  "border_colours": {
-    "single": "#682fd4",
-    "stack": "#d63838",
-    "monocle": "#36e37b",
-    "unfocused": "#808080"
-  },
-  "monitors": [
-    {
-      "workspaces": [
-        {
-          "name": "\uf015",
-          "layout": "BSP"
-        },
-        {
-          "name": "\uf064",
-          "layout": "BSP"
-        },
-        {
-          "name": "\uf120",
-          "layout": "UltrawideVerticalStack"
-        },
-        {
-          "name": "\uf4da",
-          "layout": "HorizontalStack"
-        },
-        {
-          "name": "\uf54c",
-          "layout": "Rows"
+    "$schema": "https://raw.githubusercontent.com/LGUG2Z/komorebi/v0.1.22/schema.json",
+    "app_specific_configuration_path": "$Env:USERPROFILE/applications.yaml",
+    "window_hiding_behaviour": "Cloak",
+    "cross_monitor_move_behaviour": "Insert",
+    "default_workspace_padding": 3,
+    "default_container_padding": 3,
+    "border": true,
+    "border_width": 6,
+    "border_padding": 0,
+    "border_offset": -1,
+    "border_style": "Square",
+    "border_colours": {
+        "single": "#682fd4",
+        "stack": "#d63838",
+        "monocle": "#36e37b",
+        "unfocused": "#808080"
+    },
+    "stackbar": {
+        "height": 17,
+        "mode": "OnStack",
+        "label": "Title",
+        "tabs": {
+            "width": 300,
+            "focused_text": "#00a542",
+            "unfocused_text": "#b3b3b3",
+            "background": "#141414"
         }
-      ]
-    }
-  ]
+    },
+    "mouse_follows_focus": true,
+    "focus_follows_mouse": "Windows",
+    "transparency": true,
+    "transparency_alpha": 220,
+    "manage_rules": [
+        {
+            "id": "- Discord",
+            "kind": "Title",
+            "matching_strategy": "EndsWith"
+        }
+    ],
+    "monitors": [
+        {
+            "workspaces": [
+                {
+                    "name": "\uf015",
+                    "layout": "BSP"
+                },
+                {
+                    "name": "\uf064",
+                    "layout": "BSP"
+                },
+                {
+                    "name": "\uf120",
+                    "layout": "UltrawideVerticalStack"
+                },
+                {
+                    "name": "\uf4da",
+                    "layout": "HorizontalStack"
+                },
+                {
+                    "name": "\uf54c",
+                    "layout": "Rows"
+                }
+            ]
+        }
+    ]
 }
