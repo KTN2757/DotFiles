@@ -1,5 +1,9 @@
 #!/bin/bash
-if [ -z "$1" ]; then
+WALLPAPER_DIR="${HOME}/Pictures/Wallpapers"
+EXTENSIONS=("jpg" "png" "webp")
+MISSING_LOG="${WALLPAPER_DIR}/missing_wallpapers.txt"
+
+if [ -z "${1:-}" ]; then
     echo "Usage: wallhaven_dl <urls-file>"
     exit 1
 fi
@@ -10,19 +14,76 @@ if [ ! -f "$file" ]; then
     exit 1
 fi
 
-cp "$file" ~/Pictures/Wallpapers/urls.txt
-cd ~/Pictures/Wallpapers || exit
+total=0
+downloaded=0
+skipped=0
+failed=0
+> "$MISSING_LOG"
 
-while IFS= read -r url; do
-    if [[ $url == *"wallhaven.cc/w/"* ]]; then
-        id=$(echo "$url" | grep -o '/w/[^/]*' | cut -d'/' -f3)
-        first_two=${id:0:2}
-        download_url="https://w.wallhaven.cc/full/${first_two}/wallhaven-${id}.jpg"
-        echo "Downloading: $download_url"
-        curl -s -O "$download_url"
+echo "Starting Wallhaven download..."
+echo ""
+while IFS= read -r url || [ -n "$url" ]; do
+    if [[ -z "$url" || "$url" =~ ^[[:space:]]*# ]]; then
+        continue
     fi
-done < urls.txt
+    
+    if [[ $url == *"wallhaven.cc/w/"* ]]; then
+        ((total++))
+        
+        id=$(echo "$url" | sed -n 's|.*/w/\([^/]*\).*|\1|p')
+        
+        if [ -z "$id" ]; then
+            echo "Warning: Could not extract ID from: $url"
+            continue
+        fi
+        
+        first_two=${id:0:2}
+        if ls "${WALLPAPER_DIR}/wallhaven-${id}".* 1> /dev/null 2>&1; then
+            echo "Already exists: wallhaven-${id}"
+            ((skipped++))
+            continue
+        fi
+        
+        download_success=false
+        for ext in "${EXTENSIONS[@]}"; do
+            download_url="https://w.wallhaven.cc/full/${first_two}/wallhaven-${id}.${ext}"
+            http_status=$(curl -s -o /dev/null -w "%{http_code}" --head "$download_url")
+            
+            if [ "$http_status" = "200" ]; then
+                echo "Downloading: wallhaven-${id}.${ext}"
+                if curl -s -f -o "${WALLPAPER_DIR}/wallhaven-${id}.${ext}" "$download_url"; then
+                    download_success=true
+                    ((downloaded++))
+                    echo "Success: wallhaven-${id}.${ext}"
+                    break
+                fi
+            fi
+        done
+        
+        if [ "$download_success" = false ]; then
+            echo "Failed: $id"
+            echo "$url" >> "$MISSING_LOG"
+            ((failed++))
+        fi
+    else
+        echo "Skipping invalid URL: $url"
+    fi
+done < "$file"
 
-echo "Cleaning Up!"
-rm ~/Pictures/Wallpapers/urls.txt
+echo ""
+echo "======================================="
+echo "Download Summary"
+echo "======================================="
+echo "Total URLs processed: ${total}"
+echo "Downloaded: ${downloaded}"
+echo "Skipped (already exist): ${skipped}"
+echo "Failed: ${failed}"
 
+if [ $failed -gt 0 ]; then
+    echo ""
+    echo "Check ${MISSING_LOG} for failed downloads."
+else
+    rm -f "$MISSING_LOG"
+fi
+
+echo "Done!"
