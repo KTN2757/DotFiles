@@ -1,7 +1,7 @@
 {
     // -*- mode: jsonc -*-
     // Modules configuration
-    "hyprland/workspaces": { 
+    "hyprland/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
         "warp-on-scroll": false,
@@ -22,7 +22,7 @@
             "default": ""
         }
     },
-    "hyprland/window":{
+    "hyprland/window": {
         "format": " {} ",
         "max-length": 45
     },
@@ -48,7 +48,7 @@
         "on-click-middle": "playerctl previous",
         "on-scroll-up": "playerctl volume 0.05+",
         "on-scroll-down": "playerctl volume 0.05-",
-        "max-length": 35
+        "max-length": 65
     },
     "pulseaudio": {
         "format": "{icon} {volume}%",
@@ -64,7 +64,11 @@
             "phone": "",
             "portable": "",
             "car": "",
-            "default": ["", "", ""]
+            "default": [
+                "",
+                "",
+                ""
+            ]
         },
         "on-click": "pavucontrol"
     },
@@ -76,7 +80,8 @@
         "on-click": "kitty -e nmtui"
     },
     "cpu": {
-        "format": " {usage}%"
+        "format": " {usage}%",
+        "on-click": "kitty -e btop"
     },
     "memory": {
         "format": " {}%"
@@ -91,21 +96,16 @@
         "format-charging": " {capacity}%",
         "format-plugged": " {capacity}%",
         "format-alt": "{time} {icon}",
-        "format-icons": ["󰂎", "󰁽", "󰁿", "󰂁", "󰁹"]
+        "format-icons": [
+            "󰂎",
+            "󰁽",
+            "󰁿",
+            "󰂁",
+            "󰁹"
+        ]
     },
     "battery#bat2": {
         "bat": "BAT2"
-    },
-    "power-profiles-daemon": {
-        "format": "{icon}",
-        "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
-        "tooltip": true,
-        "format-icons": {
-            "default": "",
-            "performance": "",
-            "balanced": "",
-            "power-saver": ""
-        }
     },
     "tray": {
         "spacing": 10
@@ -114,6 +114,6 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Log out",
-        "on-click": "hyprctl dispatch exit"
+        "on-click": "~/.config/waybar/scripts/rofi-power.sh"
     }
 }

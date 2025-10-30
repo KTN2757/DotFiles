@@ -18,7 +18,6 @@
         "custom/music",
         "pulseaudio",
         "network",
-        "power-profiles-daemon",
         "group/hardware",
         "battery",
         "tray",
