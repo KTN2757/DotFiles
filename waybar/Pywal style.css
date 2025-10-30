@@ -200,28 +200,3 @@ window#waybar {
 #custom-power:hover {
     background: @color13;
 }
-
-#power-profiles-daemon {
-    padding-right: 15px;
-}
-
-#power-profiles-daemon.performance {
-    border: 2px solid @color3;
-}
-
-#power-profiles-daemon.balanced {
-    border: 2px solid @color6;
-}
-
-#power-profiles-daemon.power-saver {
-    border: 2px solid @color4;
-}
-
-#idle_inhibitor {
-    background: @color8;
-}
-
-#idle_inhibitor.activated {
-    background: @color6;
-    color: @background;
-}
