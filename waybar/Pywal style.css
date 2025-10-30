@@ -1,0 +1,227 @@
+@import "../../.cache/wal/colors-waybar.css";
+
+* {
+    font-family: "Font Awesome 5 Free", CaskaydiaCove NFM, Roboto, Helvetica, Arial, sans-serif;
+    background: transparent;
+    border-radius: 16px;
+}
+
+tooltip {
+    background: @background;
+    color: @color7;
+}
+
+label:focus {
+    background: @color0;
+}
+
+.modules-left>widget:first-child>#workspaces {
+    margin-left: 0;
+}
+
+.modules-right>widget:last-child>#workspaces {
+    margin-right: 0;
+}
+
+@keyframes blink {
+    to {
+        background: @color3;
+        color: @background;
+    }
+}
+
+#workspaces,
+#window,
+#clock,
+#custom-power,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#tray,
+#custom-music {
+    border: 2px solid @color6;
+    background: @background;
+    color: @color7;
+}
+
+#window,
+#clock,
+#custom-power,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#tray {
+    padding: 4px 7px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#window:hover,
+#clock:hover,
+#cpu:hover,
+#memory:hover,
+#battery:hover,
+#network:hover,
+#pulseaudio:hover,
+#tray:hover {
+    background: @color13;
+}
+
+#workspaces {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+#workspaces button {
+    border: 2px solid @color8;
+    color: @color7;
+    margin: 2px 1px;
+    border-radius: 14px;
+}
+
+#workspaces button:hover {
+    background: @color13;
+    font-weight: bold;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+#workspaces button.active {
+    color: @background;
+    border: 2px solid @color6;
+    background: @color6;
+}
+
+#workspaces button.urgent {
+    background: @color3;
+}
+
+window#waybar {
+    font-size: 16px;
+}
+
+#clock {
+    font-family: CaskaydiaCove NFM;
+}
+
+#custom-music.Playing {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background-size: 400% 400%;
+    animation: gradient_f 9s cubic-bezier(.72, .39, .21, 1) infinite;
+    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.377);
+    font-weight: bold;
+}
+
+#custom-music.Playing:hover {
+    background: @color11;
+}
+
+#custom-music.Paused,
+#custom-music.Stopped {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 2px solid @color8;
+}
+
+#custom-music.Paused:hover,
+#custom-music.Stopped:hover {
+    background: @color8;
+}
+
+#pulseaudio.muted {
+    border: 2px solid @color8;
+}
+
+#network.disconnected {
+    border: 2px solid @color3;
+    background: @color3;
+}
+
+#cpu {
+    margin-right: 2px;
+}
+
+#memory {
+    margin-left: 2px;
+}
+
+#battery.charging,
+#battery.plugged {
+    border: 2px solid @color11;
+}
+
+#battery.critical:not(.charging) {
+    border: 2px solid @color3;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: steps(12);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#tray>.passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray>.needs-attention {
+    -gtk-icon-effect: highlight;
+    background: @color3;
+}
+
+#tray menu {
+    min-height: 16px;
+    background: @background;
+    color: @color7;
+}
+
+#tray menu menuitem {
+    background: @background;
+    color: @color7;
+}
+
+#tray menu menuitem:hover {
+    background: @color13;
+    color: @color7;
+}
+
+#tray menu separator {
+    min-height: 10px;
+}
+
+#custom-power:hover {
+    background: @color13;
+}
+
+#power-profiles-daemon {
+    padding-right: 15px;
+}
+
+#power-profiles-daemon.performance {
+    border: 2px solid @color3;
+}
+
+#power-profiles-daemon.balanced {
+    border: 2px solid @color6;
+}
+
+#power-profiles-daemon.power-saver {
+    border: 2px solid @color4;
+}
+
+#idle_inhibitor {
+    background: @color8;
+}
+
+#idle_inhibitor.activated {
+    background: @color6;
+    color: @background;
+}

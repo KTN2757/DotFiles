@@ -1,0 +1,245 @@
+* {
+    font-family: "Font Awesome 5 Free", CaskaydiaCove NFM, Roboto, Helvetica, Arial, sans-serif;
+    background: transparent;
+    border-radius: 16px;
+}
+
+tooltip {
+    background: rgba(0, 0, 0, 0.4);
+    color: rgba(255, 255, 255, 0.8);
+
+}
+
+label:focus {
+    background: #000000;
+}
+
+/* If workspaces is the leftmost module, omit left margin */
+.modules-left>widget:first-child>#workspaces {
+    margin-left: 0;
+}
+
+/* If workspaces is the rightmost module, omit right margin */
+.modules-right>widget:last-child>#workspaces {
+    margin-right: 0;
+}
+
+@keyframes blink {
+    to {
+        background: #ffffff;
+        color: #000000;
+    }
+}
+
+#workspaces {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 2px solid #753cfe;
+    padding-left: 3px;
+    padding-right: 3px;
+    color: #cdd6f4;
+    background: #343434;
+}
+
+#workspaces button {
+    border: 2px solid #C5C6D0;
+    color: #ffffff;
+    margin: 2px 1px;
+    border-radius: 14px;
+}
+
+#workspaces button:hover {
+    background: #888888;
+    font-weight: bold;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+#workspaces button.active {
+    color: #000000;
+    border: 2px solid #C5C6D0;
+    background: #ffffff;
+}
+
+#workspaces button.urgent {
+    background: #eb4d4b;
+}
+
+window#waybar {
+    font-size: 16px;
+}
+
+#window {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border: 2px solid #2bcfff;
+    color: #ffffff;
+    background: #343434;
+}
+
+#window:hover {
+    background: rgba(43, 207, 255, 0.6);
+}
+
+#clock,
+#custom-power,
+#battery,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#tray,
+#tray menu,
+#tray menu menuitem {
+    padding: 4px 7px;
+    background: #343434;
+    color: #efefef;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#clock {
+    font-family: CaskaydiaCove NFM;
+    border: 2px solid #65be31;
+}
+
+#clock:hover {
+    background: rgba(101, 190, 49, 0.6);
+}
+
+#custom-music.Playing {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background: #343434;
+    border: 2px solid #008000;
+    background-size: 400% 400%;
+    animation: gradient_f 9s cubic-bezier(.72, .39, .21, 1) infinite;
+    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.377);
+    font-weight: bold;
+    color: #ffffff;
+}
+
+#custom-music.Playing:hover {
+    background: rgba(0, 128, 0, 0.6);
+}
+
+#custom-music.Paused,
+#custom-music.Stopped {
+    font-family: CaskaydiaCove NFM;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    background: #343434;
+    border: 2px solid #161925;
+    border: 2px solid;
+    color: #ffffff;
+}
+
+#custom-music.Paused:hover,
+#custom-music.Stopped:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+#pulseaudio:hover {
+    background: #a37800;
+}
+
+#pulseaudio {
+    border: 2px solid #f1c40f;
+}
+
+#pulseaudio.muted {
+    border: 2px solid #90b1b1;
+}
+
+#network {
+    border: 2px solid #2980b9;
+}
+
+#network:hover {
+    background: rgba(41, 128, 185, 0.6);
+}
+
+#network.disconnected {
+    background: #f53c3c;
+}
+
+#cpu {
+    margin-right: 2px;
+    border: 2px solid #d3869b;
+}
+
+#cpu:hover {
+    background: rgba(211, 134, 155, 0.6);
+}
+
+#memory {
+    border: 2px solid #fe8019;
+    margin-left: 2px;
+}
+
+#memory:hover {
+    background: rgba(254, 128, 25, 0.6);
+}
+
+#battery {
+    border: 2px solid #8ec07c;
+}
+
+#battery:hover {
+    background: rgba(142, 192, 124, 0.6);
+}
+
+#battery.charging,
+#battery.plugged {
+    color: #ffffff;
+    border: 2px solid #26A65B;
+}
+
+#battery.critical:not(.charging) {
+    border: 2px solid #f53c3c;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: steps(12);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#tray {
+    border: 2px solid #2980b9;
+}
+
+#tray:hover {
+    background: rgba(41, 128, 185, 0.6);
+}
+
+#tray>.passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray>.needs-attention {
+    -gtk-icon-effect: highlight;
+    background: #eb4d4b;
+}
+
+#tray menu menuitem:hover {
+    background: #efefef;
+    color: #343434
+}
+
+#tray menu {
+    min-height: 16px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#tray menu separator {
+    min-height: 10px;
+}
+
+#custom-power {
+    border: 2px solid #ff0000;
+}
+
+#custom-power:hover {
+    background: rgba(255, 0, 0, 0.6);
+}
