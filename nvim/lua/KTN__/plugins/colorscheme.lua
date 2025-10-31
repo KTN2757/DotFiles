@@ -5,7 +5,7 @@ return {
   config = function()
     local pywal = require('pywal')
     pywal.setup({
-      use_terminal_background = false,
+      use_terminal_background = true,
       custom_highlights = {
         Comment = { italic = true },
       }
@@ -14,6 +14,7 @@ return {
 
     local function reload_pywal()
       vim.cmd('colorscheme pywal')
+      vim.api.nvim_exec_autocmds("User", { pattern = "PywalReload" })
     end
 
     local pywal_sequences = vim.fn.expand('~/.cache/wal/sequences')

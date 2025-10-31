@@ -1,56 +1,67 @@
 return {
   "nvim-lualine/lualine.nvim",
-  dependencies = "nvim-tree/nvim-web-devicons",
-
+  dependencies = {
+    "nvim-tree/nvim-web-devicons",
+    "AlphaTechnolog/pywal.nvim",
+  },
   config = function()
-    local colors = {
-      blue = "#65D1FF",
-      green = "#3EFFDC",
-      violet = "#FF61EF",
-      yellow = "#FFDA7B",
-      red = "#FF4A4A",
-      fg = "#c3ccdc",
-      bg = "#112638",
-      inactive_bg = "#2c3043",
-    }
+    -- Function to get pywal colors
+    local function get_pywal_colors()
+      local pywal_core = require('pywal.core')
+      local pywal_colors = pywal_core.get_colors()
 
-    local my_lualine_theme = {
-      normal = {
-        a = { bg = colors.blue, fg = colors.bg, gui = "bold" },
-        b = { bg = colors.bg, fg = colors.fg },
-        c = { bg = colors.bg, fg = colors.fg },
-      },
-      insert = {
-        a = { bg = colors.green, fg = colors.bg, gui = "bold" },
-        b = { bg = colors.bg, fg = colors.fg },
-        c = { bg = colors.bg, fg = colors.fg },
-      },
-      visual = {
-        a = { bg = colors.violet, fg = colors.bg, gui = "bold" },
-        b = { bg = colors.bg, fg = colors.fg },
-        c = { bg = colors.bg, fg = colors.fg },
-      },
-      command = {
-        a = { bg = colors.yellow, fg = colors.bg, gui = "bold" },
-        b = { bg = colors.bg, fg = colors.fg },
-        c = { bg = colors.bg, fg = colors.fg },
-      },
-      replace = {
-        a = { bg = colors.red, fg = colors.bg, gui = "bold" },
-        b = { bg = colors.bg, fg = colors.fg },
-        c = { bg = colors.bg, fg = colors.fg },
-      },
-      inactive = {
-        a = { bg = colors.inactive_bg, fg = colors.semilightgray, gui = "bold" },
-        b = { bg = colors.inactive_bg, fg = colors.semilightgray },
-        c = { bg = colors.inactive_bg, fg = colors.semilightgray },
-      },
-    }
+      return {
+        blue = pywal_colors.color4,
+        green = pywal_colors.color2,
+        violet = pywal_colors.color5,
+        yellow = pywal_colors.color3,
+        red = pywal_colors.color1,
+        fg = pywal_colors.foreground,
+        bg = pywal_colors.background,
+        inactive_bg = pywal_colors.color0,
+      }
+    end
 
-    -- configure lualine with modified theme
+    local function create_lualine_theme()
+      local colors = get_pywal_colors()
+
+      return {
+        normal = {
+          a = { bg = colors.blue, fg = colors.bg, gui = "bold" },
+          b = { bg = colors.bg, fg = colors.fg },
+          c = { bg = colors.bg, fg = colors.fg },
+        },
+        insert = {
+          a = { bg = colors.green, fg = colors.bg, gui = "bold" },
+          b = { bg = colors.bg, fg = colors.fg },
+          c = { bg = colors.bg, fg = colors.fg },
+        },
+        visual = {
+          a = { bg = colors.violet, fg = colors.bg, gui = "bold" },
+          b = { bg = colors.bg, fg = colors.fg },
+          c = { bg = colors.bg, fg = colors.fg },
+        },
+        command = {
+          a = { bg = colors.yellow, fg = colors.bg, gui = "bold" },
+          b = { bg = colors.bg, fg = colors.fg },
+          c = { bg = colors.bg, fg = colors.fg },
+        },
+        replace = {
+          a = { bg = colors.red, fg = colors.bg, gui = "bold" },
+          b = { bg = colors.bg, fg = colors.fg },
+          c = { bg = colors.bg, fg = colors.fg },
+        },
+        inactive = {
+          a = { bg = colors.inactive_bg, fg = colors.fg, gui = "bold" },
+          b = { bg = colors.inactive_bg, fg = colors.fg },
+          c = { bg = colors.inactive_bg, fg = colors.fg },
+        },
+      }
+    end
+
     require("lualine").setup({
       options = {
-        theme = my_lualine_theme,
+        theme = create_lualine_theme(),
       },
       sections = {
         lualine_x = {
@@ -64,6 +75,17 @@ return {
           { "filetype" },
         },
       },
+    })
+
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "PywalReload",
+      callback = function()
+        require("lualine").setup({
+          options = {
+            theme = create_lualine_theme(),
+          },
+        })
+      end,
     })
   end
 }
