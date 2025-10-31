@@ -1,54 +1,36 @@
 return {
-  "rose-pine/neovim",
-  name = "rose-pine",
+  'AlphaTechnolog/pywal.nvim',
+  lazy = false,
   priority = 1000,
   config = function()
-    require("rose-pine").setup({
-      variant = "main",
-      dark_variant = "main",
-      dim_inactive_windows = false,
-      extend_background_behind_borders = true,
-      enable = {
-        terminal = true,
-        legacy_highlights = true,
-        migrations = true,
-      },
-      styles = {
-        bold = true,
-        italic = true,
-        transparency = true,
-      },
-      groups = {
-        border = "muted",
-        link = "iris",
-        panel = "surface",
-
-        error = "love",
-        hint = "iris",
-        info = "foam",
-        note = "pine",
-        todo = "rose",
-        warn = "gold",
-
-        git_add = "foam",
-        git_change = "rose",
-        git_delete = "love",
-        git_dirty = "rose",
-        git_ignore = "muted",
-        git_merge = "iris",
-        git_rename = "pine",
-        git_stage = "iris",
-        git_text = "rose",
-        git_untracked = "subtle",
-
-        h1 = "iris",
-        h2 = "foam",
-        h3 = "rose",
-        h4 = "gold",
-        h5 = "pine",
-        h6 = "foam",
-      },
+    local pywal = require('pywal')
+    pywal.setup({
+      use_terminal_background = false,
+      custom_highlights = {
+        Comment = { italic = true },
+      }
     })
-    vim.cmd("colorscheme rose-pine-main")
+    vim.cmd('colorscheme pywal')
+
+    local function reload_pywal()
+      vim.cmd('colorscheme pywal')
+    end
+
+    local pywal_sequences = vim.fn.expand('~/.cache/wal/sequences')
+    local last_modified = 0
+
+    local function check_and_reload()
+      local stat = vim.loop.fs_stat(pywal_sequences)
+      if stat and stat.mtime.sec > last_modified then
+        last_modified = stat.mtime.sec
+        reload_pywal()
+      end
+    end
+
+    local timer = vim.loop.new_timer()
+    timer:start(2000, 2000, vim.schedule_wrap(check_and_reload))
+
+    vim.api.nvim_create_user_command('PywalReload', reload_pywal, {})
+    vim.keymap.set('n', '<leader>wp', '<cmd>PywalReload<CR>', { desc = 'Reload Pywal colors' })
   end
 }

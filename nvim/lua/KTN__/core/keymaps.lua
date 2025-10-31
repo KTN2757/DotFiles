@@ -29,6 +29,21 @@ vim.keymap.set("n", "<leader>d", '"+d', { desc = "Delete in PC Clipboard" })
 
 vim.keymap.set("n", "<leader>p", '"+p', { desc = "Paste from PC clipboard" })
 
+if os.getenv("TMUX") then
+    vim.g.clipboard = {
+        name = "wl-clipboard-tmux",
+        copy = {
+            ["+"] = "wl-copy",
+            ["*"] = "wl-copy",
+        },
+        paste = {
+            ["+"] = "wl-paste --no-newline",
+            ["*"] = "wl-paste --no-newline",
+        },
+        cache_enabled = 0,
+    }
+end
+
 vim.keymap.set("n", "x", '"_x')
 vim.keymap.set("v", "x", '"_x')
 
