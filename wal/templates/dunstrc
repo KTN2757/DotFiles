@@ -22,7 +22,7 @@
     # Font & text layout
     font = CaskaydiaCove NFM 11
     markup = full
-    format = "<span font='CaskaydiaCove NFM 11' weight='bold' color='#DAA6F5'>%s</span>\n<span font='CaskaydiaCove NFM 10' color='#f0e3eb'>%b</span>"
+    format = "<span font='CaskaydiaCove NFM 11' weight='bold' color='{color6}'>%s</span>\n<span font='CaskaydiaCove NFM 10' color='{foreground}'>%b</span>"
     alignment = center
     ellipsize = end
     word_wrap = yes
@@ -60,23 +60,23 @@
 
 
 [urgency_low]
-    background = "#2e142d"
-    foreground = "#f0e3eb"
-    frame_color = "#F1BEAB"
+    background = "{background}"
+    foreground = "{color7}"
+    frame_color = "{color4}"
     timeout = 5
     icon = ~/.config/dunst/normal.png
 
 [urgency_normal]
-    background = "#2e142d"
-    foreground = "#f0e3eb"
-    frame_color = "#DAA6F5"
+    background = "{background}"
+    foreground = "{foreground}"
+    frame_color = "{color6}"
     timeout = 7
     icon = ~/.config/dunst/normal.png
 
 [urgency_critical]
-    background = "#8935E5"
-    foreground = "#f0e3eb"
-    frame_color = "#8935E5"
+    background = "{color1}"
+    foreground = "{color15}"
+    frame_color = "{color1}"
     timeout = 0
     icon = ~/.config/dunst/critical.png
 
