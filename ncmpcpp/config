@@ -1,0 +1,37 @@
+# MPD
+mpd_host = "localhost"
+mpd_port = 6600
+mpd_music_dir = ~/Music
+
+# Directories
+ncmpcpp_directory = ~/.config/ncmpcpp
+lyrics_directory = ~/.lyrics
+
+# Visualizer
+visualizer_type = wave_filled
+visualizer_data_source = /tmp/mpd.fifo
+visualizer_output_name = "ncmpcpp visualizer"
+visualizer_in_stereo = yes
+visualizer_fps = 144
+visualizer_autoscale = no
+visualizer_look = ●▮
+
+# Playlist / browser
+browser_sort_mode = type
+song_list_format = {%a - %t}|{%f}
+song_columns_list_format = (20)[]{a} (50)[white]{t|f:Title} (20)[cyan]{b} (7f)[magenta]{l}
+
+# Interface
+main_window_color = default
+user_interface = classic
+colors_enabled = yes
+mouse_support = yes
+centered_cursor = no
+jump_to_now_playing_song_at_start = yes
+show_hidden_files_in_local_browser = no
+default_place_to_search_in = database
+search_engine_default_search_mode = 1
+
+# Screens
+screen_switcher_mode = playlist, browser
+startup_screen = playlist
