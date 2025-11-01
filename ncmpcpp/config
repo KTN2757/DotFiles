@@ -35,3 +35,7 @@ search_engine_default_search_mode = 1
 # Screens
 screen_switcher_mode = playlist, browser
 startup_screen = playlist
+
+# Lyrics
+fetch_lyrics_for_current_song_in_background = yes
+store_lyrics_in_song_dir = no
