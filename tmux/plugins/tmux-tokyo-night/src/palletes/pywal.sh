@@ -9,36 +9,46 @@ fi
 
 declare -A PALLETE=(
   [none]="NONE"
+
   [bg]="${color0}"
   [bg_dark]="${color0}"
-  [bg_highlight]="${color8}"
-  [terminal_black]="${color8}"
+  [bg_highlight]="${color1}"
+  [terminal_black]="${color0}"
+
   [fg]="${color15}"
   [fg_dark]="${color7}"
-  [fg_gutter]="${color8}"
-  [dark3]="${color8}"
+  [fg_gutter]="#ffffff"
+
   [comment]="${color8}"
+  [dark3]="${color8}"
   [dark5]="${color7}"
-  [blue0]="${color0}"
-  [blue]="${color4}"
-  [cyan]="${color6}"
+
+  [blue0]="${color4}"
+  [blue]="${color12}"
   [blue1]="${color12}"
-  [blue2]="${color12}"
+  [blue2]="${color14}"
   [blue5]="${color14}"
-  [blue6]="${color14}"
-  [blue7]="${color0}"
+  [blue6]="${color4}"
+  [blue7]="${color4}"
+
+  [cyan]="${color6}"
+  [teal]="${color6}"
+
   [magenta]="${color13}"
   [magenta2]="${color5}"
   [purple]="${color13}"
   [orange]="${color11}"
-  [yellow]="${color11}"
+  [yellow]="${color3}"
+
   [green]="${color10}"
   [green1]="${color14}"
-  [green2]="${color10}"
-  [teal]="${color6}"
+  [green2]="${color2}"
+
   [red]="${color9}"
   [red1]="${color1}"
-  [white]="${color15}"
+
+  [white]="#ffffff"
 )
 
 export PALLETE
+
