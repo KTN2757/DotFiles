@@ -1,3 +1,3 @@
 #!/bin/bash
-pkill dunst
+killall dunst
 dunst &
