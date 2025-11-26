@@ -16,6 +16,7 @@ gsettings set org.gnome.desktop.interface gtk-theme "oomox-xresources-reverse" 2
 
 gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" 2>/dev/null
 gsettings set org.gnome.desktop.interface icon-theme "oomox-xresources-reverse" 2>/dev/null
+eww reload
 
 if tmux info &> /dev/null; then
     tmux source-file ~/.config/tmux/tmux.conf

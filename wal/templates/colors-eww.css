@@ -1,0 +1,71 @@
+window {{
+    font-family: "CaskaydiaCove Nerd Font";
+}}
+
+.powermenu{{
+    background-color: rgba({background.rgb}, .8);
+}}
+
+.powermenu-container {{
+    background: transparent;
+    padding: 0;
+}}
+
+.powermenu-item {{
+    margin: 0 20px;
+}}
+
+.powermenu-button {{
+    background: linear-gradient(135deg, rgba({color0.rgb}, 0.4), rgba({color0.rgb}, 0.6));
+    color: {foreground};
+    border: 2px solid rgba({color8.rgb}, 0.3);
+    border-radius: 20px;
+    padding: 45px;
+    font-size: 64px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 150px;
+    min-height: 150px;
+    box-shadow: 0 4px 15px rgba({color0.rgb}, 0.3);
+}}
+
+.powermenu-button:hover {{
+    box-shadow: 0 8px 30px rgba({color0.rgb}, 0.6);
+}}
+
+.powermenu-button.lock:hover {{
+    background: linear-gradient(135deg, rgba({color4.rgb}, 0.7), rgba({color4.rgb}, 0.9));
+    border-color: {color4};
+    box-shadow: 0 8px 30px rgba({color4.rgb}, 0.5);
+}}
+
+.powermenu-button.logout:hover {{
+    background: linear-gradient(135deg, rgba({color5.rgb}, 0.7), rgba({color5.rgb}, 0.9));
+    border-color: {color5};
+    box-shadow: 0 8px 30px rgba({color5.rgb}, 0.5);
+}}
+
+.powermenu-button.reboot:hover {{
+    background: linear-gradient(135deg, rgba({color3.rgb}, 0.7), rgba({color3.rgb}, 0.9));
+    border-color: {color3};
+    box-shadow: 0 8px 30px rgba({color3.rgb}, 0.5);
+}}
+
+.powermenu-button.shutdown:hover {{
+    background: linear-gradient(135deg, rgba({color1.rgb}, 0.7), rgba({color1.rgb}, 0.9));
+    border-color: {color1};
+    box-shadow: 0 8px 30px rgba({color1.rgb}, 0.5);
+}}
+
+.powermenu-button.cancel:hover {{
+    background: linear-gradient(135deg, rgba({color8.rgb}, 0.7), rgba({color8.rgb}, 0.9));
+    border-color: {color8};
+    box-shadow: 0 8px 30px rgba({color8.rgb}, 0.5);
+}}
+
+.powermenu-label {{
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 12px;
+    color: {foreground};
+    text-shadow: 0 2px 4px rgba({color0.rgb}, 0.5);
+}}

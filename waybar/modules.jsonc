@@ -114,6 +114,6 @@
         "format": "",
         "tooltip": true,
         "tooltip-format": "Log out",
-        "on-click": "~/.config/waybar/scripts/rofi-power.sh"
+        "on-click": "~/.config/waybar/scripts/power.sh"
     }
 }

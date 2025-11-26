@@ -1,0 +1,67 @@
+;; Power Menu Window
+(defwindow powermenu
+  :monitor 0
+  :geometry (geometry :x "0%"
+                      :y "0%"
+                      :width "50%"
+                      :height "50%"
+                      :anchor "center")
+  :stacking "overlay"
+  :exclusive false
+  :focusable true
+  (eventbox :onclick "eww close powermenu"
+    (box :class "powermenu-overlay"
+         :orientation "v"
+         :space-evenly false
+         :halign "center"
+         :valign "center"
+      (eventbox :onclick ""
+        (box :class "powermenu-container"
+             :orientation "h"
+             :space-evenly true
+             :spacing 30
+          
+          ;; Lock Button
+          (box :class "powermenu-item"
+               :orientation "v"
+               :space-evenly false
+            (button :class "powermenu-button lock"
+                    :onclick "eww close powermenu; hyprlock &"
+              "󰌾")
+            (label :class "powermenu-label" :text "Lock"))
+          
+          ;; Logout Button
+          (box :class "powermenu-item"
+               :orientation "v"
+               :space-evenly false
+            (button :class "powermenu-button logout"
+                    :onclick "eww close powermenu; hyprctl dispatch exit &"
+              "󰍃")
+            (label :class "powermenu-label" :text "Logout"))
+          
+          ;; Reboot Button
+          (box :class "powermenu-item"
+               :orientation "v"
+               :space-evenly false
+            (button :class "powermenu-button reboot"
+                    :onclick "eww close powermenu; systemctl reboot"
+              "󰜉")
+            (label :class "powermenu-label" :text "Restart"))
+          
+          ;; Shutdown Button
+          (box :class "powermenu-item"
+               :orientation "v"
+               :space-evenly false
+            (button :class "powermenu-button shutdown"
+                    :onclick "eww close powermenu; systemctl poweroff"
+              "󰐥")
+            (label :class "powermenu-label" :text "Shutdown"))
+          
+          ;; Cancel Button
+          (box :class "powermenu-item"
+               :orientation "v"
+               :space-evenly false
+            (button :class "powermenu-button cancel"
+                    :onclick "eww close powermenu"
+              "󰜺")
+            (label :class "powermenu-label" :text "Cancel")))))))
