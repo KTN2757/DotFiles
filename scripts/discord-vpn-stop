@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "Stopping VPN..."
+
+# Kill OpenVPN in namespace
+ip netns exec discord-vpn pkill openvpn 2>/dev/null
+
+# Delete namespace (this automatically cleans up interfaces)
+ip netns del discord-vpn 2>/dev/null
+
+# Clean up iptables rules
+iptables -t nat -D POSTROUTING -s 10.200.1.0/24 -o wlp0s20f3 -j MASQUERADE 2>/dev/null
+iptables -D FORWARD -i veth-host -o wlp0s20f3 -j ACCEPT 2>/dev/null
+iptables -D FORWARD -i wlp0s20f3 -o veth-host -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null
+
+echo "✓ VPN stopped and cleaned up"
