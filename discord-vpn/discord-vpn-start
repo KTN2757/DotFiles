@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Check if namespace already exists
+if ip netns list | grep -q "discord-vpn"; then
+    echo "VPN namespace already exists"
+else
+    echo "Creating VPN namespace..."
+    
+    # Create namespace
+    ip netns add discord-vpn
+    
+    # Create virtual network interface pair
+    ip link add veth-host type veth peer name veth-vpn
+    ip link set veth-vpn netns discord-vpn
+    
+    # Configure host side
+    ip addr add 10.200.1.1/24 dev veth-host
+    ip link set veth-host up
+    
+    # Configure namespace side
+    ip netns exec discord-vpn ip addr add 10.200.1.2/24 dev veth-vpn
+    ip netns exec discord-vpn ip link set veth-vpn up
+    ip netns exec discord-vpn ip link set lo up
+    ip netns exec discord-vpn ip route add default via 10.200.1.1
+    
+    # Enable IP forwarding
+    sysctl -w net.ipv4.ip_forward=1 > /dev/null
+    
+    # Add NAT rules
+    iptables -t nat -A POSTROUTING -s 10.200.1.0/24 -o wlp0s20f3 -j MASQUERADE
+    iptables -A FORWARD -i veth-host -o wlp0s20f3 -j ACCEPT
+    iptables -A FORWARD -i wlp0s20f3 -o veth-host -m state --state RELATED,ESTABLISHED -j ACCEPT
+fi
+
+# Start OpenVPN
+echo "Starting VPN connection..."
+ip netns exec discord-vpn openvpn --config /etc/openvpn/client/discord-vpn.conf --daemon
+
+echo "Waiting for VPN to connect..."
+sleep 5
+
+echo "✓ VPN namespace ready!"
