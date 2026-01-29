@@ -6,6 +6,7 @@ return {
         "/node_modules/",
       },
       formatter_by_ft = {
+        c = require("format-on-save.formatters").lsp,
         css = require("format-on-save.formatters").lsp,
         html = require("format-on-save.formatters").lsp,
         javascript = require("format-on-save.formatters").lsp,
