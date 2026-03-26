@@ -1,7 +1,7 @@
 # MPD
 mpd_host = "localhost"
 mpd_port = 6600
-mpd_music_dir = ~/Music
+mpd_music_dir = /mnt/Bulk Drive/Music
 
 # Directories
 ncmpcpp_directory = ~/.config/ncmpcpp
@@ -39,3 +39,6 @@ startup_screen = playlist
 # Lyrics
 fetch_lyrics_for_current_song_in_background = yes
 store_lyrics_in_song_dir = no
+
+# Album Cover
+execute_on_song_change = "~/.config/ncmpcpp/cover_obs.sh"

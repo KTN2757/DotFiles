@@ -3,6 +3,9 @@ HISTSIZE=5000
 SAVEHIST=5000
 
 export ZSH="$HOME/.oh-my-zsh"
+export XDG_DATA_DIRS="/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+export EDITOR='nvim'
+export VISUAL='nvim'
 ZSH_THEME="powerlevel10k/powerlevel10k"
 ENABLE_CORRECTION="false"
 
@@ -19,12 +22,13 @@ alias nv="nvim"
 alias v="vim"
 alias explorer="thunar"
 alias ls="eza --color=always --long --git --no-filesize --icons=always --no-time --no-user --no-permissions"
+alias music="~/.config/ncmpcpp/music_session.sh"
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 unsetopt autocd
-current_wallpaper=$(swww query | grep -oP 'image:\s*\K.*')
-wal -i $current_wallpaper > /dev/null
+current_wallpaper=$(awww query 2>/dev/null | grep -oP 'image:\s*\K.*')
+[[ -n "$current_wallpaper" ]] && wal -i "$current_wallpaper" > /dev/null 2>&1
 if [[ $- == *i* ]] && [[ "$TERM_PROGRAM" != "tmux" ]] && [[ "$TMUX" == "" ]]; then
   fastfetch
 fi
@@ -35,6 +39,8 @@ if [[ -n "$TMUX" ]] && [[ $- == *i* ]]; then
   cls
 fi
 
+# gtk
+export GTK_THEME=oomox-xresources-reverse
 
 # pnpm
 export PNPM_HOME="/home/kritagya-dahal/.local/share/pnpm"
@@ -49,3 +55,6 @@ esac
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# opencode
+export PATH=/home/kritagya-dahal/.opencode/bin:$PATH
