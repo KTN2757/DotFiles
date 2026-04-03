@@ -6,8 +6,17 @@ if ! sudo ip netns exec discord-vpn ip a show tun0 &>/dev/null 2>&1; then
     sleep 3
 fi
 
-# Launch Discord in the VPN namespace and detach
-nohup sudo ip netns exec discord-vpn sudo -u $USER DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY discord > /dev/null 2>&1 &
+# Get user ID for runtime dir
+USER_ID=$(id -u)
+
+# Launch Discord with audio/video access
+nohup sudo ip netns exec discord-vpn sudo -u $USER \
+    DISPLAY=$DISPLAY \
+    XAUTHORITY=$XAUTHORITY \
+    XDG_RUNTIME_DIR=/run/user/$USER_ID \
+    PULSE_SERVER=unix:/run/user/$USER_ID/pulse/native \
+    DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus \
+    discord > /dev/null 2>&1 &
 
 # Exit immediately
 exit 0

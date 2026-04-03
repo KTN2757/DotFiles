@@ -1,9 +1,10 @@
 #!/bin/bash
 
 MOUNTPOINT="/mnt/Phone"
-SSH_USER="u0_a1962"
+SSH_USER="u0_a357"
 SSH_PORT="8022"
 SSH_PATH="/storage/emulated/0"
+PHONE_IP="100.117.26.65"
 
 print_usage() {
     echo "Usage: $0 [mount|umount|status] [usb|ssh]"
@@ -42,24 +43,7 @@ check_mount_status() {
 }
 
 detect_phone_ip() {
-    local phone_ip=""
-    
-    echo -e "Scanning for phone..."
-    for ip in $(ip route | grep -E '192\.168\.[0-9]+\.[0-9]+' | awk '{print $9}' | head -3 | sed 's/\.[0-9]*$/.81/'); do
-        if timeout 2 ssh -p "$SSH_PORT" -o ConnectTimeout=2 -o BatchMode=yes "$SSH_USER@$ip" exit 2>/dev/null; then
-            phone_ip="$ip"
-            break
-        fi
-    done
-    
-    if [ -z "$phone_ip" ]; then
-        echo -e "Trying last known IP..."
-        if timeout 2 ssh -p "$SSH_PORT" -o ConnectTimeout=2 -o BatchMode=yes "$SSH_USER@192.168.1.81" exit 2>/dev/null; then
-            phone_ip="192.168.1.81"
-        fi
-    fi
-    
-    echo "$phone_ip"
+    echo "$PHONE_IP"
 }
 
 mount_usb() {
@@ -89,7 +73,7 @@ mount_ssh() {
     
     if [ -z "$phone_ip" ]; then
         echo -e "Could not find phone IP. Is SSH server running on phone?"
-        echo -e "Make sure Termux SSH is running: pkg install openssh && sshd"
+        echo -e "Make sure Termux SSH is running: sshd"
         return 1
     fi
     
