@@ -14,9 +14,10 @@ nohup sudo ip netns exec discord-vpn sudo -u $USER \
     DISPLAY=$DISPLAY \
     XAUTHORITY=$XAUTHORITY \
     XDG_RUNTIME_DIR=/run/user/$USER_ID \
+    WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
     PULSE_SERVER=unix:/run/user/$USER_ID/pulse/native \
     DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus \
-    discord > /dev/null 2>&1 &
+    discord --enable-features=UseOzonePlatform --ozone-platform=wayland > /dev/null 2>&1 &
 
 # Exit immediately
 exit 0
