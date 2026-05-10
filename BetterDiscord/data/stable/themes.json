@@ -1,4 +1,6 @@
 {
-    "ClearVision": true,
-    "Frosted Glass": true
+    "ClearVision": false,
+    "Frosted Glass": true,
+    "BasicBackground": true,
+    "ClearVision V7 for BetterDiscord": true
 }

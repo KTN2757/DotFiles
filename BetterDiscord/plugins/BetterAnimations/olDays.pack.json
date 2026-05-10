@@ -1,0 +1,810 @@
+{
+  "name": "Ol' Days",
+  "author": "arg0NNY",
+  "version": "1.1.0",
+  "description": "An accurate port of all the animations from BetterAnimations V1, reproducing all their beauty, and all their flaws too.",
+  "invite": "M8DBtcZjXD",
+  "authorLink": "https://github.com/arg0NNY/BetterAnimationsPacks",
+  "donate": "https://boosty.to/arg0nny/donate",
+
+  "snippets": [
+    {
+      "key": "opacity",
+      "value": {
+        "inject": "type",
+        "enter": [0, 1],
+        "exit": 0
+      }
+    },
+    {
+      "key": "directionalTranslate",
+      "params": {
+        "value": 10,
+        "negativeValue": -10
+      },
+      "value": {
+        "inject": "vector",
+        "values": {
+          "inject": "type",
+          "enter": {
+            "inject": "direction",
+            "upwards": { "y": [{ "inject": "snippet.params", "name": "value" }, 0] },
+            "downwards": { "y": [{ "inject": "snippet.params", "name": "negativeValue" }, 0] },
+            "leftwards": { "x": [{ "inject": "snippet.params", "name": "value" }, 0] },
+            "rightwards": { "x": [{ "inject": "snippet.params", "name": "negativeValue" }, 0] }
+          },
+          "exit": {
+            "inject": "direction",
+            "upwards": { "y": [0, { "inject": "snippet.params", "name": "negativeValue" }] },
+            "downwards": { "y": [0, { "inject": "snippet.params", "name": "value" }] },
+            "leftwards": { "x": [0, { "inject": "snippet.params", "name": "negativeValue" }] },
+            "rightwards": { "x": [0, { "inject": "snippet.params", "name": "value" }] }
+          }
+        }
+      }
+    }
+  ],
+
+  "animations": [
+
+    {
+      "key": "containerSlip",
+      "name": "Slip",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+        "direction": true,
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+          "direction": "upwards",
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "opacity": {
+              "inject": "snippet",
+              "key": "opacity"
+            },
+            "translate": {
+              "inject": "snippet",
+              "key": "directionalTranslate",
+              "params": {
+                "value": 75,
+                "negativeValue": -75
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "containerSlide",
+      "name": "Slide",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+        "direction": true,
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+          "direction": "upwards",
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "opacity": {
+              "inject": "snippet",
+              "key": "opacity"
+            },
+            "translate": {
+              "inject": "snippet",
+              "key": "directionalTranslate",
+              "params": {
+                "value": "100%",
+                "negativeValue": "-100%"
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "containerFlip",
+      "name": "Flip",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+        "direction": ["forwards", "backwards", "leftwards", "rightwards"],
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+          "direction": "forwards",
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "animate": {
+        "css": {
+          "{container}": {
+            "perspective": "1750px"
+          }
+        },
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "rotate": {
+              "inject": "rotate",
+              "axis": {
+                "inject": "direction",
+                "forwards": "x",
+                "backwards": "x",
+                "leftwards": "y",
+                "rightwards": "y"
+              },
+              "angle": {
+                "inject": "type",
+                "enter": {
+                  "inject": "direction",
+                  "forwards": [-90, -90, 0],
+                  "backwards": [90, 90, 0],
+                  "leftwards": [90, 90, 0],
+                  "rightwards": [-90, -90, 0]
+                },
+                "exit": {
+                  "inject": "direction",
+                  "forwards": [0, 90, 90],
+                  "backwards": [0, -90, -90],
+                  "leftwards": [0, -90, -90],
+                  "rightwards": [0, 90, 90]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "containerScale",
+      "name": "Scale",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+        "direction": ["upwards", "downwards", "leftwards", "rightwards", "forwards", "backwards"],
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+          "direction": "upwards",
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "animate": {
+        "css": {
+          "{container}": {
+            "inject": "if",
+            "value": {
+              "a": { "inject": "direction" },
+              "inject": "!==",
+              "b": "backwards"
+            },
+            "then": {
+              "z-index": {
+                "inject": "type",
+                "enter": 2,
+                "exit": 1
+              }
+            },
+            "else": {}
+          }
+        },
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "inject": "assign",
+            "target": {
+              "duration": { "inject": "duration" },
+              "ease": { "inject": "easing" }
+            },
+            "source": {
+              "inject": "type",
+              "enter": {
+                "inject": "direction",
+                "upwards": {
+                  "translate": {
+                    "inject": "vector",
+                    "values": { "y": ["100%", 0] }
+                  },
+                  "opacity": [0, 1]
+                },
+                "downwards": {
+                  "translate": {
+                    "inject": "vector",
+                    "values": { "y": ["-100%", 0] }
+                  },
+                  "opacity": [0, 1]
+                },
+                "leftwards": {
+                  "translate": {
+                    "inject": "vector",
+                    "values": { "x": ["100%", 0] }
+                  },
+                  "opacity": [0, 1]
+                },
+                "rightwards": {
+                  "translate": {
+                    "inject": "vector",
+                    "values": { "x": ["-100%", 0] }
+                  },
+                  "opacity": [0, 1]
+                },
+                "forwards": {
+                  "scale": [1.1, 1],
+                  "opacity": [0, 1]
+                },
+                "backwards": {
+                  "scale": [0.9, 1]
+                }
+              },
+              "exit": {
+                "inject": "direction",
+                "upwards": {
+                  "scale": [1, 0.9],
+                  "opacity": [1, 0]
+                },
+                "downwards": {
+                  "scale": [1, 0.9],
+                  "opacity": [1, 0]
+                },
+                "leftwards": {
+                  "scale": [1, 0.9],
+                  "opacity": [1, 0]
+                },
+                "rightwards": {
+                  "scale": [1, 0.9],
+                  "opacity": [1, 0]
+                },
+                "forwards": {
+                  "scale": [1, 0.9]
+                },
+                "backwards": {
+                  "scale": [1, 1.1],
+                  "opacity": [1, 0]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "containerScaleChange",
+      "name": "Scale Change",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "inject": "assign",
+            "target": {
+              "duration": { "inject": "duration" },
+              "ease": { "inject": "easing" }
+            },
+            "source": {
+              "inject": "type",
+              "enter": {
+                "scale": [0.9, 0.9, 1],
+                "opacity": [0, 0, 1]
+              },
+              "exit": {
+                "scale": [1, 0.9, 0.9],
+                "opacity": [1, 0, 0]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "containerFade",
+      "name": "Fade",
+      "modules": ["servers", "channels", "settings"],
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "overflow": true,
+
+        "defaults": {
+          "duration": 500,
+          "easing": {
+            "type": "ease",
+            "style": "cubic"
+          },
+          "overflow": true,
+
+          "override": {
+            "for": { "module": "servers" },
+            "duration": 700
+          }
+        }
+      },
+      "enter": {
+        "anime": {
+          "type": "timer",
+          "parameters": {
+            "duration": { "inject": "duration" }
+          }
+        }
+      },
+      "exit": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "opacity": [1, 0]
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealFade",
+      "name": "Fade",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+
+          "override": {
+            "for": { "module": "messages" },
+            "duration": 200,
+            "easing": {
+              "type": "ease",
+              "bezier": "out",
+              "style": "quart"
+            }
+          }
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1]
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealSlip",
+      "name": "Slip",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "position": ["top", "bottom", "left", "right"],
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+          "position": "top",
+
+          "override": [
+            {
+              "for": { "module": "messages" },
+              "duration": 200,
+              "easing": {
+                "type": "ease",
+                "bezier": "out",
+                "style": "quart"
+              }
+            }
+          ]
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1],
+            "translate": {
+              "inject": "vector",
+              "values": {
+                "inject": "position",
+                "top": { "y": [10, 0] },
+                "bottom": { "y": [-10, 0] },
+                "left": { "x": [10, 0] },
+                "right": { "x": [-10, 0] }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealSlipScale",
+      "name": "Slip Scale",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "position": ["top", "bottom", "left", "right"],
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+          "position": "top",
+
+          "override": [
+            {
+              "for": { "module": "messages" },
+              "duration": 200,
+              "easing": {
+                "type": "ease",
+                "bezier": "out",
+                "style": "quart"
+              }
+            }
+          ]
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1],
+            "scale": [0.9, 1],
+            "translate": {
+              "inject": "vector",
+              "values": {
+                "inject": "position",
+                "top": { "y": [-10, 0] },
+                "bottom": { "y": [10, 0] },
+                "left": { "x": [-10, 0] },
+                "right": { "x": [10, 0] }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealFlip",
+      "name": "Flip",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "position": ["top", "bottom", "left", "right"],
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+          "position": "top",
+
+          "override": [
+            {
+              "for": { "module": "messages" },
+              "duration": 200,
+              "easing": {
+                "type": "ease",
+                "bezier": "out",
+                "style": "quart"
+              }
+            }
+          ]
+        }
+      },
+      "animate": {
+        "css": {
+          "{element}": {
+            "transform-origin": { "inject": "position" }
+          }
+        },
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1],
+            "rotate": {
+              "inject": "rotate",
+              "axis": {
+                "inject": "position",
+                "top": "x",
+                "bottom": "x",
+                "left": "y",
+                "right": "y"
+              },
+              "angle": {
+                "inject": "position",
+                "top": [-90, 0],
+                "bottom": [90, 0],
+                "left": [-90, 0],
+                "right": [90, 0]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealScale",
+      "name": "Scale",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "position": "simple",
+        "direction": ["forwards", "backwards"],
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+          "position": "top",
+          "direction": "backwards",
+
+          "override": {
+            "for": { "module": "messages" },
+            "duration": 200,
+            "easing": {
+              "type": "ease",
+              "bezier": "out",
+              "style": "quart"
+            }
+          }
+        }
+      },
+      "animate": {
+        "css": {
+          "{element}": {
+            "transform-origin": { "inject": "position" }
+          }
+        },
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1],
+            "scale": {
+              "inject": "direction",
+              "forwards": [1.1, 1],
+              "backwards": [0.9, 1]
+            }
+          }
+        }
+      }
+    },
+
+    {
+      "key": "revealRotate",
+      "name": "Rotate",
+      "modules": ["tooltips", "popouts", "contextMenu", "messages"],
+      "meta": {
+        "intersect": false
+      },
+      "settings": {
+        "duration": { "from": 100, "to": 5000 },
+        "easing": true,
+        "direction": ["forwards", "backwards"],
+        "variant": [
+          { "key": "left", "name": "Left" },
+          { "key": "right", "name": "Right" }
+        ],
+
+        "defaults": {
+          "duration": 300,
+          "easing": {
+            "type": "back",
+            "bezier": "inOut",
+            "overshoot": 2.7
+          },
+          "direction": "backwards",
+          "variant": "left",
+
+          "override": {
+            "for": { "module": "messages" },
+            "duration": 200,
+            "easing": {
+              "type": "ease",
+              "bezier": "out",
+              "style": "quart"
+            }
+          }
+        }
+      },
+      "animate": {
+        "anime": {
+          "type": "waapi",
+          "targets": { "inject": "element" },
+          "parameters": {
+            "duration": { "inject": "duration" },
+            "ease": { "inject": "easing" },
+            "reversed": {
+              "inject": "type",
+              "enter": false,
+              "exit": true
+            },
+            "opacity": [0, 1],
+            "scale": {
+              "inject": "direction",
+              "forwards": [1.1, 1],
+              "backwards": [0.9, 1]
+            },
+            "rotate": {
+              "inject": "variant",
+              "left": [10, 0],
+              "right": [-10, 0]
+            }
+          }
+        }
+      }
+    }
+
+  ]
+}

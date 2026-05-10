@@ -1,6 +1,10 @@
 {
     "settings": {
         "latestUsedVersion": "1.3.3",
-        "lastVersion": "1.3.5"
-    }
+        "lastVersion": "1.3.5",
+        "exclude": [
+            "846611299860873226"
+        ]
+    },
+    "lastVersion": "1.4.7"
 }

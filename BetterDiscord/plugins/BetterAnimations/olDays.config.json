@@ -1,0 +1,168 @@
+{
+    "configVersion": 2,
+    "settings": {
+        "entries": [
+            {
+                "animation": "containerSlip",
+                "module": "servers",
+                "enter": {
+                    "direction": "upwards",
+                    "duration": 700,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                },
+                "exit": {
+                    "direction": "upwards",
+                    "duration": 700,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                }
+            },
+            {
+                "animation": "containerSlip",
+                "module": "channels",
+                "enter": {
+                    "direction": "upwards",
+                    "duration": 500,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                },
+                "exit": {
+                    "direction": "upwards",
+                    "duration": 500,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                }
+            },
+            {
+                "animation": "containerSlip",
+                "module": "settings",
+                "enter": {
+                    "direction": "upwards",
+                    "duration": 500,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                },
+                "exit": {
+                    "direction": "upwards",
+                    "duration": 500,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "inOut",
+                        "style": "cubic"
+                    }
+                }
+            },
+            {
+                "animation": "revealSlip",
+                "module": "messages",
+                "enter": {
+                    "position": "top",
+                    "duration": 200,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "out",
+                        "style": "quart"
+                    }
+                },
+                "exit": {
+                    "position": "top",
+                    "duration": 200,
+                    "easing": {
+                        "type": "ease",
+                        "bezier": "out",
+                        "style": "quart"
+                    }
+                }
+            },
+            {
+                "animation": "revealRotate",
+                "module": "popouts",
+                "enter": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                },
+                "exit": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                }
+            },
+            {
+                "animation": "revealRotate",
+                "module": "tooltips",
+                "enter": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                },
+                "exit": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                }
+            },
+            {
+                "animation": "revealRotate",
+                "module": "contextMenu",
+                "enter": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                },
+                "exit": {
+                    "direction": "backwards",
+                    "variant": "left",
+                    "duration": 300,
+                    "easing": {
+                        "type": "back",
+                        "bezier": "inOut",
+                        "overshoot": 2.7
+                    }
+                }
+            }
+        ]
+    },
+    "currentVersion": "1.1.0"
+}

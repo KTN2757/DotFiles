@@ -1,11 +1,87 @@
 {
 	"all": {
+		"ClassModuleCache": {
+			"AccountDetailsButtons": "270082",
+			"AccountDetailsQuest": "737595",
+			"AppBase": "111113",
+			"AppMount": "343166",
+			"AppOuter": "906292",
+			"Attachment": "277446",
+			"AttachmentCover": "83699",
+			"Avatar": "282291",
+			"Button": "809657",
+			"ChangeLog": "614099",
+			"ChannelTextAreaButton": "124767",
+			"ChatWindow": "964623",
+			"ColorPicker": "670989",
+			"Embed": "472840",
+			"Flex": "392245",
+			"FlexProperties": false,
+			"FlowerStar": "767246",
+			"GifFavoriteButton": "280312",
+			"GuildChannelsWrapper": "153822",
+			"GuildFolder": "273923",
+			"GuildHeader": "765529",
+			"GuildsWrapper": "803921",
+			"HoverCard": false,
+			"ImageModalButtons": false,
+			"ImageModalMediaWrapper": "158816",
+			"ImageWrapper": "503117",
+			"Input": "482188",
+			"ItemLayerContainer": "56553",
+			"Layers": "783775",
+			"Margins": "818050",
+			"Menu": "32271",
+			"Message": "701628",
+			"MessageBody": "334211",
+			"MessageElements": "708147",
+			"MessageToolbarExtras": "568580",
+			"MessageToolbarItems": "874280",
+			"MessagesPopoutTabBar": "716030",
+			"MessagesWrap": "317651",
+			"Modal": "889277",
+			"ModalCarouselNav": "420165",
+			"ModalNew": "967744",
+			"ModalSub": "243926",
+			"NameTag": "786627",
+			"Notice": "580537",
+			"NoticePlatform": "448759",
+			"PeoplesNowPlayingMember": "564450",
+			"PictureInPicture": "201181",
+			"Scroller": "45596",
+			"Select": "384267",
+			"SettingsItems": "714304",
+			"SettingsTabBar": "954485",
+			"Slider": "160671",
+			"Spinner": "165980",
+			"Spoiler": "766184",
+			"Switch": "180846",
+			"Table": false,
+			"Text": "920531",
+			"Tooltip": "418519",
+			"TooltipGuild": "621035",
+			"UserHeaderUsername": "874644",
+			"UserPopoutBody": "447349",
+			"UserProfileList": "341934",
+			"UserSummaryItem": "227568",
+			"UserTheme": "20927"
+		},
+		"ModuleIdCache": {
+			"DiscordTag": "297413",
+			"EmojiPickerListRow": "267889",
+			"LazyImage": "619517",
+			"Menu": "980707",
+			"MessageAccessories": "474463",
+			"SettingsView": "83257",
+			"Spoiler": "302031",
+			"StandardSidebarView": "361739"
+		},
 		"changeLogs": {
-			"BDFDB": "3.8.1",
-			"ImageUtilities": "5.4.7",
-			"PluginRepo": "2.5.8",
-			"SpotifyControls": "1.4.1",
-			"ThemeRepo": "2.5.8"
+			"BDFDB": "4.5.2",
+			"ImageUtilities": "5.6.6",
+			"PluginRepo": "2.6.0",
+			"SpotifyControls": "1.5.3",
+			"ThemeRepo": "2.6.0"
 		},
 		"choices": {
 			"toastPosition": "right"
@@ -13,12 +89,13 @@
 		"general": {
 			"shareData": true,
 			"showToasts": true,
+			"checkForUpdates": false,
 			"showSupportBadges": false,
 			"useChromium": false
 		},
 		"hashes": {
-			"0BDFDB.data.json": "9a0cafe21be07f173fa52496dbf028019452e2f0",
-			"0BDFDB.raw.css": "81dd52fb9f66039d356f9370779b76d476321e33"
+			"0BDFDB.data.json": "423bf955b08fcbba66c18732de7db525b9daa81b",
+			"0BDFDB.raw.css": "6915e7a88a3a835d769ce5a4568c0a195dc43df1"
 		}
 	}
 }

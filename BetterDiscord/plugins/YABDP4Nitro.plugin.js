@@ -1,2449 +1,4769 @@
 /**
  * @name YABDP4Nitro
  * @author Riolubruh
- * @version 5.4.9
- * @invite EFmGEWAUns
+ * @authorLink https://github.com/riolubruh
+ * @version 6.8.18
+ * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
- * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js
+ * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
+ * @updateUrl https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/YABDP4Nitro.plugin.js
+ * @description Unlock all screensharing modes, use cross-server & GIF emotes, and more!
  */
 /*@cc_on
 @if(@_jscript)
-	
-	// Offer to self-install for clueless users that try to run this directly.
-	var shell = WScript.CreateObject("WScript.Shell");
-	var fs = new ActiveXObject("Scripting.FileSystemObject");
-	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
-	var pathSelf = WScript.ScriptFullName;
-	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
-	if(fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
-		shell.Popup("I'm in the correct folder already.", 0, "I'm already installed", 0x40);
-	} else if(!fs.FolderExists(pathPlugins)) {
-		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
-	} else if(shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
-		fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
-		// Show the user where to put plugins in the future
-		shell.Exec("explorer " + pathPlugins);
-		shell.Popup("I'm installed!", 0, "Successfully installed", 0x40);
-	}
-	WScript.Quit();
-
+    WScript.Quit();
 @else@*/
 
-//#region 
-const { Webpack, Patcher } = BdApi;
-const StreamButtons = Webpack.getByKeys("L9", "LY", "ND", "WC", "aW", "af");
-const ApplicationStreamResolutions = StreamButtons.LY;
-const ApplicationStreamSettingRequirements = StreamButtons.ND;
-const ApplicationStreamResolutionButtons = StreamButtons.WC;
-const ApplicationStreamFPSButtonsWithSuffixLabel = StreamButtons.af;
-const ApplicationStreamFPSButtons = StreamButtons.k0;
-const ApplicationStreamResolutionButtonsWithSuffixLabel = StreamButtons.km;
-const ApplicationStreamFPS = StreamButtons.ws;
-const CloudUploader = Webpack.getByKeys("m", "n").n;
-const Uploader = Webpack.getByKeys("uploadFiles", "upload");
-const CurrentUser = Webpack.getByKeys("getCurrentUser").getCurrentUser();
-const ORIGINAL_NITRO_STATUS = CurrentUser.premiumType;
-const getBannerURL = Webpack.getByPrototypeKeys("getBannerURL").prototype;
-let usrBgUsers = [];
+/*    ***** ATTRIBUTION NOTICE *****
+ *
+ * YABDP4Nitro is a free BetterDiscord plugin that bypasses and unlocks Nitro-locked features in the Discord client.
+ *
+ * Copyright (c) 2025 Riolubruh and contributors
+ *
+ * Licensed under the Open Software License version 3.0 (OSL-3.0).
+ * You may use, distribute, and modify this code under the terms of this license.
+ *
+ * Derivative works must be licensed under OSL-3.0.
+ *
+ * Removal or modification of this notice in the source code of any Derivative Work
+ * of this software violates the terms of the license.
+ *
+ * This software is provided on an "AS IS" BASIS and WITHOUT WARRANTY, either express or implied,
+ * including, without limitation, the warranties of non-infringement, merchantability or fitness for a particular purpose.
+ * THE ENTIRE RISK AS TO THE QUALITY OF THIS SOFTWARE IS WITH YOU.
+ *
+ * You should have received a copy of the license agreement alongside this file.
+ * If not, please visit https://opensource.org/license/osl-3-0-php
+ *
+*/
+
+//#region Module Hell
+const {Webpack,Patcher,Net,React,UI,Logger,Data,Components,DOM,Plugins,ContextMenu,ReactUtils,Utils} = new BdApi("YABDP4Nitro");
+
+const {
+    UserStore,
+    UserProfileStore,
+    PresenceStore,
+    SelectedGuildStore,
+    ChannelStore,
+    SelectedChannelStore,
+    SoundboardStore,
+    EmojiStore,
+    AppIconPersistedStoreState,
+    ClipsStore,
+    GuildChannelStore,
+    // SavedMessagesStore,
+    // MessageStore
+ } = Webpack.Stores;
+
+const [
+    ProfileBanner,
+    Dispatcher,
+    AvatarDefaults,
+    LadderModule,
+    FetchCollectibleCategories,
+    MessageActions,
+    MessageEmojiReact,
+    renderEmbedsMod,
+    clientThemesModule,
+    streamSettingsMod,
+    accountSwitchModule,
+    getAvatarUrlModule,
+    isEmojiAvailableMod,
+    videoOptionFunctions,
+    addFilesMod,
+    RegularAppIcon,
+    CustomAppIcon,
+    NameplatePreview,
+    CloudUploader,
+    InvalidStreamSettingsModal,
+    themesModule,
+    CanUserUseMod,
+    DMTag,
+    GIFPickerRender,
+    DiscordCopyToClipboardFn,
+    ContextMenuSlider,
+    PictureInPicturePlayer,
+    stickerSendabilityModule,
+    ClipsEnabledMod,
+    MaxFileSizeMod,
+    CustomThemesEditor,
+    UserSettingsModal,
+    CustomUserThemeState,
+    CustomUserPanelState,
+    UserContextMenuFunctions,
+    UserAvatar,
+    StreamButtons
+] = Webpack.getBulk(
+    {filter: Webpack.Filters.bySource('pendingBanner', 'displayProfile', 'foreignObject'), map: {
+        renderBanner: x=>x?.toString?.()?.includes?.("canUsePremiumProfileCustomization")
+    }},
+    {filter: Webpack.Filters.byKeys("subscribe","dispatch"), searchExports:true}, 
+    {filter: Webpack.Filters.byKeys("getEmojiURL")}, //AvatarDefaults
+    {filter: Webpack.Filters.byKeys("calculateLadder"), searchExports: true},
+    {filter: Webpack.Filters.byStrings('{type:"COLLECTIBLES_CATEGORIES_FETCH"'), searchExports: true},
+    {filter: Webpack.Filters.byKeys("jumpToMessage","_sendMessage")},
+    {filter: Webpack.Filters.byStrings(',nudgeAlignIntoViewport:!0,position:','jumboable?'), searchExports: true}, //MessageEmojiReact
+    {filter: Webpack.Filters.bySource('renderEmbeds', 'renderSuppressEmbeds'), map:{ //renderEmbedsMod
+        renderEmbeds: x=>x?.toString?.().includes?.("renderSuppressEmbeds")
+    }},
+    {filter: Webpack.Filters.byKeys("isPreview")}, //clientThemesModule
+    {filter: Webpack.Filters.bySource('getCodecOptions'), mapDeclarations:true, map:{
+        Connection: x=>x?.prototype?.getCodecOptions
+    }}, //streamSettingsMod
+    {filter: Webpack.Filters.byKeys("startSession","login")}, //accountSwitchModule
+    {filter: Webpack.Filters.byPrototypeKeys('getAvatarURL')},
+    {filter: Webpack.Filters.byKeys("isEmojiFilteredOrLocked")},
+    {filter: Webpack.Filters.byPrototypeKeys("updateVideoQuality")},
+    {filter: Webpack.Filters.byKeys("addFiles")},
+    {filter: Webpack.Filters.bySource('M19.73 4.87a18.2'), map: { //RegularAppIcon
+        render: x=>x
+    }},
+    {filter: Webpack.Filters.byStrings('.iconSource,width:')}, //CustomAppIcon
+    {filter: Webpack.Filters.bySource('nameplateData', 'showPlaceholderUser', 'displayNameStyles')}, //NameplatePreview
+    {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
+    {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
+    {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
+    {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
+    {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
+    {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
+    {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
+    {filter: Webpack.Filters.bySource('backgroundKey', 'onForceIdle')}, //PictureInPicturePlayer
+    {filter: Webpack.Filters.bySource("SENDABLE_WITH_BOOSTED_GUILD", 'canUseCustomStickersEverywhere'), map: { //stickerSendabilityModule
+        getStickerSendability: x=>x.toString().includes('canUseCustomStickersEverywhere'),
+        isSendableSticker: x=>x.toString().includes(')=>0===')
+    }},
+    {filter: Webpack.Filters.bySource('getConfig({location:"useEnableClips'), map: { //ClipsEnabledMod
+        useEnableClips: x=>x.toString().includes('getConfig({location:"useEnableClips"'),
+        areClipsEnabled: x=>x.toString().includes('areClipsEnabled'),
+    }},
+    {filter: Webpack.Filters.bySource("getUserMaxFileSize", "reType"), map: { //MaxFileSizeMod
+        getMaxFileSize: x=>x.toString().includes('getUserMaxFileSize'),
+        exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
+    }},
+    {filter: Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), map: { //CustomThemesEditor
+        render: x=>x
+    }},
+    {filter: Webpack.Filters.byKeys('openUserSettings')}, //UserSettingsModal
+    {filter: Webpack.Filters.bySource('setColors', 'setChassisMixAmount', 'setGradientAngle', 'setAll', 'colors:[],'), map: { //CustomUserThemeState
+        state: x=>x?.setState
+    }},
+    {filter: Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), map:{
+        state: x=>x?.setState
+    }},
+    {filter: Webpack.Filters.bySource('isGroupDM', 'targetIsUser'), map: {
+        openUserContextMenu: x=>x?.toString?.().includes?.("targetIsUser", "showMute")
+    }},
+    {filter: Webpack.Filters.bySource('avatarDecoration', 'foreignObject', 'onClick', 'statusColor', 'isMobile', 'isVR'), map:{
+        render: x=>x?.toString?.().includes?.('foreignObject')
+    }},
+    {filter: Webpack.Filters.bySource("Unknown frame rate:"), map:{
+        ApplicationStreamFPS: o=>o?.FPS_30,
+        ApplicationStreamFPSButtonsWithSuffixLabel: o => Array.isArray(o) && typeof o[0]?.label === 'string' && o[0]?.value === 15,
+        ApplicationStreamResolutionButtonsWithSuffixLabel: o => Array.isArray(o) && o[0]?.label === "480p",
+        ApplicationStreamResolutions: o => o?.RESOLUTION_1440
+    }}
+);
+const {
+    ApplicationStreamFPS,
+    ApplicationStreamFPSButtonsWithSuffixLabel,
+    ApplicationStreamResolutionButtonsWithSuffixLabel,
+    ApplicationStreamResolutions
+} = StreamButtons;
+//#endregion
+const fs = require("fs");
+const path = require("path");
+let CurrentUser = UserStore?.getCurrentUser();
+const ORIGINAL_NITRO_STATUS = CurrentUser?.premiumType;
+const nodePatcher = ReactUtils.createNodePatcher();
+
+//clips related variables
+let ffmpeg, udta, udtaBuffer, crcTable, clipMaBuffer;
+
+//for fixing edit cancels
+let lastEditedMsg, lastEditedMsgCopy;
+
+const defaultSettings = {
+    "emojiSize": 64,
+    "screenSharing": true,
+    "emojiBypass": true,
+    "emojiBypassType": 0,
+    "emojiBypassForValidEmoji": true,
+    "PNGemote": true,
+    "uploadStickers": false,
+    "CustomFPSEnabled": false,
+    "CustomFPS": 60,
+    "ResolutionEnabled": false,
+    "CustomResolution": 1440,
+    "CustomBitrateEnabled": false,
+    "minBitrate": -1,
+    "maxBitrate": -1,
+    "targetBitrate": -1,
+    "voiceBitrate": -1,
+    "ResolutionSwapper": true,
+    "stickerBypass": false,
+    "profileV2": false,
+    "forceStickersUnlocked": false,
+    "changePremiumType2": -1,
+    "videoCodec2": -1,
+    "clientThemes": true,
+    "lastGradientSettingStore": -1,
+    "fakeProfileThemes": true,
+    "removeProfileUpsell": false,
+    "removeScreenshareUpsell": true,
+    "fakeProfileBanners": true,
+    "fakeAvatarDecorations": true,
+    "unlockAppIcons": true,
+    "profileEffects": true,
+    "killProfileEffects": false,
+    "customPFPs": true,
+    "experiments": false,
+    "userPfpIntegration": true,
+    "userBgIntegration": true,
+    "useClipBypass": true,
+    "forceClip": false,
+    "checkForUpdates": true,
+    "fakeInlineVencordEmotes": true,
+    "soundmojiEnabled": false,
+    "useAudioClipBypass": true,
+    "forceAudioClip": false,
+    "zipClip": true,
+    "enableClipsExperiment": false,
+    "disableUserBadge": false,
+    "nameplatesEnabled": true,
+    "clipTimestamp": 2,
+    "removeNotStaffWarning": true,
+    "editMessageWithEmoji": true,
+    "extraContextMenus": true,
+    "userSharpenPreferences": {},
+    "sharpenStreams": false,
+    "displayNameStyles": true,
+    "customUserThemeSettings": {
+        custom: false,
+        theme: "dark"
+    },
+    "appIcon": "AppIcon"
+};
+const defaultData = {
+    avatarDecorations: {},
+    nameplatesV2: {}
+}
+
+let controller = new AbortController();
+
+//Plugin-wide variables
+let settings = {};
+let data = {};
 let badgeUserIDs = [];
 let fetchedUserBg = false;
 let fetchedUserPfp = false;
-let downloadedUserProfiles = [];
-const userProfileMod = Webpack.getByKeys("getUserProfile");
-const buttonClassModule = Webpack.getByKeys("lookFilled", "button", "contents");
-const Dispatcher = Webpack.getByKeys("subscribe", "dispatch");
-const canUserUseMod = Webpack.getByKeys("canUserUse");
-const AvatarDefaults = Webpack.getByKeys("getEmojiURL");
-const LadderModule = Webpack.getModule(Webpack.Filters.byProps("calculateLadder"), { searchExports: true });
-const FetchCollectibleCategories = Webpack.getByKeys("B1", "DR", "F$", "K$").F$
+let profileEffects = {};
+
+// #region Config
+const config = {
+    info: {
+        "name": "YABDP4Nitro",
+        "authors": [{
+            "name": "Riolubruh",
+            "discord_id": "359063827091816448",
+            "github_username": "riolubruh"
+        }],
+        "version": "6.8.18",
+        "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
+        "github": "https://github.com/riolubruh/YABDP4Nitro",
+        "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
+    },
+    changelog: [
+        {
+            title: "6.8.18",
+            items: [
+                "Fix Soundmoji not applying experiment override since Discord moved it to the new \"Apex Experiments\" system.",
+                "Fix 'this.encodeProfileColors is not a function' error appearing in console.",
+                "Add more VSCode region markers to the code."
+            ]
+        }
+    ],
+    settingsPanel: [
+        {
+            type: "category",
+            id: "ScreenShare",
+            name: "Screen Share Features",
+            collapsible: true,
+            shown: false,
+            settings: [
+                { type: "switch", id: "screenSharing", name: "High Quality Screensharing", note: "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.", value: () => settings.screenSharing },
+                { type: "switch", id: "ResolutionEnabled", name: "Custom Screenshare Resolution", note: "Choose your own screen share resolution!", value: () => settings.ResolutionEnabled },
+                { type: "text", id: "CustomResolution", name: "Resolution", note: "The custom resolution you want (in pixels)", value: () => settings.CustomResolution },
+                { type: "switch", id: "CustomFPSEnabled", name: "Custom Screenshare FPS", note: "Choose your own screen share FPS!", value: () => settings.CustomFPSEnabled },
+                { type: "text", id: "CustomFPS", name: "FPS", note: "The custom FPS you want to stream at.", value: () => settings.CustomFPS },
+                { type: "switch", id: "ResolutionSwapper", name: "Stream Settings Quick Swapper", note: "Lets you change your custom resolution and FPS quickly in the stream settings modal!", value: () => settings.ResolutionSwapper },
+                { type: "switch", id: "CustomBitrateEnabled", name: "Custom Bitrate", note: "Choose the bitrate for your streams!", value: () => settings.CustomBitrateEnabled },
+                { type: "text", id: "minBitrate", name: "Minimum Bitrate", note: "The minimum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.", value: () => settings.minBitrate },
+                { type: "text", id: "targetBitrate", name: "Target Bitrate", note: "The target bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used.", value: () => settings.targetBitrate },
+                { type: "text", id: "maxBitrate", name: "Maximum Bitrate",
+                    note: `The maximum bitrate (in kbps). If this is set to a negative number, the default for your quality choices is used. 
+                    The default max bitrate for free quality options is 3500kbps, and for Nitro quality options (higher than 720p or higher than 30fps) it is 9000kbps as of April 2025. 
+                    There is also a strange bug(?) where setting your max bitrate will cause issues with your stream's preview. 
+                    If you want to avoid these issues, please disable this option.`, value: () => settings.maxBitrate },
+                { type: "text", id: "voiceBitrate", name: "Voice Audio Bitrate", note: `
+                    Allows you to change the voice bitrate to whatever you want. 
+                    Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. 
+                    Bitrate in kbps. Disabled if this is set to -1.`, value: () => settings.voiceBitrate },
+                { type: "switch", id:"sharpenStreams", name:"Stream Sharpness", note:"Adds a slider to the right-click / context menu of streams that allows you to adjust the sharpness of screen shares. Saves and applies your sharpness amount per user, similar to stream volume. MAKE SURE HARDWARE ACCELERATION IS ENABLED UNDER DISCORD'S ADVANCED SETTINGS OR PERFORMANCE WILL SUFFER!!", value: () => settings.sharpenStreams},
+                { 
+                    type: "dropdown", id: "videoCodec2", name: "Force Video Codec (Advanced Users Only)", note: `
+                    Allows you to force a specified video codec to be used. Normally, Discord would automatically 
+                    choose this based on your hardware, options in Voice & Video, and the viewers watching.
+                    Mobile and Web clients can only view H.264 and VP8 streams.
+                    If a client does not support the codec you choose, the stream will infinitely load for them!`, value: () => settings.videoCodec2, options: [
+                        { label: "Default (recommended, automatic)", value: -1 },
+                        { label: "AV1", value: 0 },
+                        { label: "H265", value: 1 },
+                        { label: "H264", value: 2 },
+                        { label: "VP8", value: 3 },
+                        { label: "VP9", value: 4 },
+                    ]
+                },
+            ]
+        },
+        {
+            type: "category",
+            id: "emojis",
+            name: "Emojis",
+            collapsible: true,
+            shown: false,
+            settings: [
+                { type: "switch", id: "emojiBypass", name: "Nitro Emotes Bypass", note: "Enable or disable using the emoji bypass.", value: () => settings.emojiBypass },
+                {
+                    type: "dropdown", id: "emojiSize", name: "Size", note: "The size of the emoji in pixels.", value: () => settings.emojiSize, options: [
+                        { label: "32px (Default small/inline)", value: 32 },
+                        { label: "48px (Recommended, default large)", value: 48 },
+                        { label: "16px", value: 16 },
+                        { label: "24px", value: 24 },
+                        { label: "40px", value: 40 },
+                        { label: "56px", value: 56 },
+                        { label: "64px", value: 64 },
+                        { label: "80px", value: 80 },
+                        { label: "96px", value: 96 },
+                        { label: "128px (Max emoji size)", value: 128 },
+                        { label: "256px (Max GIF emoji size)", value: 256 }
+                    ]
+                },
+                {
+                    type: "dropdown", id: "emojiBypassType", name: "Emoji Bypass Method", note: "The method of bypass to use.", value: () => settings.emojiBypassType,
+                    options: [
+                        { label: "Upload Emojis", value: 0 },
+                        { label: "Hyperlink/Vencord-Like Mode", value: 3 },
+                        { label: "Classic Mode", value: 2 }
+                    ]
+                },
+                { type: "switch", id: "editMessageWithEmoji", name: "Replace Fakemoji When Editing Message", note: "Replaces text-based fakemoji with their emoji when editing a message.", value: () => settings.editMessageWithEmoji },
+                { type: "switch", id: "emojiBypassForValidEmoji", name: "Don't Use Emote Bypass if Emote is Unlocked", note: "Disable to use emoji bypass even if bypass is not required for that emoji.", value: () => settings.emojiBypassForValidEmoji },
+                { type: "switch", id: "PNGemote", name: "Use PNG instead of WEBP", note: "Use the PNG version of static emoji for higher quality!", value: () => settings.PNGemote },
+                { type: "switch", id: "stickerBypass", name: "Sticker Bypass", note: "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers WILL NOT animate.", value: () => settings.stickerBypass },
+                { type: "switch", id: "uploadStickers", name: "Upload Stickers", note: "Upload stickers in the same way as emotes.", value: () => settings.uploadStickers },
+                { type: "switch", id: "forceStickersUnlocked", name: "Force Stickers Unlocked", note: "Enable to cause Stickers to be unlocked.", value: () => settings.forceStickersUnlocked },
+                { type: "switch", id: "fakeInlineVencordEmotes", name: "Fake Inline Hyperlink Emotes", note: "Makes hyperlinked emojis appear as if they were real emojis, inlined in the message, similar to Vencord FakeNitro emotes.", value: () => settings.fakeInlineVencordEmotes },
+                { type: "switch", id: "soundmojiEnabled", name: "Soundmoji Bypass", note: "Unlocks soundmojis and allows you to \"send\" them by automatically replacing them with a MP3 upload and some special text that will make them render as real soundmojis on the client side. Please note that this will enable Experiments.", value: () => settings.soundmojiEnabled }
+            ]
+        },
+        {
+            type: "category",
+            id: "profile",
+            name: "Profile",
+            collapsible: true,
+            shown: false,
+            settings: [
+                { type: "switch", id: "profileV2", name: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", value: () => settings.profileV2 },
+                { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", value: () => settings.fakeProfileThemes },
+                { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", value: () => settings.fakeProfileBanners },
+                { type: "switch", id: "userBgIntegration", name: "UserBG Integration", note: "Downloads and parses the UserBG JSON database so that UserBG banners will appear for you.", value: () => settings.userBgIntegration },
+                { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", value: () => settings.fakeAvatarDecorations },
+                { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", value: () => settings.profileEffects },
+                { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
+                { type: "switch", id: "customPFPs", name: "Fake Profile Pictures", note: "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", value: () => settings.customPFPs },
+                { type: "switch", id: "userPfpIntegration", name: "UserPFP Integration", note: "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", value: () => settings.userPfpIntegration },
+                { type: "switch", id: "disableUserBadge", name: "Disable User Badge", note: "Disables the YABDP4Nitro User Badge which appears on any user that uses Profile Customization. (client side)", value: () => settings.disableUserBadge },
+                { type: "switch", id: "nameplatesEnabled", name: "Fake Nameplates", note: "Uses invisible 3y3 encoding to allow setting fake nameplates by hiding the information in your custom status and/or bio. Please paste the 3y3 in one or both of those areas.", value: () => settings.nameplatesEnabled },
+                { type: "switch", id: "displayNameStyles", name: "Fake Display Name Styles", note: "Uses invisible 3y3 encoding to allow setting fake display name styles by hiding the information in your bio. Please paste the 3y3 information in your bio.", value: () => settings.displayNameStyles }
+            ]
+        },
+        {
+            type: "category",
+            id: "clips",
+            name: "Clips",
+            collapsible: true,
+            shown: false,
+            settings: [
+                { type: "switch", id: "useClipBypass", name: "Use Clips Bypass", note: "Enabling this will effectively set your file upload limit for video files to 100MB. Disable this if you have a file upload limit larger than 100MB.", value: () => settings.useClipBypass },
+                { type: "dropdown", id: "clipTimestamp", name: "Timestamp", note: "This option lets you choose how the plugin determines the timestamp to put on the generated clip.", value: () => settings.clipTimestamp, options: [
+                        { label: "Zero (January 1st, 2015)", value: 0 },
+                        { label: "Current Date/Time", value: 1 },
+                        { label: "Last Modified Date/Time of File", value: 2 },
+                    ]
+                },
+                { type: "switch", id: "forceClip", name: "Force Clip", note: "Always send video files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceClip },
+                { type: "switch", id: "useAudioClipBypass", name: "Audio Clips Bypass", note: "Identical to the Clips Bypass for videos, except it works with audio files.", value: () => settings.useAudioClipBypass },
+                { type: "switch", id: "forceAudioClip", name: "Force Audio Clip", note: "Always send audio files as a clip, even if the size is below 10MB. I recommend that you leave this option disabled.", value: () => settings.forceAudioClip },
+                { type: "switch", id: "zipClip", name: "ZipClip", note: "Upload any file with the 100MB file upload limit by making your files into polyglot video+zip files that can be opened as a zip file. In 7-Zip, you will have to either: Rename the file to remove the .mp4 extension and then right-click and go 7-Zip > Open Archive > and then manually choose the file format (usually zip or 7z), or: Open the containing folder, right click the file and hit \"Open Inside\", then choose the zip. In WinRAR you don't need to do this, just rename if necessary, open, and it works. Windows' File Explorer's zip integration won't be able to open these, sorry. If you upload a file that is already an archive, the plugin will just append the file so the contents of your uploaded archive will appear rather than having your archive in a new zip.", value: () => settings.zipClip },
+                { type: "switch", id: "enableClipsExperiment", name: "Enable Clips Experiments", note: "Whether or not Clips-related experiments should be enabled. This doesn't disable on the fly, you will have to reload your client to get rid of the Experiments buttons in settings.", value: () => settings.enableClipsExperiment}
+            ]
+        },
+        {
+            type: "category",
+            id: "miscellaneous",
+            name: "Miscellaneous",
+            collapsible: true,
+            shown: false,
+            settings: [
+                { type: "dropdown", id: "changePremiumType2", name: "Change Premium Type", note: "This option will set your user to different Premium Types on the client-side, unlocking (or locking) certain things. Options unlocked by this may or may not work. If you don't know what you're doing, IT'S BEST TO LEAVE THIS OPTION DISABLED.", value: () => settings.changePremiumType2, options:[
+                    { label: "Disabled (Actual Nitro Status)", value: -1 },
+                    { label: "Free User", value: null},
+                    { label: "Nitro Basic", value: 3},
+                    { label: "Nitro Classic", value: 1},
+                    { label: "Nitro", value: 2},
+                ] },
+                { type: "switch", id: "clientThemes", name: "Gradient Client Themes", note: "Allows you to use Nitro-exclusive Client Themes.", value: () => settings.clientThemes },
+                { type: "switch", id: "removeProfileUpsell", name: "Remove Profile Customization Upsell", note: "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", value: () => settings.removeProfileUpsell },
+                { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
+                { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
+                { type: "switch", id: "removeNotStaffWarning", name: "Remove Not Staff Warning", note: "Removes the \"NOT STAFF\" warning on DMs when Experiments are enabled.", value: () => settings.removeNotStaffWarning },
+                { type: "switch", id: "extraContextMenus", name: "Extra Context Menus and Options", note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker and adds a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker.", value: () => settings.extraContextMenus},
+                { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.", value: () => (settings.experiments || settings.soundmojiEnabled || (settings.useClipBypass && settings.enableClipsExperiment))},
+                { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
+            ]
+        }
+
+    ],
+    "main": "YABDP4Nitro.plugin.js"
+};
+// #endregion
+
+//#region Plugin-wide Function(s)
+
+function copyToClipboard(string, successMessage, errorMessage = "Failed to copy to clipboard!") {
+    try {
+        DiscordCopyToClipboardFn(string);
+        if(successMessage)
+            UI.showToast(successMessage,{type: "info"});
+    } catch(err) {
+        UI.showToast(errorMessage,{type: "error",forceShow: true});
+        Logger.error(err);
+    }
+}
+
+function ResizeFindingElement({id, onResize}){
+    const ref = React.useRef(null);
+
+    React.useEffect(() => {
+        if(ref.current){
+            const observer = new ResizeObserver((ResizeObserverEntry) => {
+                if(ResizeObserverEntry?.[0]){
+                    onResize(ResizeObserverEntry[0].contentRect.width, ResizeObserverEntry[0].contentRect.height);
+                }
+            });
+            observer.observe(ref.current);
+    
+            return () => {
+                observer.disconnect();
+            };
+        }
+    },[]);
+
+    return React.createElement('div', {
+        id,
+        ref,
+        style: {
+            width: "100%",
+            height: "100%"
+        }
+    })
+}
+
 //#endregion
 
-module.exports = (() => {
-	const config = {
-		"info": {
-			"name": "YABDP4Nitro",
-			"authors": [{
-				"name": "Riolubruh",
-				"discord_id": "359063827091816448",
-				"github_username": "riolubruh"
-			}],
-			"version": "5.4.9",
-			"description": "Unlock all screensharing modes, and use cross-server & GIF emotes!",
-			"github": "https://github.com/riolubruh/YABDP4Nitro",
-			"github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
-		},
-		changelog: [
-			{
-				title: "5.4.9",
-				items: [
-					"(Temporarily?) Remove Preferred Video Codec because it doesn't actually work lol",
-					"Fix Custom FPS not being applied properly, because Discord has finally fixed the crash regarding custom resolutions and FPS for vanilla clients!"
-				]
-			}
-		],
-		"main": "YABDP4Nitro.plugin.js"
-	};
-
-	return !global.ZeresPluginLibrary ? class {
-		constructor() {
-			this._config = config;
-		}
-		getName() {
-			return config.info.name;
-		}
-		getAuthor() {
-			return config.info.authors.map(a => a.name).join(", ");
-		}
-		getDescription() {
-			return config.info.description;
-		}
-		getVersion() {
-			return config.info.version;
-		}
-		load() {
-			BdApi.UI.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
-				confirmText: "Download Now",
-				cancelText: "Cancel",
-				onConfirm: () => {
-					BdApi.Net.fetch("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js", {method:"GET"}).then(async res => {
-						if (!res.ok) return require("electron").shell.openExternal("https://raw.githubusercontent.com/zerebos/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
-						let body = await res.text();
-						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
-					});
-				}
-			});
-		}
-		start() { }
-		stop() { }
-	} : (([Plugin, Api]) => {
-		const plugin = (Plugin, Api) => {
-			const {
-				DiscordModules,
-				Settings,
-				Toasts,
-				Utilities,
-				DiscordClassModules,
-				PluginUpdater,
-				Logger
-			} = Api;
-
-			return class YABDP4Nitro extends Plugin {
-				defaultSettings = {
-					"emojiSize": 64,
-					"screenSharing": true,
-					"emojiBypass": true,
-					"ghostMode": false,
-					"emojiBypassForValidEmoji": true,
-					"PNGemote": true,
-					"uploadEmotes": true,
-					"uploadStickers": false,
-					"CustomFPSEnabled": false,
-					"CustomFPS": 60,
-					"ResolutionEnabled": false,
-					"CustomResolution": 1440,
-					"CustomBitrateEnabled": false,
-					"minBitrate": -1,
-					"maxBitrate": -1,
-					"targetBitrate": -1,
-					"voiceBitrate": 128,
-					"ResolutionSwapper": false,
-					"stickerBypass": false,
-					"profileV2": false,
-					"forceStickersUnlocked": false,
-					"changePremiumType": false,
-					// "videoCodec": 0,
-					"clientThemes": true,
-					"lastGradientSettingStore": -1,
-					"fakeProfileThemes": true,
-					"removeProfileUpsell": false,
-					"removeScreenshareUpsell": true,
-					"fakeProfileBanners": true,
-					"fakeAvatarDecorations": true,
-					"unlockAppIcons": false,
-					"profileEffects": true,
-					"killProfileEffects": false,
-					"avatarDecorations": {},
-					"customPFPs": true,
-					"experiments": false,
-					"userPfpIntegration": true,
-					"userBgIntegration": true
-				};
-				settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
-				getSettingsPanel() {
-					return Settings.SettingPanel.build(_ => this.saveAndUpdate(), ...[
-						new Settings.SettingGroup("Screen Share Features").append(...[
-							new Settings.Switch("High Quality Screensharing", "1080p/Source @ 60fps screensharing. Enable if you want to use any Screen Share related options.", this.settings.screenSharing, value => this.settings.screenSharing = value),
-							new Settings.Switch("Custom Screenshare Resolution", "Choose your own screen share resolution!", this.settings.ResolutionEnabled, value => this.settings.ResolutionEnabled = value),
-							new Settings.Textbox("Resolution", "The custom resolution you want (in pixels)", this.settings.CustomResolution,
-								value => {
-									value = parseInt(value, 10);
-									this.settings.CustomResolution = value;
-								}),
-							new Settings.Switch("Custom Screenshare FPS", "Choose your own screen share FPS!", this.settings.CustomFPSEnabled, value => this.settings.CustomFPSEnabled = value),
-							new Settings.Textbox("FPS", "", this.settings.CustomFPS,
-								value => {
-									value = parseInt(value);
-									this.settings.CustomFPS = value;
-								}),
-							new Settings.Switch("Stream Settings Quick Swapper", "Adds a button that will let you switch your resolution quickly!", this.settings.ResolutionSwapper, value => this.settings.ResolutionSwapper = value),
-							new Settings.Switch("Custom Bitrate", "Choose the bitrate for your streams!", this.settings.CustomBitrateEnabled, value => this.settings.CustomBitrateEnabled = value),
-							new Settings.Textbox("Minimum Bitrate", "The minimum bitrate (in kbps). If this is set to a negative number, the Discord default of 150kbps will be used.", this.settings.minBitrate,
-								value => {
-									value = parseFloat(value);
-									this.settings.minBitrate = value;
-								}),
-							new Settings.Textbox("Target Bitrate", "The target bitrate (in kbps). If this is set to a negative number, the Discord default of 600kbps will be used.", this.settings.targetBitrate,
-								value => {
-									value = parseFloat(value);
-									this.settings.targetBitrate = value;
-								}),
-							new Settings.Textbox("Maximum Bitrate", "The maximum bitrate (in kbps). If this is set to a negative number, the Discord default of 2500kbps will be used.", this.settings.maxBitrate,
-								value => {
-									value = parseFloat(value);
-									this.settings.maxBitrate = value;
-								}),
-							new Settings.Textbox("Voice Audio Bitrate", "Allows you to change the voice bitrate to whatever you want. Does not allow you to go over the voice channel's set bitrate but it does allow you to go much lower. (bitrate in kbps).", this.settings.voiceBitrate,
-								value => {
-									value = parseFloat(value);
-									this.settings.voiceBitrate = value;
-								})/* ,
-							new Settings.Dropdown("Preferred Video Codec", "Changes the screen share video codec to the one set.", this.settings.videoCodec, [
-								{ label: "Default/Disabled", value: 0 },
-								{ label: "H.265", value: 1 },
-								{ label: "H.264", value: 2 },
-								{ label: "AV1", value: 3 },
-								{ label: "VP8", value: 4 },
-								{ label: "VP9", value: 5 }], value => this.settings.videoCodec = value, { searchable: true }
-							) */
-						]),
-						new Settings.SettingGroup("Emojis").append(
-							new Settings.Switch("Nitro Emotes Bypass", "Enable or disable using the emoji bypass.", this.settings.emojiBypass, value => this.settings.emojiBypass = value),
-							new Settings.Dropdown("Size", "The size of the emoji in pixels.", this.settings.emojiSize, [
-								{ label: "32px (Default small/inline)", value: 32 },
-								{ label: "48px (Recommended, default large)", value: 48 },
-								{ label: "16px", value: 16 },
-								{ label: "24px", value: 24 },
-								{ label: "40px", value: 40 },
-								{ label: "56px", value: 56 },
-								{ label: "64px", value: 64 },
-								{ label: "80px", value: 80 },
-								{ label: "96px", value: 96 },
-								{ label: "128px (Max emoji size)", value: 128 },
-								{ label: "256px (Max GIF emoji size)", value: 256 }
-							],
-								value => {
-									if (isNaN(value)) {
-										value = 48;
-									}
-									this.settings.emojiSize = value
-								}, { searchable: true }
-							),
-							new Settings.Switch("Ghost Mode", "Abuses ghost message bug to hide the emoji url.", this.settings.ghostMode, value => this.settings.ghostMode = value),
-							new Settings.Switch("Don't Use Emote Bypass if Emote is Unlocked", "Disable to use emoji bypass even if bypass is not required for that emoji.", this.settings.emojiBypassForValidEmoji, value => this.settings.emojiBypassForValidEmoji = value),
-							new Settings.Switch("Use PNG instead of WEBP", "Use the PNG version of emoji for higher quality!", this.settings.PNGemote, value => this.settings.PNGemote = value),
-							new Settings.Switch("Upload Emotes as Images", "Upload emotes as image(s) after message is sent. (Overrides linking emotes)", this.settings.uploadEmotes, value => this.settings.uploadEmotes = value),
-							new Settings.Switch("Sticker Bypass", "Enable or disable using the sticker bypass. I recommend using An00nymushun's DiscordFreeStickers over this. Animated APNG/WEBP/Lottie Stickers will not animate.", this.settings.stickerBypass, value => this.settings.stickerBypass = value),
-							new Settings.Switch("Upload Stickers", "Upload stickers in the same way as emotes.", this.settings.uploadStickers, value => this.settings.uploadStickers = value),
-							new Settings.Switch("Force Stickers Unlocked", "Enable to cause Stickers to be unlocked.", this.settings.forceStickersUnlocked, value => this.settings.forceStickersUnlocked = value)
-						),
-						new Settings.SettingGroup("Profile").append(
-							new Settings.Switch("Profile Accents", "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", this.settings.profileV2, value => this.settings.profileV2 = value),
-							new Settings.Switch("Fake Profile Themes", "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", this.settings.fakeProfileThemes, value => this.settings.fakeProfileThemes = value),
-							new Settings.Switch("Fake Profile Banners", "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", this.settings.fakeProfileBanners, value => this.settings.fakeProfileBanners = value),
-							new Settings.Switch("UserBG Integration", "Downloads and parses the UserBG JSON database so that UserBG banners will appear for you.", this.settings.userBgIntegration, value => this.settings.userBgIntegration = value),
-							new Settings.Switch("Fake Avatar Decorations", "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", this.settings.fakeAvatarDecorations, value => this.settings.fakeAvatarDecorations = value),
-							new Settings.Switch("Fake Profile Effects", "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", this.settings.profileEffects, value => this.settings.profileEffects = value),
-							new Settings.Switch("Kill Profile Effects", "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", this.settings.killProfileEffects, value => this.settings.killProfileEffects = value),
-							new Settings.Switch("Fake Profile Pictures", "Uses invisible 3y3 encoding to allow setting custom profile pictures by hiding an image URL IN YOUR CUSTOM STATUS. Only supports Imgur URLs for security reasons.", this.settings.customPFPs, value => this.settings.customPFPs = value),
-							new Settings.Switch("UserPFP Integration", "Imports the UserPFP database so that people who have profile pictures in the UserPFP database will appear with their UserPFP profile picture. There's little reason to disable this.", this.settings.userPfpIntegration, value => this.settings.userPfpIntegration = value)
-						),
-						new Settings.SettingGroup("Miscellaneous").append(
-							new Settings.Switch("Change PremiumType", "This is now optional. Enabling this may help compatibility for certain things or harm it. SimpleDiscordCrypt requires this to be enabled to have the emoji bypass work. Only enable this if you don't have Nitro.", this.settings.changePremiumType, value => this.settings.changePremiumType = value),
-							new Settings.Switch("Gradient Client Themes", "Allows you to use Nitro-exclusive Client Themes.", this.settings.clientThemes, value => this.settings.clientThemes = value),
-							new Settings.Switch("Remove Profile Customization Upsell", "Removes the \"Try It Out\" upsell in the profile customization screen and replaces it with the Nitro variant. Note: does not allow you to use Nitro customization on Server Profiles as the API disallows this.", this.settings.removeProfileUpsell, value => this.settings.removeProfileUpsell = value),
-							new Settings.Switch("Remove Screen Share Nitro Upsell", "Removes the Nitro upsell in the Screen Share quality option menu.", this.settings.removeScreenshareUpsell, value => this.settings.removeScreenshareUpsell = value),
-							new Settings.Switch("App Icons", "Unlocks app icons. Warning: enabling this will force \"Change Premium Type\" to be enabled. Buggy.", this.settings.unlockAppIcons, value => this.settings.unlockAppIcons = value),
-							new Settings.Switch("Experiments", "Unlocks experiments. Use at your own risk.", this.settings.experiments, value => this.settings.experiments = value)
-						)
-					])
-				}
-
-
-				saveAndUpdate() { //Saves and updates settings and runs functions
-					Utilities.saveSettings(this.getName(), this.settings);
-					Patcher.unpatchAll(this.getName());
-
-					if (this.settings.changePremiumType) {
-						try {
-							if (!(ORIGINAL_NITRO_STATUS > 1)) {
-								CurrentUser.premiumType = 1;
-								setTimeout(() => {
-									if (this.settings.changePremiumType) {
-										CurrentUser.premiumType = 1;
-									}
-								}, 10000);
-							}
-						}
-						catch (err) {
-							Logger.err(this.getName(), "An error occurred changing premium type." + err);
-						}
-					}
-
-					if (this.settings.CustomFPS == 15) this.settings.CustomFPS = 16;
-					if (this.settings.CustomFPS == 30) this.settings.CustomFPS = 31;
-					if (this.settings.CustomFPS == 5) this.settings.CustomFPS = 6;
-
-					if (document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
-					if (document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
-					if (document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
-
-					if (this.settings.ResolutionSwapper) {
-						try {
-							this.buttonCreate(); //Fast Quality Button and Menu
-						} catch (err) {
-							console.error(err);
-						}
-						try {
-							document.getElementById("qualityInput").addEventListener("input", this.updateQuick);
-							document.getElementById("qualityInputFPS").addEventListener("input", this.updateQuick);
-							if (!this.settings.ResolutionSwapper) {
-								if (document.getElementById("qualityButton") != undefined) document.getElementById("qualityButton").style.display = 'none';
-								if (document.getElementById("qualityMenu") != undefined) document.getElementById("qualityMenu").style.display = 'none';
-							}
-						} catch (err) {
-							console.error(err);
-						}
-					}
-
-
-					if (this.settings.stickerBypass) {
-						try {
-							this.stickerSending()
-						} catch (err) {
-							console.error(err)
-						}
-					}
-
-					if (this.settings.emojiBypass) {
-						try {
-							this.emojiBypass();
-
-							if (this.emojiMods == undefined) this.emojiMods = Webpack.getByKeys("isEmojiFilteredOrLocked");
-
-							Patcher.instead(this.getName(), this.emojiMods, "isEmojiFilteredOrLocked", () => {
-								return false;
-							});
-							Patcher.instead(this.getName(), this.emojiMods, "isEmojiDisabled", () => {
-								return false;
-							});
-							Patcher.instead(this.getName(), this.emojiMods, "isEmojiFiltered", () => {
-								return false;
-							});
-							Patcher.instead(this.getName(), this.emojiMods, "isEmojiPremiumLocked", () => {
-								return false;
-							});
-							Patcher.instead(this.getName(), this.emojiMods, "getEmojiUnavailableReason", () => {
-								return;
-							});
-
-						} catch (err) {
-							console.error(err);
-						}
-					}
-
-					if (this.settings.profileV2) {
-						try {
-							Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, args, ret) => {
-								if (ret == undefined) return;
-								ret.premiumType = 2;
-							});
-						} catch (err) {
-							console.error(err);
-						}
-					}
-
-					if (this.settings.screenSharing) {
-						try {
-							this.customVideoSettings(); //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
-						} catch (err) {
-							Logger.err(this.getName(), "Error occurred during customVideoSettings() " + err);
-						}
-						try {
-							this.videoQualityModule(); //Custom bitrate, fps, resolution module
-						} catch (err) {
-							Logger.err(this.getName(), "Error occurred during videoQualityModule() " + err);
-						}
-					}
-
-					if (this.settings.forceStickersUnlocked) {
-						if (this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = Webpack.getByKeys("cO", "eb", "kl");
-						//getStickerSendability
-						Patcher.instead(this.getName(), this.stickerSendabilityModule, "cO", () => {
-							return 0;
-						});
-						//isSendableSticker
-						Patcher.instead(this.getName(), this.stickerSendabilityModule, "kl", () => {
-							return true;
-						});
-					}
-
-					if (this.settings.clientThemes) {
-						try {
-							this.clientThemes();
-						} catch (err) {
-							console.warn("[YABDP4Nitro] " + err);
-						}
-					}
-
-					if (this.settings.fakeProfileThemes) {
-						try {
-							this.decodeAndApplyProfileColors();
-							this.encodeProfileColors();
-						} catch (err) {
-							Logger.err(this.getName(), "Error occurred running fakeProfileThemes bypass. " + err);
-						}
-
-					}
-
-					BdApi.DOM.removeStyle(this.getName());
-
-					if (this.settings.removeScreenshareUpsell) {
-						try {
-							BdApi.DOM.addStyle(this.getName(), `
-							[class*="upsellBanner"] {
-							  display: none;
-							  visibility: hidden;
-							}`);
-						} catch (err) {
-							Logger.err(this.getName(), err);
-						}
-					}
-
-					BdApi.DOM.removeStyle("UsrBGIntegration");
-
-					if (this.settings.fakeProfileBanners) {
-						this.bannerUrlDecoding();
-						this.bannerUrlEncoding(this.secondsightifyEncodeOnly);
-						if(this.settings.userBgIntegration){
-							BdApi.DOM.addStyle("UsrBGIntegration", `
-								:is([class*="userProfile"], [class*="userPopout"]) [class*="bannerPremium"] {
-									background: center / cover no-repeat;
-								}
-
-								[class*="NonPremium"]:has([class*="bannerPremium"]) [class*="avatarPositionNormal"],
-								[class*="PremiumWithoutBanner"]:has([class*="bannerPremium"]) [class*="avatarPositionPremiumNoBanner"] {
-									top: 76px;
-								}
-
-								[style*="background-image"] [class*="background_"] {
-									background-color: transparent !important;
-								}`
-							)
-						}
-					}
-
-					Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
-					if (this.settings.fakeAvatarDecorations) {
-						this.fakeAvatarDecorations();
-					}
-
-					if (this.settings.unlockAppIcons) {
-						this.appIcons();
-					}
-
-					if (this.settings.profileEffects) {
-						try {
-							this.profileFX(this.secondsightifyEncodeOnly);
-						} catch (err) {
-							console.error(err);
-						}
-					}
-
-					if (this.settings.killProfileEffects) {
-						try {
-							this.killProfileFX();
-						} catch (err) {
-							Logger.err(this.getName(), "Error occured during killProfileFX() " + err);
-						}
-					}
-
-					BdApi.DOM.removeStyle("YABDP4NitroBadges");
-					try {
-						this.honorBadge();
-					} catch (err) {
-						Logger.err(this.getName(), "An error occurred during honorBadge() " + err);
-					}
-
-					if (this.settings.customPFPs) {
-						try {
-							this.customProfilePictureDecoding();
-							this.customProfilePictureEncoding(this.secondsightifyEncodeOnly);
-						} catch (err) {
-							Logger.err(this.getName(), "An error occurred during customProfilePicture decoding/encoding. " + err);
-						}
-					}
-
-					if (this.settings.experiments) {
-						try {
-							this.experiments();
-						} catch (err) {
-							Logger.err(this.getName(), "Error occurred in experiments() " + err);
-						}
-					}
-
-					Patcher.instead(this.getName(), canUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
-
-						if (this.settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis")) {
-							return true;
-						}
-						if (this.settings.appIcons && feature.name == 'appIcons') {
-							return true;
-						}
-						if (this.settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures') {
-							return true;
-						}
-						if (this.settings.clientThemes && feature.name == 'clientThemes') {
-							return true;
-						}
-						return originalFunction(feature, user);
-					});
-				} //End of saveAndUpdate()
-
-
-				experiments() {
-					try{
-						//code modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
-						let wpRequire;
-						webpackChunkdiscord_app.push([[ Math.random() ], {}, (req) => { wpRequire = req; }]);
-						let u = Object.values(wpRequire.c).find((x)=> x?.exports?.default?.getCurrentUser && x?.exports?.default?._dispatcher?._actionHandlers).exports.default
-						let m = Object.values(u._dispatcher._actionHandlers._dependencyGraph.nodes);
-
-						u.getCurrentUser().flags |= 1;
-						m.find((x)=>x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
-						try {m.find((x)=>x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({user:{flags: 1}})} catch {}
-						m.find((x)=>x.name === "ExperimentStore").storeDidChange()
-					}catch(err){
-						//console.error(err);
-					}
-				}
-
-
-				clientThemes() {
-					if (this.clientThemesModule == undefined) this.clientThemesModule = Webpack.getModule(Webpack.Filters.byProps("isPreview"));
-
-					//delete isPreview property so that we can set our own
-					delete this.clientThemesModule.isPreview;
-
-					//this property basically unlocks the client theme buttons
-					Object.defineProperty(this.clientThemesModule, "isPreview", { //Enabling the nitro theme settings
-						value: false,
-						configurable: true,
-						enumerable: true,
-						writable: true,
-					});
-
-					if (this.themesModule == undefined) this.themesModule = Webpack.getByKeys("V1", "ZI")
-
-					if (this.gradientSettingModule == undefined) this.gradientSettingModule = Webpack.getByKeys("kj", "zO")
-					const resetPreviewClientTheme = this.gradientSettingModule.kj;
-					const updateBackgroundGradientPreset = this.gradientSettingModule.zO;
-
-					//Patching saveClientTheme function.
-					Patcher.instead(this.getName(), this.themesModule, "ZI", (_, [args]) => {
-						if (args.backgroundGradientPresetId == undefined) {
-
-							//If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
-							this.settings.lastGradientSettingStore = -1;
-							//save any changes to settings
-							Utilities.saveSettings(this.getName(), this.settings);
-
-							//if user is trying to set the theme to the default dark theme
-							if (args.theme == 'dark') {
-								//dispatch settings update to change to dark theme
-								Dispatcher.dispatch({
-									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-									changes: {
-										appearance: {
-											shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
-											settings: {
-												theme: 'dark', //default dark theme
-												developerMode: true //genuinely have no idea what this does.
-											}
-										}
-									}
-								})
-								//get rid of gradient theming.
-								resetPreviewClientTheme();
-								return;
-							}
-
-							//if user is trying to set the theme to the default light theme
-							if (args.theme == 'light') {
-								//dispatch settings update event to change to light theme
-								Dispatcher.dispatch({
-									type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-									changes: {
-										appearance: {
-											shouldSync: false,  //prevent sync to stop discord api from butting in
-											settings: {
-												theme: 'light', //default light theme
-												developerMode: true
-											}
-										}
-									}
-								})
-							}
-							return;
-						} else { //gradient themes
-							//Store the last gradient setting used in settings
-							this.settings.lastGradientSettingStore = args.backgroundGradientPresetId;
-							//save any changes to settings
-							Utilities.saveSettings(this.getName(), this.settings);
-
-							//dispatch settings update event to change to the gradient the user chose
-							Dispatcher.dispatch({
-								type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-								changes: {
-									appearance: {
-										shouldSync: false,  //prevent sync to stop discord api from butting in
-										settings: {
-											theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
-											clientThemeSettings: {
-												backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
-											},
-											developerMode: true
-										}
-									}
-								}
-							});
-
-							//update background gradient preset to the one that was just chosen.
-							updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
-						}
-					}); //End of saveClientTheme patch.
-
-
-					//If last appearance choice was a nitro client theme
-					if (this.settings.lastGradientSettingStore != -1) {
-
-						//This line sets the gradient on plugin save and load.
-						updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
-					}
-
-					if (this.accountSwitchModule == undefined) this.accountSwitchModule = Webpack.getByKeys("startSession", "login");
-
-					//startSession patch. This function runs upon switching accounts.
-					Patcher.after(this.getName(), this.accountSwitchModule, "startSession", () => {
-
-						//If last appearance choice was a nitro client theme
-						setTimeout(() => {
-							if (this.settings.lastGradientSettingStore != -1) {
-								//Restore gradient on account switch
-								updateBackgroundGradientPreset(this.settings.lastGradientSettingStore);
-							}
-						}, 3000)
-					});
-				} //End of clientThemes()
-
-
-				customProfilePictureDecoding() {
-					if (this.getAvatarUrlModule == undefined) this.getAvatarUrlModule = Webpack.getByPrototypeKeys("getAvatarURL").prototype;
-
-					Patcher.instead(this.getName(), this.getAvatarUrlModule, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
-
-						//userpfp closer integration
-						//if we haven't fetched userPFP database yet and it's enabled
-						if ((!fetchedUserPfp || this.userPfps == undefined) && this.settings.userPfpIntegration) {
-
-							const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
-
-							// download userPfp data
-							BdApi.Net.fetch(userPfpJsonUrl)
-								// parse as json
-								.then(res => res.json())
-								// store res.avatars in this.userPfps
-								.then(res => this.userPfps = res.avatars);
-							//set fetchedUserPfp flag to true.
-							fetchedUserPfp = true;
-
-						}
-
-						//if userPfp database is not undefined, has been fetched, and is enabled
-						if ((this.userPfps != undefined && fetchedUserPfp) && this.settings.userPfpIntegration) {
-							//and this user is in the userPfp database,
-							if (this.userPfps[user.id] != undefined) {
-								//return UserPFP profile picture URL.
-								return this.userPfps[user.id];
-							}
-						}
-
-
-						if (DiscordModules.UserStatusStore.getActivities(user.id).length > 0) {
-							//get user activities
-							let activities = DiscordModules.UserStatusStore.getActivities(user.id);
-							//if user does not have a custom status, return original function.
-							if (activities[0].name != "Custom Status") return originalFunction(userId, size, shouldAnimate);
-
-							//if user does have a custom status, assign it to customStatus variable.
-							let customStatus = activities[0].state;
-							//checking if anything went wrong
-							if (customStatus == undefined) return originalFunction(userId, size, shouldAnimate);
-							//decode any 3y3 text
-							let revealedText = this.secondsightifyRevealOnly(String(customStatus));
-							//if there is no 3y3 encoded text, return original function.
-							if (revealedText == undefined) return originalFunction(userId, size, shouldAnimate);
-
-							//This regex matches /P{*} . (Do not fuck with this)
-							let regex = /P\{[^}]*\}/;
-
-							//Check if there are any matches in the custom status.
-							let matches = revealedText.toString().match(regex);
-							//if not, return orig function
-							if (matches == undefined) return originalFunction(userId, size, shouldAnimate);
-							if (matches == "") return originalFunction(userId, size, shouldAnimate);
-
-							//if there is a match, take the first match and remove the starting "P{ and ending "}"
-							let matchedText = matches[0].replace("P{", "").replace("}", "");
-
-							//look for a file extension. If omitted, fallback to .gif .
-							if (!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
-								matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
-							}
-
-							//add this user to the list of users who have thee YABDP4Nitro user badge if we haven't added them already.
-							if (!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
-
-							//return imgur url
-							return `https://i.imgur.com/${matchedText}`;
-						}
-
-						//if user does not have any activities active, return original function.
-						return originalFunction(userId, size, shouldAnimate);
-					})
-				}
-
-
-				//Custom PFP profile customization buttons and encoding code.
-				async customProfilePictureEncoding(secondsightifyEncodeOnly) {
-
-					//wait for avatar customization section renderer to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("USER_SETTINGS_RESET_AVATAR"));
-					//store avatar customization section renderer module
-					if (this.customPFPSettingsRenderMod == undefined) this.customPFPSettingsRenderMod = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("USER_SETTINGS_RESET_AVATAR"))[0];
-
-					Patcher.after(this.getName(), this.customPFPSettingsRenderMod, "Z", (_, [args], ret) => {
-
-						//don't need to do anything if this is the "Try out Nitro" flow.
-						if (args.isTryItOutFlow) return;
-
-						ret.props.children.props.children.push(
-							BdApi.React.createElement("input", {
-								id: "profilePictureUrlInput",
-								style: {
-									width: "30%",
-									height: "20%",
-									maxHeight: "50%",
-									marginTop: "5px",
-									marginLeft: "5px"
-								},
-								placeholder: "Imgur URL"
-							})
-						);
-
-						//Create and append Copy PFP 3y3 button.
-						ret.props.children.props.children.push(
-							BdApi.React.createElement("button", {
-								children: "Copy PFP 3y3",
-								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-								id: "profilePictureButton",
-								style: {
-									marginLeft: "10px",
-									whiteSpace: "nowrap"
-								},
-								onClick: async function () { //on copy pfp 3y3 button click
-
-									//grab text from pfp url input textarea.
-									let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
-
-									//empty, skip.
-									if (profilePictureUrlInputValue == "") return;
-									if (profilePictureUrlInputValue == undefined) return;
-
-									//clean up string to encode
-									let stringToEncode = "" + profilePictureUrlInputValue
-										//clean up URL
-										.replace("http://", "") //remove protocol
-										.replace("https://", "")
-										.replace("i.imgur.com", "imgur.com")
-
-									let encodedStr = ""; //initialize encoded string as empty string
-									stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-									//if url seems correct
-									if (stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-										//Check for album or gallery URL
-										if (stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")) {
-											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-											//Fetch imgur album page
-											try {
-												const parser = new DOMParser();
-												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
-													method: "GET",
-													mode: "cors"
-												}).then(res => res.text()
-													//parse html, queryselect meta tag with certain name
-													.then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-												stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-													.replace("https://", "") //get rid of protocol
-													.replace("i.imgur.com", "imgur.com")
-													.replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-													.split("?")[0]; //remove any URL parameters since we don't want or need them
-											} catch (err) {
-												ZLibrary.Logger.err("YABDP4Nitro", err);
-												ZLibrary.Toasts.error("An error occurred. Are there multiple images in this album/gallery?");
-												return;
-											}
-										}
-										if (stringToEncode == "") {
-											ZLibrary.Toasts.error("An error occurred: couldn't find file name.");
-											ZLibrary.Logger.err("YABDP4Nitro", "Couldn't find file name for some reason. Contact Riolubruh.");
-										}
-
-										//add starting "P{" , remove "imgur.com/" , and add ending "}"
-										stringToEncode = "P{" + stringToEncode.replace("imgur.com/", "") + "}"
-										//finally encode the string, adding a space before it so nothing fucks up
-										encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-										//let the user know what has happened
-										Toasts.info("3y3 copied to clipboard!");
-
-										//If this is not an Imgur URL, yell at the user.
-									} else if (stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-										Toasts.warning("Please use Imgur!");
-										return;
-									}
-
-									//if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-									if (encodedStr == "") return;
-
-									//Do this stupid shit that Chrome forces you to do to copy text to the clipboard.
-									const clipboardTextElem = document.createElement("textarea"); //create a textarea
-									clipboardTextElem.style.position = 'fixed'; //this is so that the rest of the document doesn't try to format itself to fit a textarea in it
-									clipboardTextElem.value = encodedStr; //add the encoded string to the textarea
-									document.body.appendChild(clipboardTextElem); //add the textarea to the document
-									clipboardTextElem.select(); //focus the textarea?
-									clipboardTextElem.setSelectionRange(0, 99999); //select all of the text in the textarea
-									document.execCommand('copy'); //finally send the copy command
-									document.body.removeChild(clipboardTextElem); //get rid of the evidence	
-								} //end copy pfp 3y3 click event
-							}) //end of react createElement
-						); //end of element push
-					}); //end of patch
-				} //End of customProfilePictureEncoding()
-
-
-				//Apply custom badges.
-				honorBadge() {
-
-					// Use CSS to select badge elements via aria-label and change them to the correct icon.
-					BdApi.DOM.addStyle("YABDP4NitroBadges", `
-						a[aria-label="A fellow YABDP4Nitro user!"] img {
-							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
-						}
-						
-						div [aria-label="A fellow YABDP4Nitro user!"] > a > img {
-							content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
-						}
-
-						a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
-							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-						}
-						
-						div [aria-label="YABDP4Nitro Creator!"] > a > img {
-							content: url("https://i.imgur.com/bYGGXnq.gif") !important;
-						}
-					`);
-
-					//User profile badge patches
-					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, args, ret) => {
-						//bad data checks
-						if (ret == undefined) return;
-						if (ret.userId == undefined) return;
-						if (ret.badges == undefined) return;
-
-						const badgesList = []; //list of the currently processed user's badge IDs
-
-						for (let i = 0; i < ret.badges.length; i++) { //for each of currently processed user's badges
-							badgesList.push(ret.badges[i].id); //add each of this user's badge IDs to badgesList
-						}
-
-						//if list of users that should have yabdp_user badge includes current user, and they don't already have the badge applied,
-						if (badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user")) {
-							//add the yabdp user badge to the user's list of badges.
-							ret.badges.push({
-								id: "yabdp_user",
-								icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
-								description: "A fellow YABDP4Nitro user!",
-								link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
-							});
-						}
-
-						//if this user is Riolubruh, and they don't already have the badge applied,
-						if (ret.userId == "359063827091816448" && !badgesList.includes("yabdp_creator")) {
-							//add the yabdp creator badge to riolubruh's list of badges.
-							ret.badges.push({
-								id: "yabdp_creator",
-								icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
-								description: "YABDP4Nitro Creator!",
-								link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
-							});
-						}
-
-						//List of Discord User IDs of people who have made contributions to the plugin
-						//Special thanks to the following gamers:
-
-						const specialThanks = [
-							"122072911455453184", // Weblure,
-							"760274365853335563", // Kozhura_ubezhishe_player_fly, and
-							"482224256730791967"  // Moeefa!
-						];
-
-						//if the currently processed user is included in specialThanks, and they don't already have the badge applied,
-						if (specialThanks.includes(ret.userId) && !badgesList.includes("yabdp_contributor")) {
-							//add the yabdp contributor badge to the contributor's list of badges
-							ret.badges.push({
-								id: "yabdp_contributor",
-								icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
-								description: "YABDP4Nitro Contributor!",
-								link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
-							});
-						}
-
-					}); //End of user profile badge patches
-				} //End of honorBadge()
-
-
-				secondsightifyRevealOnly(t) {
-					if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-						// 3y3 text detected. Revealing...
-						return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t);
-					} else {
-						// no encoded text found, returning
-						return;
-					}
-				}
-
-
-				secondsightifyEncodeOnly(t) {
-					if ([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))) {
-						// 3y3 text detected. returning...
-						return;
-					} else {
-						//3y3 text detected. revealing...
-						return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
-					}
-				}
-
-
-				//Everything related to Fake Profile Effects.
-				async profileFX(secondsightifyEncodeOnly) {
-
-					if (this.settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
-
-
-					//wait for profile effects module
-					await Webpack.waitForModule(Webpack.Filters.byProps("profileEffects", "tryItOutId"));
-
-					//try to get profile effects data
-					if (this.profileEffects == undefined) this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
-					if (this.fetchProfileEffects == undefined) this.fetchProfileEffects = Webpack.getAllByKeys("z").filter((obj) => obj.z.toString().includes("USER_PROFILE_EFFECTS_FETCH"))[0].z;
-
-					//if profile effects data hasn't been fetched by the client yet
-					if (this.profileEffects == undefined) {
-						//make the client fetch profile effects
-						await this.fetchProfileEffects("Failed to fetch profile effects.");
-						//then wait for the effects to be fetched and store them
-						this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
-					} else if (this.profileEffects.length == 0) {
-						await this.fetchProfileEffects("Failed to fetch profile effects.");
-						this.profileEffects = Webpack.getStore("ProfileEffectStore").profileEffects;
-					}
-
-					let profileEffectIdList = new Array();
-					for (let i = 0; i < this.profileEffects.length; i++) {
-						profileEffectIdList.push(this.profileEffects[i].id);
-					}
-
-
-					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, [args], ret) => {
-						//error prevention
-						if (ret == undefined) return;
-						if (ret.bio == undefined) return;
-
-						//reveal 3y3 encoded text. this string will also include the rest of the bio
-						let revealedText = this.secondsightifyRevealOnly(ret.bio);
-						if (revealedText == undefined) return;
-
-						//if profile effect 3y3 is detected
-						if (revealedText.includes("/fx")) {
-							let position = revealedText.indexOf("/fx");
-							if (position == undefined) return;
-
-							//find the 2 characters after the /fx and parse int
-							let effectIndex = parseInt(revealedText.slice(position + 3, position + 5));
-							//ignore invalid data 
-							if (isNaN(effectIndex)) return;
-							//ignore if the profile effect id does not point to an actual profile effect
-							if (profileEffectIdList[effectIndex] == undefined) return;
-							//set the profile effect
-							ret.profileEffectId = profileEffectIdList[effectIndex];
-
-							//if for some reason we dont know what this user's ID is, stop here
-							if (args == undefined) return;
-							//otherwise add them to the list of users who show up with the YABDP4Nitro user badge
-							if (!badgeUserIDs.includes(args)) badgeUserIDs.push(args);
-						}
-					}); //end of getUserProfile patch.
-
-					//wait for profile effect section renderer to be loaded.
-					await Webpack.waitForModule(Webpack.Filters.byStrings("initialSelectedEffectId"));
-
-					//fetch the module now that it's loaded
-					if (this.profileEffectSectionRenderer == undefined) this.profileEffectSectionRenderer = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("initialSelectedEffectId"))[0];
-
-					//patch profile effect section renderer function to run the following code after the function runs
-					Patcher.after(this.getName(), this.profileEffectSectionRenderer, "Z", (_, [args], ret) => {
-						//if this is the tryItOut flow, don't do anything.
-						if (args.isTryItOutFlow) return;
-
-						let profileEffectChildren = [];
-
-						//for each profile effect
-						for (let i = 0; i < this.profileEffects.length; i++) {
-
-							//get preview image url
-							let previewURL = this.profileEffects[i].config.thumbnailPreviewSrc;
-							let title = this.profileEffects[i].config.title;
-							//encode 3y3
-							let encodedText = secondsightifyEncodeOnly("/fx" + i); //fx0, fx1, etc.
-							//javascript that runs onclick for each profile effect button
-							let copyDecoration3y3 = function () {
-								const clipboardTextElem = document.createElement("textarea");
-								clipboardTextElem.style.position = "fixed";
-								clipboardTextElem.value = ` ${encodedText}`;
-								document.body.appendChild(clipboardTextElem);
-								clipboardTextElem.select();
-								clipboardTextElem.setSelectionRange(0, 99999);
-								document.execCommand("copy"); ZLibrary.Toasts.info("3y3 copied to clipboard!");
-								document.body.removeChild(clipboardTextElem);
-							}
-
-							profileEffectChildren.push(
-								BdApi.React.createElement("img", {
-									className: "riolubruhsSecretStuff",
-									onClick: copyDecoration3y3,
-									src: previewURL,
-									title,
-									style: {
-										width: "22.5%",
-										cursor: "pointer",
-										marginBottom: "0.5em",
-										marginLeft: "0.5em",
-										backgroundColor: "var(--background-tertiary)"
-									}
-								})
-							);
-
-							//add newline every 4th profile effect
-							if ((i + 1) % 4 == 0) {
-								profileEffectChildren.push(
-									BdApi.React.createElement("br")
-								);
-							}
-						}
-
-						//Profile Effects Modal
-						function EffectsModal() {
-							const elem = BdApi.React.createElement("div", {
-								style: {
-									width: "100%",
-									display: "block",
-									color: "white",
-									whiteSpace: "nowrap",
-									overflow: "visible",
-									marginTop: ".5em"
-								},
-								children: profileEffectChildren
-							});
-							return elem;
-						}
-
-						//Append Change Effect button
-						ret.props.children.props.children.push(
-							//self explanatory create react element
-							BdApi.React.createElement("button", {
-								children: "Change Effect [YABDP4Nitro]",
-								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-								size: "sizeSmall__71a98",
-								id: "changeProfileEffectButton",
-								style: {
-									width: "100px",
-									height: "32px",
-									color: "white",
-									marginLeft: "10px"
-								},
-								onClick: () => {
-									BdApi.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", BdApi.React.createElement(EffectsModal));
-								}
-
-							})
-						);
-					}); //end patch of profile effect section renderer function
-
-				} //End of profileFX()
-
-
-				killProfileFX() { //self explanatory
-					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, args, ret) => {
-						if (ret == undefined) return;
-						if (ret.profileEffectID == undefined) return;
-						//self explanatory
-						ret.profileEffectID = undefined;
-					});
-				}
-
-				//Everything related to fake avatar decorations.
-
-				storeProductsFromCategories = event => {
-					if (event.categories) {
-						event.categories.forEach(category => {
-							category.products.forEach(product => {
-								product.items.forEach(item => {
-									if (item.asset) {
-										Object.assign(this.settings.avatarDecorations)[item.id] = item.asset;
-									}
-								})
-							})
-						})
-					}
-				}
-
-				async fakeAvatarDecorations() {
-					//keep track of profiles downloaded
-					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, [args], ret) => {
-						if (ret == undefined) return;
-						if (ret.userId == undefined) return;
-						if (downloadedUserProfiles.includes(args)) return;
-						downloadedUserProfiles.push(ret.userId);
-					});
-
-					//apply decorations
-					Patcher.after(this.getName(), DiscordModules.UserStore, "getUser", (_, args, ret) => {
-						//basic error checking
-						if (args == undefined) return;
-						if (args[0] == undefined) return;
-						if (ret == undefined) return;
-						let avatarDecorations = this.settings.avatarDecorations;
-
-						function getRevealedText(self) {
-							let revealedTextLocal = ""; //init empty string with local scope
-
-							//if this user's profile has been downloaded
-							if (downloadedUserProfiles.includes(args[0])) {
-								//get the user's profile from the cached user profiles
-								let userProfile = userProfileMod.getUserProfile(args[0]);
-
-								//if their bio is empty, move on to the next check.
-								if (userProfile?.bio != undefined) {
-									//reveal 3y3 encoded text
-									revealedTextLocal = self.secondsightifyRevealOnly(String(userProfile.bio));
-									//if there's no 3y3 text, move on to the next check.
-									if (revealedTextLocal != undefined) {
-										if (String(revealedTextLocal).includes("/a")) {
-											//return bio with the 3y3 decoded
-											return revealedTextLocal;
-										}
-									}
-								}
-
-							}
-							if (DiscordModules.UserStatusStore.getActivities(args[0]).length > 0) {
-								//grab user's activities (this includes custom status)
-								let activities = DiscordModules.UserStatusStore.getActivities(args[0]);
-								//if they don't have a custom status, stop processing.
-								if (activities[0].name != "Custom Status") return;
-								//otherwise, grab the text from the custom status
-								let customStatus = activities[0].state;
-								//if something has gone horribly wrong, stop processing.
-								if (customStatus == undefined) return;
-								//finally reveal 3y3 encoded text
-								revealedTextLocal = self.secondsightifyRevealOnly(String(customStatus));
-								//return custom status with the 3y3 decoded
-								return revealedTextLocal;
-							}
-						}
-						let revealedText = getRevealedText(this);
-						//if nothing's returned, or an empty string is returned, stop processing.
-						if (revealedText == undefined) return;
-						if (revealedText == "") return;
-
-						//Matches the characters "/a" and any numbers after the a
-						const regex = /\/a\d+/;
-						let matches = revealedText.toString().match(regex);
-						if (matches == undefined) return;
-						let firstMatch = matches[0];
-						if (firstMatch == undefined) return;
-
-						//slice off the /a and just store the ID number
-						let assetId = firstMatch.slice(2);
-
-						//if this decoration is not in the list, return
-						if (avatarDecorations[assetId] == undefined) return;
-
-						//if this user does not have an avatar decoration, or the avatar decoration data does not match the one in the avatar decorations array,
-						if (ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetId]) {
-							//set avatar decoration data to fake avatar decoration
-							ret.avatarDecorationData = {
-								asset: avatarDecorations[assetId],
-								sku_id: "1144003461608906824" //dummy sku id
-							}
-
-							//add user to the list of users to show with the YABDP4Nitro user badge we haven't already.
-							if (!badgeUserIDs.includes(ret.id)) badgeUserIDs.push(ret.id);
-						}
-					}); //end of getUser patch for avatar decorations
-
-					//subscribe to successful collectible category fetch event
-					Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-
-					//trigger decorations fetch
-					FetchCollectibleCategories(
-						{
-							includeBundles: true,
-							includeUnpublished: false,
-							noCache: false,
-							paymentGateway: undefined
-						}
-					)
-
-					//Wait for avatar decor customization section render module to be loaded.
-					await Webpack.waitForModule(Webpack.Filters.byStrings("userAvatarDecoration"));
-
-					//Avatar decoration customization section render module/function.
-					if(!this.decorationCustomizationSectionMod) this.decorationCustomizationSectionMod = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("userAvatarDecoration"))[0];
-
-					//Avatar decoration customization section patch
-					Patcher.after(this.getName(), this.decorationCustomizationSectionMod, "Z", (_, [args], ret) => {
-						//don't run if this is the try out nitro flow.
-						if (args.isTryItOutFlow) return;
-
-						//push change decoration button
-						ret.props.children[0].props.children.push(
-							BdApi.React.createElement("button", {
-								id: "decorationButton",
-								children: "Change Decoration [YABDP4Nitro]",
-								style: {
-									width: "100px",
-									height: "50px",
-									color: "white",
-									borderRadius: "3px",
-									marginLeft: "5px",
-								},
-								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-								onClick: () => {
-									BdApi.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", BdApi.React.createElement(DecorModal));
-								}
-							})
-						);
-
-
-						let listOfDecorationIds = Object.keys(BdApi.getData(this.getName(), "settings").avatarDecorations);
-						let avatarDecorationChildren = [];
-
-						//for each avatar decoration
-						for (let i = 0; i < listOfDecorationIds.length; i++) {
-
-							//text to encode to 3y3
-							let encodedText = this.secondsightifyEncodeOnly("/a" + listOfDecorationIds[i]); // /a[id]
-							//javascript that runs onclick for each avatar decoration button
-							let copyDecoration3y3 = function () {
-								const clipboardTextElem = document.createElement("textarea");
-								clipboardTextElem.style.position = "fixed";
-								clipboardTextElem.value = ` ${encodedText}`;
-								document.body.appendChild(clipboardTextElem);
-								clipboardTextElem.select();
-								clipboardTextElem.setSelectionRange(0, 99999);
-								document.execCommand("copy");
-								ZLibrary.Toasts.info("3y3 copied to clipboard!"); document.body.removeChild(clipboardTextElem);
-							}
-							let child = BdApi.React.createElement("img", {
-								style: {
-									width: "23%",
-									cursor: "pointer",
-									marginLeft: "5px",
-									marginBottom: "10px",
-									borderRadius: "4px",
-									backgroundColor: "var(--background-tertiary)"
-								},
-								onClick: copyDecoration3y3,
-								src: "https://cdn.discordapp.com/avatar-decoration-presets/" + this.settings.avatarDecorations[listOfDecorationIds[i]] + ".png?size=64"
-							});
-							avatarDecorationChildren.push(child);
-
-							//add newline every 4th decoration
-							if ((i + 1) % 4 == 0) {
-								//avatarDecorationsHTML += "<br>"
-								avatarDecorationChildren.push(BdApi.React.createElement("br"));
-							}
-						}
-
-						function DecorModal() {
-							return BdApi.React.createElement("div", {
-								style: {
-									width: "100%",
-									display: "block",
-									color: "white",
-									whiteSpace: "nowrap",
-									overflow: "visible",
-									marginTop: ".5em"
-								},
-								children: avatarDecorationChildren
-							});
-						}
-
-					}); //end patch of profile decoration section renderer function
-
-				} //End of fakeAvatarDecorations()
-
-
-				async UploadEmote(url, channelIdLmao, msg, emoji, runs) {
-					if (emoji === undefined) {
-						let emoji;
-					}
-
-					if (msg === undefined) {
-						let msg;
-					}
-
-					let extension = ".gif";
-					if (!emoji.animated) {
-						extension = ".png";
-						if (!this.settings.PNGemote) {
-							extension = ".webp";
-						}
-					}
-
-					//Download emote by URL, convert to blob, then convert to File object
-					let file = await fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)))
-					file.platform = 1; // Not exactly sure what this does, but it should be set to 1.
-					file.spoiler = false; //not marked as spoiler.
-
-					//Start file upload
-					let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelIdLmao, false, 0);
-					fileUp.isImage = true;
-
-					//Options for the upload
-					let uploadOptions = new Object();
-					uploadOptions.channelId = channelIdLmao; //Upload to current channel
-					uploadOptions.uploads = [fileUp]; //The file from before
-					uploadOptions.draftType = 0; // Not sure what this does.
-					uploadOptions.options = {
-						stickerIds: [] //No stickers in the message
-					};
-					//Message attached to the upload.
-					uploadOptions.parsedMessage = { channelId: channelIdLmao, content: msg[1].content, tts: false, invalidEmojis: [] }
-
-					//if this is not the first emoji uploaded
-					if (runs > 1) {
-						//make the message attached to the upload have no text
-						uploadOptions.parsedMessage = { channelId: channelIdLmao, content: "", tts: false, invalidEmojis: [] }
-					}
-
-					try {
-						await Uploader.uploadFiles(uploadOptions); //finally finish the process of uploading
-					} catch (err) {
-						console.error(err);
-					}
-				}
-
-
-				//Whether we should skip the emoji bypass for a given emoji.
-				// true = skip bypass
-				// false = perform bypass
-				emojiBypassForValidEmoji(emoji, currentChannelId) {
-					if (this.settings.emojiBypassForValidEmoji) {
-						if ((DiscordModules.SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated
-							&& (DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || DiscordModules.ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available)
-							//If emoji is from current guild, not animated, and we are actually in a guild channel,
-							//and emoji is "available" (could be unavailable due to Server Boost level dropping), cancel emoji bypass
-
-							|| emoji.managed) {
-							// OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration)
-							return true;
-						}
-
-
-
-					}
-					return false;
-				}
-
-
-				customVideoSettings() { //Unlock stream buttons, apply custom resolution and fps, and apply stream quality bypasses
-					//If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
-					//console.log(StreamButtons);
-
-					//Nice try, Discord.
-					Patcher.instead(this.getName(), StreamButtons, "L9", (_, [args]) => {
-						//getApplicationFramerate
-						return args;
-					});
-					Patcher.instead(this.getName(), StreamButtons, "aW", (_, [args]) => {
-						//getApplicationResolution
-						return args;
-					});
-
-					//If custom resolution is enabled and the resolution is not set to 0,
-					if (this.settings.ResolutionEnabled && this.settings.CustomResolution != 0) {
-						//some of these properties are marked as read only, but they still allow you to delete them
-						//so any time you see "delete", what we're doing is bypassing the read-only thing by deleting it and immediately remaking it.
-						delete ApplicationStreamResolutions.RESOLUTION_1440;
-						//Change 1440p resolution internally to custom resolution
-						ApplicationStreamResolutions.RESOLUTION_1440 = this.settings.CustomResolution;
-
-						//********************************** Requirements below this point*************************************
-						ApplicationStreamSettingRequirements[4].resolution = this.settings.CustomResolution;
-						ApplicationStreamSettingRequirements[5].resolution = this.settings.CustomResolution;
-						ApplicationStreamSettingRequirements[6].resolution = this.settings.CustomResolution;
-
-
-						//************************************Buttons below this point*****************************************
-						//Set resolution button value to custom resolution
-						ApplicationStreamResolutionButtons[2].value = this.settings.CustomResolution;
-						delete ApplicationStreamResolutionButtons[2].label;
-						//Set label of resolution button to custom resolution. This one is used in the popup window that appears before you start streaming.
-						ApplicationStreamResolutionButtons[2].label = this.settings.CustomResolution.toString();
-
-						//Set value of button with suffix label to custom resolution
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = this.settings.CustomResolution;
-						delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-						//Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
-						//This one is used in the dropdown kind of menu after you've started streaming
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = this.settings.CustomResolution + "p";
-					}
-
-					//If custom resolution tick is disabled or custom resolution is set to 0,
-					if (!this.settings.ResolutionEnabled || this.settings.CustomResolution == 0) {
-
-						//Reset all values to defaults.
-						delete ApplicationStreamResolutions.RESOLUTION_1440
-						ApplicationStreamResolutions.RESOLUTION_1440 = 1440;
-						ApplicationStreamSettingRequirements[4].resolution = 1440;
-						ApplicationStreamSettingRequirements[5].resolution = 1440;
-						ApplicationStreamSettingRequirements[6].resolution = 1440;
-						ApplicationStreamResolutionButtons[2].value = 1440;
-						delete ApplicationStreamResolutionButtons[2].label;
-						ApplicationStreamResolutionButtons[2].label = "1440";
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = 1440;
-						delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = "1440p";
-					}
-
-					//Removes stream setting requirements
-					function removeQualityParameters(x) {
-						try {
-							delete x.quality
-						} catch (err) {
-						}
-						try {
-							delete x.guildPremiumTier
-						} catch (err) {
-						}
-					}
-
-					/*Remove each of the stream setting requirements 
-					(which basically just tell your client what premiumType / guildPremiumTier you need to access that resolution)
-					removing the setting requirements makes it default to thinking that every premiumType can use it.*/
-					ApplicationStreamSettingRequirements.forEach(removeQualityParameters);
-					function replace60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
-					}
-					function restore60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
-					}
-
-					//If Custom FPS is enabled and does not equal 60,
-					if (this.settings.CustomFPSEnabled && this.CustomFPS != 60) {
-						//remove FPS nitro requirements
-						ApplicationStreamSettingRequirements.forEach(replace60FPSRequirements);
-						//set suffix label button value to the custom number
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].value = this.settings.CustomFPS;
-						delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-						//set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].label = this.settings.CustomFPS + " FPS";
-						//set fps button value to the correct number.
-						ApplicationStreamFPSButtons[2].value = this.settings.CustomFPS;
-						delete ApplicationStreamFPSButtons[2].label;
-						//set fps button label to the correct number. This one is used in the popup window that appears before you start streaming.
-						ApplicationStreamFPSButtons[2].label = this.settings.CustomFPS;
-						ApplicationStreamFPS.FPS_60 = this.settings.CustomFPS;
-					}
-
-					//If custom FPS toggle is disabled, or custom fps is set to the default of 60,
-					if (!this.settings.CustomFPSEnabled || this.CustomFPS == 60) {
-						//Reset all values to defaults.
-						ApplicationStreamSettingRequirements.forEach(restore60FPSRequirements);
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].value = 60;
-						delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].label = "60 FPS";
-						ApplicationStreamFPSButtons[2].value = 60;
-						delete ApplicationStreamFPSButtons[2].label;
-						ApplicationStreamFPSButtons[2].label = 60;
-						ApplicationStreamFPS.FPS_60 = 60;
-					}
-
-				} //End of customVideoSettings()
-
-				emojiBypass() {
-					//Upload Emotes Method
-					if (this.settings.uploadEmotes) {
-
-						Patcher.instead(this.getName(), DiscordModules.MessageActions, "_sendMessage", (_, msg, send) => {
-							if (msg[2].poll != undefined || msg[2].activityAction != undefined) { //fix polls, activity actions
-								send(msg[0], msg[1], msg[2], msg[3]);
-								return;
-							}
-							if (document.getElementsByClassName("sdc-tooltip").length > 0) {
-								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-								if (SDC_Tooltip.innerHTML == "Disable Encryption") {
-									//SDC Encryption Enabled
-									send(msg[0], msg[1], msg[2], msg[3]);
-									return;
-								}
-							}
-							const currentChannelId = msg[0];
-							let runs = 0; //number of times the uploader has run for this message
-							msg[1].validNonShortcutEmojis.forEach(emoji => {
-								if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
-								if (emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
-								if (this.settings.PNGemote) {
-									emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
-								}
-								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-								if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
-
-
-								//If there is a backslash (\) before the emote we are processing,
-								if (msg[1].content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
-									//remove the backslash
-									msg[1].content = msg[1].content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-									//and skip bypass for that emote
-									return;
-								}
-
-								runs++; // increment number of times the uploader has run for this message.
-
-								//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-								emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`;
-								//remove emote from message.
-								msg[1].content = msg[1].content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
-								//upload emote
-								this.UploadEmote(emojiUrl, currentChannelId, msg, emoji, runs);
-							});
-							if ((msg[1].content !== undefined && (msg[1].content != "" || msg[2].activityAction != undefined)) && runs == 0) {
-								send(msg[0], msg[1], msg[2], msg[3]);
-							}
-						});
-
-						Patcher.instead(this.getName(), Uploader, "uploadFiles", (_, [args], originalFunction) => {
-
-							if (document.getElementsByClassName("sdc-tooltip").length > 0) {
-								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-								if (SDC_Tooltip.innerHTML == "Disable Encryption") {
-									//SDC Encryption Enabled
-									originalFunction(args);
-									return;
-								}
-							}
-							const currentChannelId = args.channelId;
-							let emojis = [];
-							let runs = 0;
-
-							if (args.parsedMessage.validNonShortcutEmojis != undefined) {
-								if (args.parsedMessage.validNonShortcutEmojis.length > 0) {
-									args.parsedMessage.validNonShortcutEmojis.forEach(emoji => {
-										if (this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
-										if (emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
-										if (this.settings.PNGemote) {
-											emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
-										}
-
-										let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-										if (emojiUrl.startsWith("/assets/")) return; //System emoji. Skip.
-
-										//If there is a backslash (\) before the emote we are processing,
-										if (args.parsedMessage.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
-											//remove the backslash
-											args.parsedMessage.content = args.parsedMessage.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-											//and skip bypass for that emote
-											return;
-										}
-
-										//add to list of emojis
-										emojis.push(emoji);
-
-										//remove emote from message.
-										args.parsedMessage.content = args.parsedMessage.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "");
-									});
-
-									//send file with text and shit
-									originalFunction(args);
-
-									//loop through emotes to send one at a time
-									for (let i = 0; i < emojis.length; i++) {
-										let emoji = emojis[i];
-										let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-
-										//remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
-										emojiUrl = emojiUrl.split("?")[0] + `?size=${this.settings.emojiSize}&quality=lossless`;
-
-										this.UploadEmote(emojiUrl, currentChannelId, [currentChannelId, { content: "", tts: false, invalidEmojis: [] }], emoji, 1);
-									}
-
-								} else {
-									originalFunction(args);
-								}
-							} else {
-								originalFunction(args);
-							}
-
-						});
-
-					}
-
-					//Ghost mode method
-					const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ "
-
-					if (this.settings.ghostMode && !this.settings.uploadEmotes) {
-
-						function ghostModeMethod(msg, currentChannelId, self) {
-							if (document.getElementsByClassName("sdc-tooltip").length > 0) {
-								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-								if (SDC_Tooltip.innerHTML == "Disable Encryption") {
-									//SDC Encryption Enabled
-									return;
-								}
-							}
-							let emojiGhostIteration = 0; // dummy value we add to the end of the URL parameters to make the same emoji appear more than once despite having the same URL.
-							msg.validNonShortcutEmojis.forEach(emoji => {
-								if (self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
-								if (emoji.type == "UNICODE") return;
-								if (self.settings.PNGemote) emoji.forcePNG = true;
-
-								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-								if (emojiUrl.startsWith("/assets/")) return;
-
-								if (msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
-									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-									return; //If there is a backslash before the emoji, skip it.
-								}
-
-								//if ghost mode is not required
-								if (msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, "") == "") {
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `)
-									return;
-								}
-								emojiGhostIteration++; //increment dummy value
-
-								//if message already has ghostmodetext.
-								if (msg.content.includes(ghostmodetext)) {
-									//remove processed emoji from the message
-									msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""),
-										//add to the end of the message
-										msg.content += " " + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `
-									return;
-								}
-								//if message doesn't already have ghostmodetext, remove processed emoji and add it to the end of the message with the ghost mode text
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, ""), msg.content += ghostmodetext + "\n" + emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless `
-							});
-						}
-
-						//sending message in ghost mode
-						Patcher.before(this.getName(), DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-							ghostModeMethod(msg, currentChannelId, this);
-						});
-
-						//uploading file with emoji in the message in ghost mode.
-						Patcher.before(this.getName(), Uploader, "uploadFiles", (_, [args], originalFunction) => {
-							const currentChannelId = args.channelId;
-							const msg = args.parsedMessage;
-							ghostModeMethod(msg, currentChannelId, this);
-						})
-
-					}
-
-					//Original method
-					if (!this.settings.ghostMode && !this.settings.uploadEmotes) {
-
-						function classicModeMethod(msg, currentChannelId, self) {
-							if (document.getElementsByClassName("sdc-tooltip").length > 0) {
-								let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
-								if (SDC_Tooltip.innerHTML == "Disable Encryption") {
-									//SDC Encryption Enabled
-									return;
-								}
-							}
-							//refer to previous bypasses for comments on what this all is for.
-							let emojiGhostIteration = 0;
-							msg.validNonShortcutEmojis.forEach(emoji => {
-								if (self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
-								if (emoji.type == "UNICODE") return;
-								if (self.settings.PNGemote) emoji.forcePNG = true;
-
-								let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
-								if (emojiUrl.startsWith("/assets/")) return;
-
-								if (msg.content.includes("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">")) {
-									msg.content = msg.content.replace(("\\<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"), ("<" + emoji.allNamesString.replace(/~\b\d+\b/g, "") + emoji.id + ">"));
-									return //If there is a backslash before the emoji, skip it.
-								}
-								emojiGhostIteration++;
-								msg.content = msg.content.replace(`<${emoji.animated ? "a" : ""}${emoji.allNamesString.replace(/~\b\d+\b/g, "")}${emoji.id}>`, emojiUrl.split("?")[0] + `?size=${self.settings.emojiSize}&quality=lossless&${emojiGhostIteration} `)
-							});
-						}
-
-						//sending message in classic mode
-						Patcher.before(this.getName(), DiscordModules.MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
-							classicModeMethod(msg, currentChannelId, this);
-						});
-
-						//uploading file with emoji in the message in classic mode.
-						Patcher.before(this.getName(), Uploader, "uploadFiles", (_, [args], originalFunction) => {
-							const msg = args.parsedMessage;
-							const currentChannelId = args.channelId;
-							classicModeMethod(msg, currentChannelId, this);
-						});
-
-						//editing message in classic mode
-						Patcher.before(this.getName(), DiscordModules.MessageActions, "editMessage", (_, obj) => {
-							let msg = obj[2].content
-							if (msg.search(/\d{18}/g) == -1) return;
-							if (msg.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
-							msg.match(/<a:.+?:\d{18}>|<:.+?:\d{18}>/g).forEach(idfkAnymore => {
-								obj[2].content = obj[2].content.replace(idfkAnymore, `https://cdn.discordapp.com/emojis/${idfkAnymore.match(/\d{18}/g)[0]}?size=${this.settings.emojiSize}`)
-							})
-						});
-						return;
-					}
-				} //End of emojiBypass()
-
-
-				updateQuick() { //Function that runs when the resolution/fps quick menu is changed.
-					//Refer to customVideoSettings function for comments on what this all does, since this code is just a copy-paste from there.
-					const settings = BdApi.getData("YABDP4Nitro", "settings");
-					parseInt(document.getElementById("qualityInput").value);
-					settings.CustomResolution = parseInt(document.getElementById("qualityInput").value);
-					parseInt(document.getElementById("qualityInputFPS").value);
-					settings.CustomFPS = parseInt(document.getElementById("qualityInputFPS").value);
-					if (parseInt(document.getElementById("qualityInputFPS").value) == 15) settings.CustomFPS = 16;
-					if (parseInt(document.getElementById("qualityInputFPS").value) == 30) settings.CustomFPS = 31;
-					if (parseInt(document.getElementById("qualityInputFPS").value) == 5) settings.CustomFPS = 6;
-
-					if (settings.ResolutionEnabled && settings.CustomResolution != 0) {
-						delete ApplicationStreamResolutions.RESOLUTION_1440
-						ApplicationStreamResolutions.RESOLUTION_1440 = settings.CustomResolution;
-						ApplicationStreamSettingRequirements[4].resolution = settings.CustomResolution;
-						ApplicationStreamSettingRequirements[5].resolution = settings.CustomResolution;
-						ApplicationStreamSettingRequirements[6].resolution = settings.CustomResolution;
-						ApplicationStreamResolutionButtons[2].value = settings.CustomResolution;
-						delete ApplicationStreamResolutionButtons[2].label;
-						ApplicationStreamResolutionButtons[2].label = settings.CustomResolution.toString();
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = settings.CustomResolution;
-						delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = settings.CustomResolution + "p";
-					}
-					if (!settings.ResolutionEnabled || (settings.CustomResolution == 0)) {
-						delete ApplicationStreamResolutions.RESOLUTION_1440
-						ApplicationStreamResolutions.RESOLUTION_1440 = 1440;
-						ApplicationStreamSettingRequirements[4].resolution = 1440;
-						ApplicationStreamSettingRequirements[5].resolution = 1440;
-						ApplicationStreamSettingRequirements[6].resolution = 1440;
-						ApplicationStreamResolutionButtons[2].value = 1440;
-						delete ApplicationStreamResolutionButtons[2].label;
-						ApplicationStreamResolutionButtons[2].label = "1440";
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = 1440;
-						delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
-						ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = "1440p";
-					}
-					function replace60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = BdApi.getData("YABDP4Nitro", "settings").CustomFPS;
-					}
-					function restore60FPSRequirements(x) {
-						if (x.fps != 30 && x.fps != 15 && x.fps != 5) x.fps = 60;
-					}
-
-					if (settings.CustomFPSEnabled) {
-						if (this.CustomFPS != 60) {
-							ApplicationStreamSettingRequirements.forEach(replace60FPSRequirements);
-							ApplicationStreamFPSButtonsWithSuffixLabel[2].value = settings.CustomFPS;
-							delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-							ApplicationStreamFPSButtonsWithSuffixLabel[2].label = settings.CustomFPS + " FPS";
-							ApplicationStreamFPSButtons[2].value = settings.CustomFPS;
-							delete ApplicationStreamFPSButtons[2].label;
-							ApplicationStreamFPSButtons[2].label = settings.CustomFPS;
-							ApplicationStreamFPS.FPS_60 = settings.CustomFPS;
-						}
-					}
-					if (!settings.CustomFPSEnabled || this.CustomFPS == 60) {
-						ApplicationStreamSettingRequirements.forEach(restore60FPSRequirements);
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].value = 60;
-						delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
-						ApplicationStreamFPSButtonsWithSuffixLabel[2].label = 60 + " FPS";
-						ApplicationStreamFPSButtons[2].value = 60;
-						delete ApplicationStreamFPSButtons[2].label;
-						ApplicationStreamFPSButtons[2].label = 60;
-						ApplicationStreamFPS.FPS_60 = 60;
-					}
-				} //End of updateQuick()
-
-
-				videoQualityModule() { //Custom Bitrates, FPS, Resolution
-					if (this.videoOptionFunctions == undefined) this.videoOptionFunctions = Webpack.getByPrototypeKeys("updateVideoQuality").prototype;
-
-					Patcher.before(this.getName(), this.videoOptionFunctions, "updateVideoQuality", (e) => {
-
-						if (!e.videoQualityManager.qualityOverwrite) e.videoQualityManager.qualityOverwrite = {};
-
-						//console.log(e);
-
-
-						if (this.settings.minBitrate > 0 && this.settings.CustomBitrateEnabled) {
-							//Minimum Bitrate
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
-							e.videoQualityManager.qualityOverwrite.bitrateMin = (this.settings.minBitrate * 1000);
-							e.videoQualityManager.options.videoBitrateFloor = (this.settings.minBitrate * 1000);
-							e.videoQualityManager.options.videoBitrate.min = (this.settings.minBitrate * 1000);
-							e.videoQualityManager.options.desktopBitrate.min = (this.settings.minBitrate * 1000);
-						} else {
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMin = 150000;
-							e.videoQualityManager.qualityOverwrite.bitrateMin = 150000;
-							e.videoQualityManager.options.videoBitrateFloor = 150000;
-							e.videoQualityManager.options.videoBitrate.min = 150000;
-							e.videoQualityManager.options.desktopBitrate.min = 150000;
-						}
-
-						if (this.settings.maxBitrate > 0 && this.settings.CustomBitrateEnabled) {
-							//Maximum Bitrate
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
-							e.videoQualityManager.qualityOverwrite.bitrateMax = (this.settings.maxBitrate * 1000);
-							e.videoQualityManager.options.videoBitrate.max = (this.settings.maxBitrate * 1000);
-							e.videoQualityManager.options.desktopBitrate.max = (this.settings.maxBitrate * 1000);
-						} else {
-							//Default max bitrate
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateMax = 2500000;
-							e.videoQualityManager.qualityOverwrite.bitrateMax = 2500000;
-							e.videoQualityManager.options.videoBitrate.max = 2500000;
-							e.videoQualityManager.options.desktopBitrate.max = 2500000;
-						}
-
-						if (this.settings.targetBitrate > 0 && this.settings.CustomBitrateEnabled) {
-							//Target Bitrate
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
-							e.videoQualityManager.qualityOverwrite.bitrateTarget = (this.settings.targetBitrate * 1000);
-							e.videoQualityManager.options.desktopBitrate.target = (this.settings.targetBitrate * 1000);
-						} else {
-							//Default target bitrate
-							e.framerateReducer.sinkWants.qualityOverwrite.bitrateTarget = 600000;
-							e.videoQualityManager.qualityOverwrite.bitrateTarget = 600000;
-							e.videoQualityManager.options.desktopBitrate.target = 600000;
-						}
-
-						if (this.settings.voiceBitrate != 128) {
-							//Audio Bitrate
-							e.voiceBitrate = this.settings.voiceBitrate * 1000;
-
-							e.conn.setTransportOptions({
-								encodingVoiceBitRate: e.voiceBitrate
-							});
-						}
-
-						//Video quality bypasses if Custom FPS is enabled.
-						if (this.settings.CustomFPSEnabled) {
-							//This is pretty self-explanatory.
-							e.videoQualityManager.options.videoBudget.framerate = this.settings.CustomFPS;
-							e.videoQualityManager.options.videoCapture.framerate = this.settings.CustomFPS;
-						}
-
-						//If screen sharing bypasses are enabled,
-						if (this.settings.screenSharing) {
-							//Ensure video quality parameters match the stream parameters.
-							const videoQuality = new Object({
-								width: e.videoStreamParameters[0].maxResolution.width,
-								height: e.videoStreamParameters[0].maxResolution.height,
-								framerate: e.videoStreamParameters[0].maxFrameRate,
-							});
-
-							if (e.stats?.camera != undefined && this.settings.CustomFPSEnabled) {
-								videoQuality.framerate = this.settings.CustomFPS;
-							}
-
-							e.remoteSinkWantsMaxFramerate = e.videoStreamParameters[0].maxFrameRate;
-
-							//janky fix to #218
-							if (videoQuality.width <= 0) {
-								videoQuality.width = 2160;
-								if ((this.settings.CustomResolution * (16 / 9)) > (2160 * (16 / 9)))
-									videoQuality.width = this.settings.CustomResolution * (16 / 9);
-							}
-							if (videoQuality.height <= 0) {
-								videoQuality.height = 1440;
-								if (this.settings.CustomResolution > 1440)
-									videoQuality.width = this.settings.CustomResolution;
-							}
-
-							//Ensure video budget quality parameters match stream parameters
-							e.videoQualityManager.options.videoBudget = videoQuality;
-							//Ensure video capture quality parameters match stream parameters
-							e.videoQualityManager.options.videoCapture = videoQuality;
-
-							//janky camera bypass
-							if (e.stats?.camera != undefined) {
-								for (let i = 0; i < e.videoStreamParameters.length; i++) {
-									if (this.settings.ResolutionEnabled && this.settings.CustomResolution > -1) {
-										e.videoStreamParameters[i].maxResolution.height = this.settings.CustomResolution;
-										e.videoStreamParameters[i].maxResolution.width = (16 / 9) * this.settings.CustomResolution;
-										e.videoStreamParameters[i].maxPixelCount = (e.videoStreamParameters[i].maxResolution.height * e.videoStreamParameters[i].maxResolution.width);
-
-									}
-									if (this.settings.CustomFPSEnabled && this.settings.CustomFPS > -1)
-										e.videoStreamParameters[i].maxFrameRate = this.settings.CustomFPS;
-								}
-							}
-
-							//Ladder bypasses
-							let pixelBudget = (videoQuality.width * videoQuality.height);
-							e.videoQualityManager.ladder.pixelBudget = pixelBudget
-							e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
-							e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
-						}
-
-						// Video codecs
-						//todo: rewrite video codecs to actually work
-					});
-				} //End of videoQualityModule()
-
-
-				buttonCreate() { //Creates the FPS and Resolution Swapper
-					let qualityButton = document.createElement('button');
-					qualityButton.id = 'qualityButton';
-					qualityButton.className = `${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand}`;
-					qualityButton.innerHTML = '<p style="display: block-inline; margin-left: -6%; margin-top: -4.5%;">Quality</p>';
-					qualityButton.style.position = "absolute";
-					qualityButton.style.zIndex = "2";
-					qualityButton.style.bottom = "0";
-					qualityButton.style.left = "50%";
-					qualityButton.style.transform = "translateX(-50%)";
-					qualityButton.style.height = "15px";
-					qualityButton.style.width = "48px";
-					qualityButton.style.verticalAlign = "middle";
-					qualityButton.style.textAlign = "left";
-					qualityButton.style.borderTopLeftRadius = "5px";
-					qualityButton.style.borderTopRightRadius = "4px";
-					qualityButton.style.borderBottomLeftRadius = "4px";
-					qualityButton.style.borderBottomRightRadius = "4px";
-
-					qualityButton.onclick = function () {
-						if (qualityMenu.style.visibility == "hidden") {
-							qualityMenu.style.visibility = "visible";
-						} else {
-							qualityMenu.style.visibility = "hidden";
-						}
-					}
-
-					try {
-						document.getElementsByClassName(DiscordClassModules.AccountDetails.container)[0].appendChild(qualityButton);
-					} catch (err) {
-						console.error("[YABDP4Nitro] What the fuck happened..? During buttonCreate() " + err);
-					}
-
-					let qualityMenu = document.createElement('div');
-					qualityMenu.id = 'qualityMenu';
-					qualityMenu.style.visibility = 'hidden';
-					qualityMenu.style.position = "relative";
-					qualityMenu.style.zIndex = "1";
-					qualityMenu.style.bottom = "410%";
-					qualityMenu.style.left = "-59%";
-					qualityMenu.style.height = "20px";
-					qualityMenu.style.width = "100px";
-					qualityMenu.onclick = function (event) {
-						event.stopPropagation();
-					}
-
-					document.getElementById("qualityButton").appendChild(qualityMenu);
-
-					let qualityInput = document.createElement('input');
-					qualityInput.id = 'qualityInput';
-					qualityInput.type = 'text';
-					qualityInput.placeholder = 'Resolution';
-					qualityInput.style.width = "33%";
-					qualityInput.style.zIndex = "1";
-					qualityInput.value = this.settings.CustomResolution;
-					qualityMenu.appendChild(qualityInput);
-
-					let qualityInputFPS = document.createElement('input');
-					qualityInputFPS.id = 'qualityInputFPS';
-					qualityInputFPS.type = 'text';
-					qualityInputFPS.placeholder = 'FPS';
-					qualityInputFPS.style.width = "33%";
-					qualityInputFPS.style.zIndex = "1";
-					qualityInputFPS.value = this.settings.CustomFPS;
-					qualityMenu.appendChild(qualityInputFPS);
-				} //End of buttonCreate()
-
-
-				async stickerSending() {
-					if (this.stickerSendabilityModule == undefined) this.stickerSendabilityModule = Webpack.getByKeys("cO", "eb", "kl");
-
-					//getStickerSendability
-					Patcher.instead(this.getName(), this.stickerSendabilityModule, "cO", () => {
-						return 0;
-					});
-
-					//isSendableSticker
-					Patcher.instead(this.getName(), this.stickerSendabilityModule, "kl", () => {
-						return true;
-					});
-
-					Patcher.instead(this.getName(), DiscordModules.MessageActions, "sendStickers", (_, args, originalFunction) => {
-						let stickerID = args[1][0];
-						let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless"
-						let currentChannelId = DiscordModules.SelectedChannelStore.getChannelId();
-
-						if (this.settings.uploadStickers) {
-							let emoji = new Object();
-							emoji.animated = false;
-							emoji.name = args[0];
-							let msg = [undefined, { content: "" }]
-							this.UploadEmote(stickerURL, currentChannelId, [undefined, { content: "" }], emoji)
-							return;
-						}
-						if (!this.settings.uploadStickers) {
-							let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] }
-							DiscordModules.MessageActions.sendMessage(currentChannelId, messageContent, undefined, {})
-						}
-					});
-				}
-
-
-				decodeAndApplyProfileColors() {
-					Patcher.after(this.getName(), userProfileMod, "getUserProfile", (_, args, ret) => {
-						if (ret == undefined) return;
-						if (ret.bio == null) return;
-						const colorString = ret.bio.match(
-							/\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
-						);
-						if (colorString == null) return;
-						let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
-						let colors = parsed
-							.substring(1, parsed.length - 1)
-							.split(",")
-							.map(x => parseInt(x.replace("#", "0x"), 16));
-						ret.themeColors = colors;
-						ret.premiumType = 2;
-					});
-				}
-
-
-				//Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
-				//Replaced DOM manipulation with React patching 4/2/2024
-				async encodeProfileColors(primary, accent) {
-
-					//wait for theme color picker module to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byProps("getTryItOutThemeColors"));
-
-					//wait for color picker renderer module to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("__invalid_profileThemesSection"));
-
-					if (this.colorPickerRendererMod == undefined) this.colorPickerRendererMod = Webpack.getAllByKeys("Z").filter(obj => obj.Z.toString().includes("__invalid_profileThemesSection"))[0];
-
-					Patcher.after(this.getName(), this.colorPickerRendererMod, "Z", (_, args, ret) => {
-
-						ret.props.children.props.children.push( //append copy colors 3y3 button
-							BdApi.React.createElement("button", {
-								id: "copy3y3button",
-								children: "Copy Colors 3y3",
-								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-								style: {
-									marginLeft: "10px",
-									marginTop: "10px"
-								},
-								onClick: () => {
-									let themeColors = null;
-									try {
-										themeColors = Webpack.getStore("UserSettingsAccountStore").getAllTryItOut().tryItOutThemeColors;
-									} catch (err) {
-										console.warn(err);
-									}
-									if (themeColors == null) {
-										try {
-											themeColors = Webpack.getStore("UserSettingsAccountStore").getAllPending().pendingThemeColors;
-										} catch (err) {
-											console.error(err);
-										}
-									}
-									if (themeColors == undefined) {
-										Toasts.warning("Nothing has been copied. Is the selected color identical to your current color?");
-										return;
-									}
-									const primary = themeColors[0];
-									const accent = themeColors[1];
-									let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
-									const padding = "";
-									let encoded = Array.from(message)
-										.map(x => x.codePointAt(0))
-										.filter(x => x >= 0x20 && x <= 0x7f)
-										.map(x => String.fromCodePoint(x + 0xe0000))
-										.join("");
-
-									let encodedStr = ((padding || "") + " " + encoded);
-
-									//do this stupid shit Chrome makes you do to copy text to the clipboard.
-									const clipboardTextElem = document.createElement("textarea");
-									clipboardTextElem.style.position = 'fixed';
-									clipboardTextElem.value = encodedStr;
-									document.body.appendChild(clipboardTextElem);
-									clipboardTextElem.select();
-									clipboardTextElem.setSelectionRange(0, 99999);
-									document.execCommand('copy');
-									Toasts.info("3y3 copied to clipboard!");
-									document.body.removeChild(clipboardTextElem);
-								}
-							})
-						);
-					});
-
-				} //End of encodeProfileColors()
-
-
-				//Commented to hell and back on 3/6/2024
-				bannerUrlDecoding() { //Decode 3y3 from profile bio and apply fake banners.
-				
-					let endpoint, bucket, prefix, data;
-					
-					//if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
-					if (this.settings.userBgIntegration && !fetchedUserBg) {
-
-						//userBg database url.
-						const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
-
-						//download, then store json
-						BdApi.Net.fetch(userBgJsonUrl).then(res => res.json().then(res => {
-							data = res;
-							endpoint = res.endpoint;
-							bucket = res.bucket;
-							prefix = res.prefix;
-							usrBgUsers = Object.keys(res.users);
-							//mark db as fetched so we only fetch it once per load of the plugin
-							fetchedUserBg = true;
-						}));
-					}
-
-					//Patch getUserBannerURL function
-					Patcher.before(this.getName(), AvatarDefaults, "getUserBannerURL", (_, args) => {
-						args[0].canAnimate = true;
-					});
-
-					//Patch getBannerURL function
-					Patcher.instead(this.getName(), getBannerURL, "getBannerURL", (user, [args], ogFunction) => {
-						let profile = user._userProfile;
-
-						//Returning ogFunction with the same arguments that were passed to this function will do the vanilla check for a legit banner.
-						if (profile == undefined) return ogFunction(args);
-
-						if (this.settings.userBgIntegration) { //if userBg integration is enabled
-
-							//if we've fetched the userbg database
-							if (fetchedUserBg) {
-								//if user is in userBg database,
-								if (usrBgUsers.includes(user.userId)) {
-									profile.banner = "funky_kong_is_epic"; //set banner id to fake value
-									profile.premiumType = 2; //set this profile to appear with premium rendering
-									return `${endpoint}/${bucket}/${prefix}${user.userId}?${data.users[user.userId]}`; //return userBg banner URL and exit.
-								}
-							}
-
-						}
-
-						//do original function if we don't have the user's bio
-						if (profile.bio == undefined) return ogFunction(args);
-
-						//reveal 3y3 encoded text, store as parsed
-						let parsed = this.secondsightifyRevealOnly(profile.bio);
-						//if there is no 3y3 encoded text, return original function
-						if (parsed == undefined) return ogFunction(args);
-
-						//This regex matches /B{*} . Do not touch unless you know what you are doing.
-						let regex = /B\{[^}]*\}/;
-
-						//find banner url in parsed bio
-						let matches = parsed.toString().match(regex);
-
-						//if there's no matches, return original function
-						if (matches == undefined) return ogFunction(args);
-						if (matches == "") return ogFunction(args);
-
-						//if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
-						let matchedText = matches[0].replace("B{", "").replace("}", "");
-
-						//Checking for file extension. 
-						if (!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
-							matchedText += ".gif"; //Fallback to a default file extension if one is not found.
-
-						}
-
-						//set banner id to fake value
-						profile.banner = "funky_kong_is_epic"
-
-						//set this profile to appear with premium rendering
-						profile.premiumType = 2;
-
-						//add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-						if (!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
-
-						//return final banner URL.
-						return `https://i.imgur.com/${matchedText}`;
-
-					}); //End of patch for getBannerURL
-
-					if (this.profileRenderer == undefined) this.profileRenderer = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("PRESS_PREMIUM_UPSELL"))[0]
-
-					Patcher.before(this.getName(), this.profileRenderer, "Z", (_, args) => {
-						if (args == undefined) return;
-						if (args[0]?.displayProfile?.banner == undefined) return;
-
-						//if this user's banner is a fake banner
-						if (args[0].displayProfile.banner == "funky_kong_is_epic") {
-							//don't show upsell
-							args[0].showPremiumBadgeUpsell = false;
-						}
-					});
-
-					Patcher.after(this.getName(), this.profileRenderer, "Z", (_, args, ret) => {
-						if (args == undefined) return;
-						if (args[0]?.displayProfile?.banner == undefined) return;
-						if (ret == undefined) return;
-						if (ret.props?.hasBanner == undefined) return;
-						//if this user's banner is a fake banner
-						if (args[0].displayProfile.banner == "funky_kong_is_epic") {
-							//tell the profile renderer to show them as having a banner.
-							ret.props.hasBanner = true;
-						}
-					});
-				} //End of bannerUrlDecoding()
-
-
-				//Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
-				//Documented/commented and partially rewritten to use React patching on 3/6/2024
-				async bannerUrlEncoding(secondsightifyEncodeOnly) {
-
-					//wait for banner customization renderer module to be loaded
-					await Webpack.waitForModule(Webpack.Filters.byStrings("USER_SETTINGS_PROFILE_BANNER"));
-					if (this.profileBannerSectionRenderer == undefined) this.profileBannerSectionRenderer = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("USER_SETTINGS_PROFILE_BANNER"))[0];
-
-					Patcher.after(this.getName(), this.profileBannerSectionRenderer, "Z", (_, args, ret) => {
-
-						args[0].showPremiumIcon = false;
-
-						//create and append profileBannerUrlInput input element.
-						ret.props.children.props.children.push(
-							BdApi.React.createElement("input", {
-								id: "profileBannerUrlInput",
-								placeholder: "Imgur URL",
-								style: {
-									width: "30%",
-									height: "20%",
-									maxHeight: "50%",
-									marginLeft: "10px",
-									marginTop: "5px"
-								}
-							})
-						);
-
-						ret.props.children.props.children.push( //append Copy 3y3 button
-							//create react element
-
-							BdApi.React.createElement("button", {
-								id: "profileBannerButton",
-								children: "Copy Banner 3y3",
-								className: `${buttonClassModule.button} ${buttonClassModule.lookFilled} ${buttonClassModule.colorBrand} ${buttonClassModule.sizeSmall} ${buttonClassModule.grow}`,
-								size: "sizeSmall__71a98",
-								style: {
-									whiteSpace: "nowrap",
-									marginLeft: "10px"
-								},
-								onClick: async function () { //Upon clicking Copy 3y3 button
-
-									//grab text from banner URL input textarea 
-									let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
-
-									//if it's empty, stop processing.
-									if (profileBannerUrlInputValue == "") return;
-									if (profileBannerUrlInputValue == undefined) return;
-
-									//clean up string to encode
-									let stringToEncode = "" + profileBannerUrlInputValue
-										.replace("http://", "") //get rid of protocol
-										.replace("https://", "")
-										.replace(".jpg", "")
-										.replace(".png", "")
-										.replace(".mp4", "")
-										.replace("webm", "")
-										.replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
-
-
-									let encodedStr = ""; //initialize encoded string as empty string
-
-									stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
-
-									//if url seems correct
-									if (stringToEncode.toLowerCase().startsWith("imgur.com")) {
-
-										//Check for album or gallery URL
-										if (stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")) {
-
-											//Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
-
-											//Fetch imgur album page
-											try {
-												const parser = new DOMParser();
-												stringToEncode = await BdApi.Net.fetch(("https://" + stringToEncode), {
-													method: "GET",
-													mode: "cors"
-												}).then(res => res.text()
-													//parse html, queryselect meta tag with certain name
-													.then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
-												stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
-													.replace("https://", "") //get rid of protocol
-													.replace("i.imgur.com", "imgur.com")
-													.replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
-													.split("?")[0]; //remove any URL parameters since we don't want or need them
-											} catch (err) {
-												ZLibrary.Logger.err("YABDP4Nitro", err);
-												ZLibrary.Toasts.error("An error occurred. Are there multiple images in this album/gallery?");
-												return;
-											}
-										}
-										if (stringToEncode == "") {
-											ZLibrary.Toasts.error("An error occurred: couldn't find file name.");
-											ZLibrary.Logger.err("YABDP4Nitro", "Couldn't find file name for some reason. Contact Riolubruh.");
-										}
-										//add starting "B{" , remove "imgur.com/" , and add ending "}"
-										stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}"
-										//finally encode the string, adding a space before it so nothing fucks up
-										encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
-										//let the user know what has happened
-										Toasts.info("3y3 copied to clipboard!");
-
-										//If this is not an Imgur URL, yell at the user.
-									} else if (stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
-										Toasts.warning("Please use Imgur!");
-										return;
-									}
-
-									//if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
-									if (encodedStr == "") return;
-
-									//Do this stupid shit that Chrome forces you to do to copy text to the clipboard.
-									const clipboardTextElem = document.createElement("textarea"); //create a textarea
-									clipboardTextElem.style.position = 'fixed'; //this is so that the rest of the document doesn't try to format itself to fit a textarea in it
-									clipboardTextElem.value = encodedStr; //add the encoded string to the textarea
-									document.body.appendChild(clipboardTextElem); //add the textarea to the document
-									clipboardTextElem.select(); //focus the textarea?
-									clipboardTextElem.setSelectionRange(0, 99999); //select all of the text in the textarea
-									document.execCommand('copy'); //finally send the copy command
-									document.body.removeChild(clipboardTextElem); //get rid of the evidence
-
-								} //end of onClick function
-							}) //end of react createElement
-						); //end of profileBannerButton element push
-
-					}); //end of patched function
-
-				} //End of bannerUrlEncoding()
-
-
-				appIcons() {
-					this.settings.changePremiumType = true; //Forcibly enable premiumType. Couldn't find a workaround, sry.
-
-					try {
-						if (!(ORIGINAL_NITRO_STATUS > 1)) {
-							CurrentUser.premiumType = 1;
-							setTimeout(() => {
-								if (this.settings.changePremiumType) {
-									CurrentUser.premiumType = 1;
-								}
-							}, 10000);
-						}
-					}
-					catch (err) {
-						Logger.err(this.getName(), "Error occurred changing premium type. " + err);
-					}
-
-					if (this.appIconModule == undefined) this.appIconModule = Webpack.getByKeys("getCurrentDesktopIcon");
-					delete this.appIconModule.isUpsellPreview;
-					Object.defineProperty(this.appIconModule, "isUpsellPreview", {
-						value: false,
-						configurable: true,
-						enumerable: true,
-						writable: true,
-					});
-
-					delete this.appIconModule.isEditorOpen;
-					Object.defineProperty(this.appIconModule, "isEditorOpen", {
-						value: false,
-						configurable: true,
-						enumerable: true,
-						writable: true,
-					});
-
-					if (this.appIconButtonsModule == undefined) this.appIconButtonsModule = Webpack.getAllByKeys("Z").filter((obj) => obj.Z.toString().includes("renderCTAButtons"))[0];
-					Patcher.before(this.getName(), this.appIconButtonsModule, "Z", (_, args) => {
-						args[0].disabled = false; //force buttons clickable
-					});
-				}
-
-
-				onStart() {
-					PluginUpdater.checkForUpdate(this.getName(), this.getVersion(), this._config.info.github_raw);
-					this.saveAndUpdate();
-				}
-
-
-				onStop() {
-					CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
-					Patcher.unpatchAll(this.getName());
-					Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
-					if (document.getElementById("qualityButton")) document.getElementById("qualityButton").remove();
-					if (document.getElementById("qualityMenu")) document.getElementById("qualityMenu").remove();
-					if (document.getElementById("qualityInput")) document.getElementById("qualityInput").remove();
-					if (document.getElementById("copy3y3button")) document.getElementById("copy3y3button").remove();
-					if (document.getElementById("profileBannerButton")) document.getElementById("profileBannerButton").remove();
-					if (document.getElementById("profileBannerUrlInput")) document.getElementById("profileBannerUrlInput").remove();
-					if (document.getElementById("decorationButton")) document.getElementById("decorationButton").remove();
-					if (document.getElementById("changeProfileEffectButton")) document.getElementById("changeProfileEffectButton").remove();
-					if (document.getElementById("profilePictureUrlInput")) document.getElementById("profilePictureUrlInput").remove();
-					if (document.getElementById("profilePictureButton")) document.getElementById("profilePictureButton").remove();
-					BdApi.DOM.removeStyle(this.getName());
-					BdApi.DOM.removeStyle("YABDP4NitroBadges");
-					BdApi.DOM.removeStyle("UsrBGIntegration");
-					usrBgUsers = [];
-				}
-			};
-		};
-		return plugin(Plugin, Api);
-	})(global.ZeresPluginLibrary.buildPlugin(config));
-})();
+// #region Exports
+module.exports = class YABDP4Nitro {
+    constructor(meta){
+        this.meta = meta;
+    }
+
+    getSettingsPanel(){
+        return UI.buildSettingsPanel({
+            settings: config.settingsPanel,
+            onChange: (category, id, value) => {
+                switch (id){
+                    case "CustomResolution":
+                    case "CustomFPS":
+                        settings[id] = parseInt(value);
+                        this.saveAndUpdate();
+                        break;
+                    case "minBitrate":
+                    case "targetBitrate":
+                    case "maxBitrate":
+                    case "voiceBitrate":
+                        //protect people from their own stupidity
+                        settings[id] = parseFloat(value) > 50000 ? 50000 : parseFloat(value);
+                        this.saveAndUpdate();
+                        break;
+                    default:
+                        settings[id] = value;
+                        this.saveAndUpdate();
+                        break;
+                }
+            }
+        });
+    }
+
+    // #region Save and Update
+    saveAndUpdate(){ //Saves and updates settings and runs functions
+
+        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
+        ContextMenu.unpatch('stream-context', this.streamContextPatch);
+
+        controller.abort();
+        controller = new AbortController();
+
+        //delete old nameplate data
+        if(data.nameplates) delete data.nameplates;
+
+        Data.save("settings", settings);
+        this.saveDataFile();
+
+        Patcher.unpatchAll();
+
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
+
+        Dispatcher.subscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
+
+        try{
+            if(settings.changePremiumType2 > -1 && settings.changePremiumType2 <= 3){
+                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+                this.applyPremiumType();
+            }else{
+                if(CurrentUser.premiumType != ORIGINAL_NITRO_STATUS)
+                    CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+
+        if(isNaN(settings.CustomFPS)) settings.CustomFPS = 60;
+        if(isNaN(settings.CustomResolution)) settings.CustomResolution = 1440;
+
+        if(settings.ResolutionSwapper){
+            try {
+                this.resolutionSwapperV2();
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.stickerBypass){
+            try {
+                this.stickerSending();
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.forceStickersUnlocked || settings.stickerBypass){
+            try {
+                this.unlockStickers();
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.emojiBypass && settings.emojiBypassType !== 0){
+            try {
+                this.emojiBypass();
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.profileV2){
+            try {
+                Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
+                    if(ret == undefined) return;
+                    ret.premiumType = 2;
+                });
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.screenSharing){
+            try {
+                this.customizeStreamButtons(); //Apply custom resolution and fps options for Go Live Modal V1
+            } catch(err){
+                Logger.error("Error occurred during customizeStreamButtons() " + err);
+            }
+            try {
+                this.videoQualityModule(); //Custom Bitrates, FPS, Resolution
+
+                if(InvalidStreamSettingsModal){
+                    let areStreamSettingsAllowed = this.findMangledName(InvalidStreamSettingsModal, x=>x, "areStreamSettingsAllowed");
+                    if(areStreamSettingsAllowed){
+                        //disable resolution / fps check
+                        Patcher.instead(InvalidStreamSettingsModal, areStreamSettingsAllowed, () => {
+                            return true;
+                        });
+                    }
+                }
+            } catch(err){
+                Logger.error("Error occurred during videoQualityModule() " + err);
+            }
+        }
+
+        if(settings.clientThemes){
+            try {
+                this.clientThemes();
+            } catch(err){
+                Logger.warn(err);
+            }
+        }
+
+        if(settings.fakeProfileThemes){
+            try {
+                this.decodeAndApplyProfileColors();
+            } catch(err){
+                Logger.error("Error occurred running fakeProfileThemes bypass. " + err);
+            }
+
+        }
+
+        if(settings.fakeProfileBanners){
+            try{
+                this.bannerUrlDecoding();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.fakeAvatarDecorations){
+            try{
+                this.fakeAvatarDecorations();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.unlockAppIcons){
+            try{
+                this.appIcons();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.profileEffects){
+            try {
+                this.profileFX(this.secondsightifyEncodeOnly);
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.killProfileEffects){
+            try {
+                this.killProfileFX();
+            } catch(err){
+                Logger.error("Error occured during killProfileFX() " + err);
+            }
+        }
+
+        DOM.removeStyle("YABDP4NitroBadges");
+        try {
+            this.honorBadge();
+        } catch(err){
+            Logger.error("An error occurred during honorBadge() " + err);
+        }
+
+        if(settings.customPFPs){
+            try {
+                this.customProfilePictureDecoding();
+            } catch(err){
+                Logger.error("An error occurred during customProfilePicture decoding/encoding. " + err);
+            }
+        }
+
+        if(settings.experiments || settings.soundmojiEnabled || settings.enableClipsExperiment){
+            try {
+                this.experiments();
+                Dispatcher.subscribe("CURRENT_USER_UPDATE", this.experiments);
+            } catch(err){
+                Logger.error("Error occurred in experiments() " + err);
+            }
+        }
+
+        try{
+            let canUserUse = this.findMangledName(CanUserUseMod, x=>typeof x === "function" && x.toString?.().includes?.('getFeatureValue'), "canUserUse");
+            if(canUserUse){
+                Patcher.instead(CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
+                    if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
+                        return true;
+
+                    if(settings.unlockAppIcons && feature.name == 'appIcons')
+                        return true;
+        
+                    if(settings.removeProfileUpsell && feature.name == 'profilePremiumFeatures')
+                        return true;
+        
+                    if(settings.clientThemes && feature.name == 'clientThemes')
+                        return true;
+        
+                    if(settings.soundmojiEnabled && feature.name == 'soundboardEverywhere')
+                        return true;
+
+                    return originalFunction(feature, user);
+                });
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+
+        //Clips Bypass
+        if(settings.useClipBypass || settings.useAudioClipBypass || settings.zipClip){
+            try {
+                this.clipsBypass();
+            } catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.fakeInlineVencordEmotes){
+            try{
+                this.inlineFakemojiPatch();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0) || settings.stickerBypass){
+            try{
+                this._sendMessageInsteadPatch();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.videoCodec2 > -1){
+            try{
+                this.videoCodecs();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        
+        try{
+            if(settings.fakeAvatarDecorations || settings.nameplatesEnabled){
+                //subscribe to successful collectible category fetch event
+                Dispatcher.subscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+    
+                //trigger collectibles fetch
+                FetchCollectibleCategories({
+                    includeBundles: true,
+                    includeUnpublished: false,
+                    noCache: false,
+                    paymentGateway: undefined
+                });
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+
+        try{
+            if(settings.nameplatesEnabled){
+                this.nameplates();
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+
+        try{
+            if(settings.removeNotStaffWarning && DMTag){
+                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x.toString().includes('GROUP_DM') && !x.toString().includes('GUILD_DIRECTORY')), (_,[args],ret) => {
+                    if(ret?.props?.children){
+                        ret.props.children = ret.props.children.filter(o=>!o.type?.toString?.().includes?.("NOT_STAFF_WARNING"));
+                    }
+                });
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+
+        if(settings.extraContextMenus){
+            this.extraContextMenus();
+        }
+
+        if(settings.sharpenStreams){
+            try{
+                this.sharpenStreams();
+                this.sharpenPipPlayer();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(settings.displayNameStyles){
+            try{
+                this.displayNameStyles();
+                if(ORIGINAL_NITRO_STATUS != 2){
+                    this.displayNameStylesSection();
+                }
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+
+        if(UserAvatar?.render){
+            Patcher.after(UserAvatar, "render", (_, [args], ret) => {
+                if(ret?.props && args?.src) {
+                    ret.props.onContextMenu = (e) => {
+                        let userId = args.src.replace("https://cdn.discordapp.com/avatars/",'').split('/')[0];
+                        let user = UserStore.getUser(userId);
+
+                        //get channel id of first selectable channel in first guild
+                        let channel = Object.values(GuildChannelStore.getAllGuilds()).filter(o=>o?.SELECTABLE?.[0]?.channel)?.[0]?.SELECTABLE?.[0]?.channel;
+
+                        //if we cant find one, look for last selected channel
+                        // unless there is no last selected channel id, in which case get the first available DM channel
+                        if(!channel) channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore.getSortedPrivateChannels()?.[0];
+
+                        if(channel) UserContextMenuFunctions.openUserContextMenu(e,user,channel)
+                    }
+                }
+            });
+        }
+
+        try{
+            this.settingsUI();
+        }catch(err){
+            Logger.error(err);
+        }
+
+        /* try{
+            this.bookmarks();
+        }catch(err){
+            Logger.error(err);
+        } */
+    } //End of saveAndUpdate()
+    // #endregion
+
+    async settingsUI(){
+        if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
+        if(!this.settingsUIMod){
+            Logger.warn("Settings UI module was undefined.");
+            return;
+        }
+        if(!this.settingsUIMod.declarations){
+            UI.showToast("[YABDP4Nitro] Update your BetterDiscord!",{type: "error",forceShow: true});
+            return;
+        }
+
+        if(settings.fakeProfileBanners || settings.fakeProfileThemes || settings.customPFPs){
+            this.perServerSection();
+        }
+
+        if(settings.nameplatesEnabled){
+            try{
+                this.nameplatesUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeAvatarDecorations){
+            try{
+                this.avatarDecorationsUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.customPFPs){
+            try{
+                this.customPfpUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.profileEffects){
+            try{
+                this.profileFxUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeProfileBanners){
+            try{
+                this.bannerUrlUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+        if(settings.fakeProfileThemes){
+            try{
+                this.profileThemesUI();
+            }catch(err){
+                Logger.error(err);
+            }
+        }
+    }
+
+    // #region Custom PFP UI
+    //Custom PFP profile customization buttons and encoding code.
+    customPfpUI(){
+        function emptyWarn(){
+            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
+        }
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        let AvatarSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveAvatarButton", 'onAvatarChange', "isTryItOut", 'forcedDivider'), "AvatarSection");
+        if(!AvatarSectionFnName) return;
+
+        Patcher.before(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args]) => {
+            args.disabled = false;
+        });
+
+        Patcher.after(this.settingsUIMod.declarations, AvatarSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(!ret) return;
+
+            //don't need to do anything if this is the "Try out Nitro" flow.
+            if(args.isTryItOut) return;
+
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(
+                    React.createElement("div", {
+                        style: {
+                            display: "flex",
+                            marginTop: "4px",
+                        },
+                        children: [
+                            React.createElement("input", {
+                                id: "profilePictureUrlInput",
+                                style: {
+                                    maxWidth: "112px",
+                                    marginTop: "4px",
+                                },
+                                placeholder: "PFP Imgur URL"
+                            }),
+                            //Create and append Copy PFP 3y3 button.
+                            React.createElement("button",{
+                                children: "Copy PFP 3y3",
+                                className: `yabd-generic-button`,
+                                id: "profilePictureButton",
+                                style: {
+                                    marginLeft: "5px",
+                                    whiteSpace: "nowrap"
+                                },
+                                onClick: async function() { //on copy pfp 3y3 button click
+
+                                    //grab text from pfp url input textarea.
+                                    let profilePictureUrlInputValue = String(document.getElementById("profilePictureUrlInput").value);
+
+                                    //empty, skip.
+                                    if(profilePictureUrlInputValue == undefined || profilePictureUrlInputValue == "") {
+                                        emptyWarn();
+                                        return;
+                                    }
+
+                                    //clean up string to encode
+                                    let stringToEncode = "" + profilePictureUrlInputValue
+                                        //clean up URL
+                                        .replace("http://","") //remove protocol
+                                        .replace("https://","")
+                                        .replace("i.imgur.com","imgur.com");
+
+                                    let encodedStr = ""; //initialize encoded string as empty string
+                                    stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                    //if url seems correct
+                                    if(stringToEncode.toLowerCase().startsWith("imgur.com")) {
+
+                                        //Check for album or gallery URL
+                                        if(stringToEncode.replace("imgur.com/","").startsWith("a/") || stringToEncode.replace("imgur.com/","").startsWith("gallery/")) {
+                                            //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                            //Fetch imgur album page
+                                            try {
+                                                const parser = new DOMParser();
+                                                stringToEncode = await Net.fetch(("https://" + stringToEncode),{
+                                                    method: "GET",
+                                                    mode: "cors"
+                                                }).then(res => res.text()
+                                                    //parse html, queryselect meta tag with certain name
+                                                    .then(res => parser.parseFromString(res,"text/html").querySelector('[name="twitter:player"]').content));
+                                                stringToEncode = stringToEncode.replace("http://","") //get rid of protocol
+                                                    .replace("https://","") //get rid of protocol
+                                                    .replace("i.imgur.com","imgur.com")
+                                                    .replace(".jpg","").replace(".jpeg","").replace(".webp","").replace(".png","").replace(".mp4","").replace(".webm","").replace(".gifv","").replace(".gif","") //get rid of any file extension
+                                                    .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                            } catch(err) {
+                                                Logger.error(err);
+                                                UI.showToast("An error occurred. Are there multiple images in this album/gallery?",{type: "error",forceShow: true});
+                                                return;
+                                            }
+                                        }
+                                        if(stringToEncode == "") {
+                                            UI.showToast("An error occurred: couldn't find file name.",{type: "error",forceShow: true});
+                                            Logger.error("Couldn't find file name for some reason when grabbing Imgur URL for Custom PFP. Contact Riolubruh!");
+                                        }
+
+                                        //add starting "P{" , remove "imgur.com/" , and add ending "}"
+                                        stringToEncode = "P{" + stringToEncode.replace("imgur.com/","") + "}";
+                                        //finally encode the string, adding a space before it so nothing fucks up
+                                        encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                        //If this is not an Imgur URL, yell at the user.
+                                    } else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false) {
+                                        UI.showToast("Please use Imgur!",{type: "warning"});
+                                        return;
+                                    }
+
+                                    //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                    if(encodedStr == "") return;
+
+                                    copyToClipboard(encodedStr,"3y3 copied to clipboard!");
+
+                                } //end copy pfp 3y3 click event
+                            }) //end of react createElement of button
+                        ]
+                        }) //end of react createElement of div
+                ); //end of element push
+            }
+        }); //end of patch
+    } //End of customPfpUI()
+    // #endregion
+
+    //#region Per Server
+    perServerSection(){
+        const PremiumUpsellOverlay = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("PREMIUM_UPSELL_OVERLAY", "showOverlay", "PREMIUM_UPSELL_VIEWED"));
+        if(PremiumUpsellOverlay){
+            Patcher.before(this.settingsUIMod.declarations, PremiumUpsellOverlay, (_,[args]) => {
+                args.showOverlay = false;
+            });
+        }
+    }
+    //#endregion
+
+    //#region Nameplates UI
+    nameplatesUI(){
+        let NameplateSection = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), "NameplateSection");
+        if(NameplateSection){
+            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+            function NameplateList({NameplatePreviewName}){
+                let [query, setQuery] = React.useState("");
+
+                let nameplatesList = [];
+
+                if(NameplatePreview){
+                    if(!data?.nameplatesV2 || data?.nameplatesV2?.length < 1){
+                        return React.createElement('h1', {
+                            children: "No nameplates were found!",
+                            style: {
+                                color: "red",
+                                fontWeight: "bold"
+                            }
+                        });
+                    } else{
+                        const listOfNameplates = Object.values(data.nameplatesV2);
+                        const listOfNameplateSkuIds = Object.keys(data.nameplatesV2);
+
+                        for(let i = 0; i < listOfNameplates.length; i++){
+                            let nameplate = listOfNameplates[i];
+                            let skuId = listOfNameplateSkuIds[i];
+                            if(nameplate) {
+                                if(query != "" && !nameplate.name.toLowerCase().includes(query.toLowerCase())){
+                                    continue;
+                                }
+                                nameplatesList.push(React.createElement('div',{
+                                    children: React.createElement(NameplatePreview[NameplatePreviewName].type, {
+                                        user: CurrentUser,
+                                        isHighlighted: true,
+                                        nameplate: {
+                                            asset: `nameplates/${nameplate.asset.slice(0,-1)}`,
+                                            palette: nameplate.palette,
+                                            skuId,
+                                            label: nameplate.label ? nameplate.label : ""
+                                        },
+                                        isPurchased: true
+                                    }),
+                                    style: {
+                                        borderRadius: "10px",
+                                        width: "95%",
+                                        marginLeft: "auto",
+                                        marginRight: "auto",
+                                        height: "42px",
+                                        marginTop: "10px",
+                                        position: "relative",
+                                        top: '5px',
+                                        cursor: "pointer",
+                                    },
+                                    onClick: () => {
+                                        //make 3y3 string
+                                        let strToEncode = `n{${skuId},${nameplate.palette}}`;
+                                        let encodedStr = secondsightifyEncodeOnly(strToEncode);
+        
+                                        copyToClipboard(" " + encodedStr,"3y3 copied to clipboard!")
+                                    },
+                                    title: nameplate.name
+                                }));
+                            }
+                        }
+                        return React.createElement('div', {
+                            children: [
+                                React.createElement(Components.TextInput, {
+                                    value: query,
+                                    placeholder: "Search...",
+                                    onChange: (input) => setQuery(input)
+                                }),
+                                React.createElement('br'),
+                                React.createElement('div', {
+                                    children: nameplatesList
+                                })
+                            ],
+                        });
+                    }
+                }else{
+                    return React.createElement('h1',{
+                        children: "Error: Nameplate Preview element is undefined!",
+                        style: {
+                            color: "red",
+                            fontWeight: "bold"
+                        }
+                    });
+                }
+            }
+
+            const NameplatePreviewName = this.findMangledName(NameplatePreview, x=>x?.type?.toString?.().includes?.("showPlaceholderUser"));
+
+            Patcher.after(this.settingsUIMod.declarations, NameplateSection, (_, [args], ret) => {
+                //disable for per-server profiles screen
+                if(args?.guild && ORIGINAL_NITRO_STATUS != 2) return;
+                
+                if(ret?.props?.children){
+                    ret.props.children = [ret.props.children];
+                    ret.props.children.push(React.createElement("button",{
+                        className: `yabd-generic-button`,
+                        style: {
+                            height: "30px",
+                            marginTop: "8px",
+                            width: "auto",
+                            height: "30px"
+                        },
+                        children: "Change Nameplate [YABDP4Nitro]",
+                        onClick: () => {
+                            UI.showConfirmationModal("Change Nameplate", React.createElement(NameplateList, {NameplatePreviewName}), {cancelText: ""})
+                        }
+                    }))
+                }
+            });
+        }
+    }
+    //#endregion
+
+    //#region Avatar Decorations UI
+    avatarDecorationsUI(){
+        let decorationCustomizationSectionName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings('pendingAvatarDecoration', 'forcedDivider'));
+
+        //Avatar decoration customization section patch
+        Patcher.after(this.settingsUIMod.declarations, decorationCustomizationSectionName, (_, [args], ret) => {
+            if(!args) return;
+
+            //don't run if this is the try out nitro flow.
+            if(args.isTryItOut) return;
+
+            //disable for the per-server profiles screen
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
+
+            //push change decoration button
+            if(ret?.props?.children?.props?.children){
+                ret.props.children.props.children.push(
+                    React.createElement("button", {
+                        id: "decorationButton",
+                        children: "Change Decoration [YABDP4Nitro]",
+                        style: {
+                            width: "100px",
+                            height: "50px",
+                            color: "white",
+                            marginLeft: "5px",
+                        },
+                        className: "yabd-generic-button",
+                        onClick: () => {
+                            UI.showConfirmationModal("Change Avatar Decoration (YABDP4Nitro)", React.createElement(DecorModal), {cancelText:""});
+                        }
+                    })
+                );
+            }else{
+                Logger.error("Decoration Section ain't right chief.")
+            }
+
+            const secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+            function AvatarDecorations(){
+                if(!data.avatarDecorations) throw new Error(`Cannot possibly continue! Avatar decoration data is undefined! Did the data JSON fail to load?`)
+                let listOfDecorationIds = Object.keys(data.avatarDecorations);
+                let avatarDecorationChildren = [];
+
+                //for each avatar decoration
+                for(let i = 0; i < listOfDecorationIds.length; i++){
+
+                    const decorationId = listOfDecorationIds[i];
+                    const assetHash = data.avatarDecorations[decorationId];
+
+                    if(decorationId && assetHash){
+                        //remove existing nameplates from decoration list
+                        if(assetHash.includes('nameplate')){
+                            delete data.avatarDecorations[decorationId];
+                            continue;
+                        }
+    
+                        //encode to 3y3 and store clipboard copy in onclick event
+                        let encodedStr = secondsightifyEncodeOnly("/a" + decorationId); // /a[id]
+                        //javascript that runs onclick for each avatar decoration button
+                        
+                        let child = React.createElement("img", {
+                            style: {
+                                width: "23%",
+                                cursor: "pointer",
+                                marginLeft: "5px",
+                                marginBottom: "10px",
+                                borderRadius: "4px",
+                                backgroundColor: "var(--background-base-lower)"
+                            },
+                            onClick: () => {
+                                copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
+                            },
+                            onMouseOver: (e) => {
+                                e.target.src = e.target.src.replace('.webp','.png');
+                            },
+                            onMouseLeave: (e) => {
+                                e.target.src = e.target.src.replace('.png','.webp');
+                            },
+                            src: "https://cdn.discordapp.com/avatar-decoration-presets/" + assetHash + ".webp?size=128"
+                        });
+                        avatarDecorationChildren.push(child);
+    
+                        //add newline every 4th decoration
+                        if((i + 1) % 4 == 0){
+                            //avatarDecorationsHTML += "<br>"
+                            avatarDecorationChildren.push(React.createElement("br"));
+                        }
+                    }
+                }
+                return React.createElement('div', {
+                    children: avatarDecorationChildren
+                });
+            }
+
+            function DecorModal(){
+                return React.createElement("div", {
+                    style: {
+                        width: "100%",
+                        display: "block",
+                        color: "white",
+                        whiteSpace: "nowrap",
+                        overflow: "visible",
+                        marginTop: ".5em"
+                    },
+                    children: React.createElement(AvatarDecorations)
+                });
+            }
+
+        }); //end patch of profile decoration section renderer function
+    }
+    //#endregion
+
+    //#region Effects UI
+    profileFxUI(){
+        let ProfileEffectSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("pendingProfileEffect","initialSelectedEffect"), "ProfileEffectSection");
+        if(!ProfileEffectSectionFnName) return;
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        //patch profile effect section renderer function
+        Patcher.after(this.settingsUIMod.declarations, ProfileEffectSectionFnName, (_, [args], ret) => {
+            if(!args) return;
+            if(args.isTryItOut) return;
+            if(args.guild && ORIGINAL_NITRO_STATUS != 2) return;
+            if(!ret?.props?.children?.props?.children) return;
+
+            function ProfileEffects({query}){
+
+                let profileEffectChildren = [];
+                let actualRuns = 0;
+
+                let profileEffectsArray = Object.values(profileEffects);
+                //for each profile effect
+                for(let i = 0; i < profileEffectsArray.length; i++){
+
+                    //get preview image url
+                    const previewURL = profileEffectsArray[i].thumbnailPreviewSrc;
+                    const title = profileEffectsArray[i].title;
+
+                    //search
+                    if(query.trim() != "") {
+                        if(title) {
+                            if(!title.toLowerCase().includes(query)) continue;
+                        } else continue;
+                    }
+
+                    //encode 3y3
+                    let encodedStr = secondsightifyEncodeOnly("fx" + profileEffectsArray[i].skuId); // fx1293373563381878836
+                    //javascript that runs onclick for each profile effect button
+                    let copyDecoration3y3 = function(){
+                        copyToClipboard(" " + encodedStr, "3y3 copied to clipboard!");
+                    };
+
+                    profileEffectChildren.push(
+                        React.createElement("img", {
+                            className: "riolubruhsSecretStuff",
+                            onClick: copyDecoration3y3,
+                            src: previewURL,
+                            title,
+                            style: {
+                                width: "22.5%",
+                                cursor: "pointer",
+                                marginBottom: "0.5em",
+                                marginLeft: "0.5em",
+                                backgroundColor: "var(--background-base-lower)"
+                            }
+                        })
+                    );
+
+                    //add newline every 4th profile effect
+                    if((actualRuns + 1) % 4 == 0){
+                        profileEffectChildren.push(
+                            React.createElement("br")
+                        );
+                    }
+
+                    actualRuns++;
+                }
+                return React.createElement('div', {
+                    children: profileEffectChildren,
+                    style: {
+                        paddingTop: "10px"
+                    }
+                });
+            }
+
+            //Profile Effects Modal
+            function EffectsModal(){
+                const [query, setQuery] = React.useState("");
+
+                return React.createElement("div", {
+                    style: {
+                        width: "100%",
+                        display: "block",
+                        color: "white",
+                        whiteSpace: "nowrap",
+                        overflow: "visible",
+                        marginTop: ".5em"
+                    },
+                    children: [
+                        React.createElement(Components.TextInput, {
+                            value: query,
+                            placeholder: "Search...",
+                            onChange: (input) => setQuery(input),
+                            style: {
+                                backgroundColor: `var(--control-secondary-background-default)`
+                            }
+                        }),
+                        React.createElement('br'),
+                        React.createElement(ProfileEffects, {query})
+                    ]
+                });
+            }
+
+            //Append Change Effect button
+            ret.props.children.props.children.push(
+                //self explanatory create react element
+                React.createElement("button", {
+                    children: "Change Effect [YABDP4Nitro]",
+                    className: `yabd-generic-button`,
+                    size: "bd-button-small",
+                    id: "changeProfileEffectButton",
+                    style: {
+                        width: "100px",
+                        height: "32px",
+                        color: "white",
+                        marginLeft: "4px"
+                    },
+                    onClick: () => {
+                        UI.showConfirmationModal("Change Profile Effect (YABDP4Nitro)", React.createElement(EffectsModal), {cancelText:""});
+                    }
+
+                })
+            );
+        }); //end patch of profile effect section renderer function
+    }
+    //#endregion
+
+    //#region Banner UI
+    //Make buttons in profile customization settings, encode imgur URLs and copy to clipboard
+    bannerUrlUI(){
+
+        let BannerSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("showRemoveBannerButton", "isTryItOut", "onBannerChange", 'forcedDivider'), "BannerSection");
+        if(!BannerSectionFnName) return;
+
+        function emptyWarn(){
+            UI.showToast("No URL was provided. Please enter an Imgur URL.", {type: "warning"});
+        }
+
+        Patcher.before(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args]) =>  {
+            args.disabled = false;
+        });
+
+        let secondsightifyEncodeOnly = this.secondsightifyEncodeOnly;
+
+        Patcher.after(this.settingsUIMod.declarations, BannerSectionFnName, (_, [args], ret) => {
+            
+            //create and append profileBannerUrlInput input element.
+            let profileBannerUrlInput = React.createElement("input", {
+                id: "profileBannerUrlInput",
+                placeholder: "Banner Imgur URL",
+                style: {
+                    float: "right",
+                    width: "116px",
+                    height: "20%",
+                    maxHeight: "50%",
+                    marginTop: "3px"
+                }
+            });
+
+            if(ret?.props?.children){
+                ret.props.children = [ret.props.children];
+                ret.props.children.push(React.createElement('div',{
+                    style: {
+                        marginTop: "8px",
+                        display: "flex",
+                    },
+                    children: [
+                        profileBannerUrlInput,
+                        React.createElement("button", {
+                            id: "profileBannerButton",
+                            children: "Copy Banner 3y3",
+                            className: `yabd-generic-button`,
+                            size: "bd-button-small",
+                            style: {
+                                whiteSpace: "nowrap",
+                                marginLeft: "4px",
+                                width: "116px",
+                                height: "30px"
+                            },
+                            onClick: async function(){ //Upon clicking Copy 3y3 button
+
+                                //grab text from banner URL input textarea 
+                                let profileBannerUrlInputValue = String(document.getElementById("profileBannerUrlInput").value);
+
+                                //if it's empty, stop processing and issue a warning.
+                                if(profileBannerUrlInputValue == undefined){
+                                    emptyWarn();
+                                    return;
+                                }
+                                if(profileBannerUrlInputValue == ""){
+                                    emptyWarn();
+                                    return;
+                                }
+
+                                //clean up string to encode
+                                let stringToEncode = "" + profileBannerUrlInputValue
+                                    .replace("http://", "") //get rid of protocol
+                                    .replace("https://", "")
+                                    .replace(".jpg", "")
+                                    .replace(".png", "")
+                                    .replace(".mp4", "")
+                                    .replace("webm", "")
+                                    .replace("i.imgur.com", "imgur.com"); //change i.imgur.com to imgur.com
+
+
+                                let encodedStr = ""; //initialize encoded string as empty string
+
+                                stringToEncode = String(stringToEncode); //make doubly sure stringToEncode is a string
+
+                                //if url seems correct
+                                if(stringToEncode.toLowerCase().startsWith("imgur.com")){
+
+                                    //Check for album or gallery URL
+                                    if(stringToEncode.replace("imgur.com/", "").startsWith("a/") || stringToEncode.replace("imgur.com/", "").startsWith("gallery/")){
+
+                                        //Album URL, what follows is all to get the direct image link, since the album URL is not a direct link to the file.
+
+                                        //Fetch imgur album page
+                                        try {
+                                            const parser = new DOMParser();
+                                            stringToEncode = await Net.fetch(("https://" + stringToEncode), {
+                                                method: "GET",
+                                                mode: "cors"
+                                            }).then(res => res.text()
+                                                //parse html, queryselect meta tag with certain name
+                                                .then(res => parser.parseFromString(res, "text/html").querySelector('[name="twitter:player"]').content));
+                                            stringToEncode = stringToEncode.replace("http://", "") //get rid of protocol
+                                                .replace("https://", "") //get rid of protocol
+                                                .replace("i.imgur.com", "imgur.com")
+                                                .replace(".jpg", "").replace(".jpeg", "").replace(".webp", "").replace(".png", "").replace(".mp4", "").replace(".webm", "").replace(".gifv", "").replace(".gif", "") //get rid of any file extension
+                                                .split("?")[0]; //remove any URL parameters since we don't want or need them
+                                        } catch(err){
+                                            Logger.error(err);
+                                            UI.showToast("An error occurred. Are there multiple images in this album/gallery?", { type: "error", forceShow: true });
+                                            return;
+                                        }
+                                    }
+                                    if(stringToEncode == ""){
+                                        UI.showToast("An error occurred: couldn't find file name.", { type: "error", forceShow: true });
+                                        Logger.error("Couldn't find file name when trying to grab Imgur URL for Profile Banner for some reason. Contact Riolubruh.");
+                                        return;
+                                    }
+                                    //add starting "B{" , remove "imgur.com/" , and add ending "}"
+                                    stringToEncode = "B{" + stringToEncode.replace("imgur.com/", "") + "}";
+                                    //finally encode the string, adding a space before it so nothing fucks up
+                                    encodedStr = " " + secondsightifyEncodeOnly(stringToEncode);
+
+                                    //If this is not an Imgur URL, yell at the user.
+                                }else if(stringToEncode.toLowerCase().startsWith("imgur.com") == false){
+                                    UI.showToast("Please use Imgur!", { type: "warning" });
+                                    return;
+                                }
+
+                                //if somehow none of the previous code ran, this is the last protection against an error. If this runs, something has probably gone horribly wrong.
+                                if(encodedStr == "") return;
+
+                                //copy to clipboard
+                                copyToClipboard(encodedStr, "3y3 copied to clipboard!");
+                                
+                            } //end of onClick function
+                        }) //end of button react createElement
+                    ] //end of children
+                }
+                )); //end of profileBannerButton element push
+            }
+
+        }); //end of patched function
+
+    } //End of bannerUrlUI()
+    //#endregion
+
+    //#region Profile Themes UI
+    //Everything that has to do with the GUI and encoding of the fake profile colors 3y3 shit.
+    profileThemesUI(){
+        let profileThemesSectionFnName = this.findMangledName(this.settingsUIMod.declarations, Webpack.Filters.byStrings("__invalid_profileThemesSection"), "ProfileThemesSection");
+        if(!profileThemesSectionFnName) return;
+
+        Patcher.after(this.settingsUIMod.declarations, profileThemesSectionFnName, (_, [args], ret) => {
+            //enable in per-server profile section
+            ret.props.disabled = false;
+
+            ret.props.children.props.children.push( //append copy colors 3y3 button
+                React.createElement("button", {
+                    id: "copy3y3button",
+                    children: "Copy Colors 3y3",
+                    className: `yabd-generic-button`,
+                    style: {
+                        height: "32px",
+                        width: "auto",
+                        marginLeft: "10px",
+                        marginTop: "10px"
+                    },
+                    onClick: () => {
+                        let primary = args?.pendingColors?.[0];
+                        let accent = args?.pendingColors?.[1];
+
+                        if(isNaN(primary) || isNaN(accent)){
+                            primary = ret?.props?.children?.props?.children?.[0]?.props?.children?.props?.color;
+                            accent = ret?.props?.children?.props?.children?.[1]?.props?.children?.props?.color;
+                        }
+
+                        if(isNaN(primary) || isNaN(accent)){
+                            Logger.error("Primary:",primary,"Accent:",accent);
+                            UI.showToast("Nothing has been copied!", { type: "error" });
+                            return;
+                        }
+ 
+                        let message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+
+                        const padding = "";
+                        let encoded = Array.from(message)
+                            .map(x => x.codePointAt(0))
+                            .filter(x => x >= 0x20 && x <= 0x7f)
+                            .map(x => String.fromCodePoint(x + 0xe0000))
+                            .join("");
+
+                        let encodedStr = ((padding || "") + " " + encoded);
+
+                        copyToClipboard(encodedStr, "3y3 copied to clipboard!");
+                    }
+                })
+            );
+        });
+
+    } //End of profileThemesUI()
+    //#endregion
+    
+    /* bookmarks(){
+        const temp = Webpack.getById("216623");
+
+        Patcher.instead(temp, "oN", (_,[message],og) => {
+            console.log("put message", message);
+
+            //push message
+            data.savedMessages.push({
+                saveData: message,
+                message: MessageStore.getMessage(message.channelId, message.messageId)
+            });
+
+            console.log(data.savedMessages);
+            
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGE_CREATE",
+                savedMessage: {
+                    saveData: message,
+                    message: MessageStore.getMessage(message.channelId, message.messageId)
+                }
+            });
+
+            this.saveDataFile();
+
+            return Promise.resolve();
+        })
+
+        //get saved messages
+        Patcher.instead(temp, "AX", () => {
+            console.log("get saved messages", data.savedMessages);
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGES_UPDATE",
+                savedMessages: data.savedMessages
+            });
+            return Promise.resolve();
+        });
+
+        Patcher.instead(temp, "cf", (_,[message],og) => {
+            //remove bookmark
+            console.log("remove bookmark", message);
+            data.savedMessages = data.savedMessages.filter(x=>x.saveData.messageId != message.messageId);
+            Dispatcher.dispatch({
+                type: "SAVED_MESSAGES_UPDATE",
+                savedMessages: data.savedMessages
+            });
+
+            this.saveDataFile();
+            
+            return Promise.resolve();
+        });
+    } */
+
+    applyPremiumType(){
+        const currentUser = UserStore.getCurrentUser();
+        currentUser.premiumType = settings.changePremiumType2;
+    }
+
+    updateCurrentUser(){
+        CurrentUser = UserStore.getCurrentUser();
+    }
+
+    //#region Display Name Styles
+    async displayNameStyles(){
+        Patcher.after(UserStore,"getUser",(_,[userId],ret) => {
+            let revealedText = this.getRevealedText(userId,`\uDB40\uDC53\uDB40\uDC7B`);
+            if(revealedText) {
+                let regex = /S\{[^}]*?\}/;
+                //Check if there are any matches in the revealed text.
+                let matches = revealedText.match(regex);
+                if(matches == undefined) return;
+
+                let firstMatch = matches[0];
+                if(firstMatch == undefined) return;
+
+                //slice off the S{ and the ending }
+                let styleDataStr = firstMatch.slice(2,-1);
+
+                let styleDataArr = styleDataStr.split(",");
+                if(styleDataArr){
+                    let fontId = Number(styleDataArr?.[0]);
+                    let effectId = Number(styleDataArr?.[1]);
+                    let color1 = Number(styleDataArr?.[2]);
+                    let color2;
+                    if(styleDataArr.length >= 4) {
+                        color2 = Number(styleDataArr?.[3]);
+                    }
+    
+                    if(Number.isNaN(color1) || Number.isNaN(color2) || Number.isNaN(fontId) || Number.isNaN(effectId)) return;
+    
+                    if(fontId,effectId,color1) {
+                        let styleData = {
+                            fontId,
+                            effectId,
+                            colors: [Number(color1)]
+                        };
+                        
+                        if(color2) styleData.colors.push(color2);
+    
+                        if (!Object.prototype.hasOwnProperty.call(ret, "displayNameStyles")) {
+                            Object.defineProperty(ret, "displayNameStyles", {
+                                value: cache,
+                                enumerable: true,
+                                configurable: true,
+                                writable: true,
+                            });
+                        } else {
+                            ret.displayNameStyles = styleData;
+                        }
+                    }
+                }
+            }
+        });
+
+        if(!this.DisplayNameStylesModal) this.DisplayNameStylesModal = await Webpack.waitForModule(Webpack.Filters.bySource("DisplayNameStylesModal"), {signal: controller.signal});
+        
+        let renderFn = this.findMangledName(this.DisplayNameStylesModal, x=>x, "DisplayNameStylesModal");
+        if(renderFn){
+            Patcher.after(this.DisplayNameStylesModal, renderFn, (_,args,ret) => {
+                const selectionArea = ret?.props?.children?.props?.children?.props?.children?.[0]?.props?.children?.[0]?.props?.children;
+                const font = selectionArea?.[1]?.props?.selectedFontId;
+                const effect = selectionArea?.[2]?.props?.selectedEffectId;
+                const colors = selectionArea?.[3]?.props?.selectedColors;
+    
+                if(ret && font && effect && colors){
+                    if(ret?.props?.children?.props?.children?.props?.children){
+                        ret.props.children.props.children.props.children.splice(1, 0, React.createElement(Components.Button, {
+                            children: "Copy 3y3",
+                            color: Components.Button.Colors.PRIMARY,
+                            look: Components.Button.Looks.OUTLINED,
+                            style: {
+                                top: "64px",
+                                width: "90px",
+                                left: "50%",
+                                zIndex: "2",
+                                background: "var(--control-secondary-background-default)",
+                                borderRadius: "8px"
+                            },
+                            onClick: () => {    
+                                //encoding part                          ex: S{11,1,15724528,15724528}
+                                let encoded = this.secondsightifyEncodeOnly(`S\{${font},${effect},${colors.toString()}\}`);
+                                copyToClipboard(" " + encoded, "3y3 copied to clipboard!");
+                            }
+                        }))
+                    }
+                }
+            });
+        }
+    }
+    //#endregion
+
+    //#region Display Name Styles UI
+    async displayNameStylesSection(){
+        if(!this.DisplayNameSection) this.DisplayNameSection = await Webpack.waitForModule(Webpack.Filters.bySource('pendingGlobalName', 'onGlobalNameChange', 'currentGlobalName'), {signal: controller.signal});
+        let renderFn2 = this.findMangledName(this.DisplayNameSection, x=>x, "DisplayNameSection");
+
+        if(!this.DisplayNameStylesSection) this.DisplayNameStylesSection = await Webpack.waitForModule(Webpack.Filters.byStrings('userDisplayNameStyles', 'guildDisplayNameStyles'), {signal: controller.signal});
+
+        if(this.DisplayNameSection && this.DisplayNameStylesSection && renderFn2){
+            Patcher.after(this.DisplayNameSection, renderFn2, (_, [args], ret) => {
+                ret.props.children.splice(1,0,React.createElement(this.DisplayNameStylesSection,{
+                    user: args.user,
+                    className: "yabd-marginTop24"
+                }));
+            });
+        }
+    }
+    //#endregion
+
+    //#region Sharpen Streams
+    //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
+    async sharpenStreams(){
+        ContextMenu.patch('stream-context', this.streamContextPatch);
+
+        this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
+
+        if(!this.VideoStream) return;
+        let videoStreamName = this.findMangledName(this.VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
+
+        if(videoStreamName){
+            Patcher.after(this.VideoStream?.[videoStreamName], "type", (_,[args],ret) => {
+                if(args?.userId){
+                    let percentNormal = 100;
+                    let percentSharpened = 0;
+    
+                    if(settings.userSharpenPreferences?.[args.userId]){
+                        percentSharpened = settings.userSharpenPreferences[args.userId]; 
+                        percentNormal = 100 - percentSharpened;
+                    }
+    
+                    ret.props.children.push(React.createElement('svg',{
+                        children: React.createElement("filter",{
+                            id: "yabd-svgSharpen-" + args.userId,
+                            colorInterpolationFilters: "sRGB",
+                            children: [
+                                React.createElement('feConvolveMatrix',{
+                                    order: "3",
+                                    kernelMatrix: "0 -1 0 -1 5 -1 0 -1 0",
+                                    result: "sharpen"
+                                }),
+                                React.createElement('feComposite',{
+                                    in: "SourceGraphic",
+                                    in2: "sharpen",
+                                    operator: "arithmetic",
+                                    result: "userPreference",
+                                    k1: "0",k2: (percentNormal / 100),k3: (percentSharpened / 100),k4: "0"
+                                }),
+                                React.createElement('feComposite',{
+                                    id: `yabd-svgSharpen-${args.userId}-size`,
+                                    in: "SourceGraphic",
+                                    in2: "userPreference",
+                                    operator: "arithmetic",
+                                    k1: "0",k2: "1",k3: "0",k4: "0" //default to not changing anything but we change these values below
+                                })
+                            ]
+                        })
+                    }));
+    
+                    //I could have made this part work a bit better, but I don't feel like it right now honestly.
+                    ret.props.children.push(React.createElement(ResizeFindingElement, {
+                        id: `yabd-sharpen-resize-div-${args.userId}`,
+                        onResize: (width, height) => {
+                            //get the part of the filter that compares the user preference to the source graphic
+                            const sizeOfStreamFilter = document.getElementById(`yabd-svgSharpen-${args.userId}-size`);
+    
+                            //calculate tile's percentage of the screen
+                            let heightOfStreamComparedToScreen = height / screen.height;
+    
+                            //if the user is focusing the stream and Discord is the maximized window, then this multiplication should get them to the full intensity
+                            //(ensures that the intensity isn't always less than 100%)
+                            let filterIntensityFactoringScreen = heightOfStreamComparedToScreen * 1.3;
+                            if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //normalize value so it cant go over 100%
+                            
+                            //apply new values 
+                            sizeOfStreamFilter.k3.baseVal = filterIntensityFactoringScreen.toString();
+                            sizeOfStreamFilter.k2.baseVal = (1 - filterIntensityFactoringScreen).toString();
+                        } 
+                    }))
+    
+                    if(ret?.props?.children?.[0]?.props)
+                        ret.props.children[0].props.style = {filter: `url(#yabd-svgSharpen-${args.userId})`};
+                }
+            });
+        }
+    }
+    //#endregion
+
+    //#region Sharpen PIP
+    sharpenPipPlayer(){
+        if(PictureInPicturePlayer){
+            let pipPlayerName = this.findMangledName(PictureInPicturePlayer, x=>x);
+            if(pipPlayerName){
+                Patcher.after(PictureInPicturePlayer?.[pipPlayerName]?.prototype, "render",(_,[args],ret) => {
+                    nodePatcher.patch(ret,(_,props,res) => {
+                        //this shit insane ngl
+                        let finder = res._reactInternals;
+                        let count = 0;
+                        while(finder){
+                            if(finder?.pendingProps?.backgroundKey) break;
+                            else{
+                                finder = finder.child;
+                                count++;
+                                if(count > 100) return;
+                            }
+                        }
+                        if(finder){
+                            nodePatcher.patch(finder, (args,ret) => {
+                                const userId = args?.backgroundKey?.split?.(":")?.[3];
+                                if(userId){
+                                    if(userId != CurrentUser.id){
+                                        let sharpnessPercent = 0;
+
+                                        if(settings.userSharpenPreferences?.[userId]) {
+                                            sharpnessPercent = settings.userSharpenPreferences[userId];
+                                        }
+                                        let normalPercent = 100 - sharpnessPercent;
+
+                                        // This is to change the intensity when the user changes the size of the PIP window.
+                                        // It only updates after they stop dragging the mouse, but it's not that big of a deal,
+                                        // since I doubt most people will even notice unless they're really paying attention, and I don't feel like changing it now
+                                        // PIP window is always at most 50% of the screen, so we take width of the PIP window and divide by the width of the screen
+                                        // to get the approximate percent of the screen that is covered by the stream
+                                        let widthOfStreamComparedToScreen = args.width / screen.width;
+
+                                        let filterIntensityFactoringScreen;
+                                        filterIntensityFactoringScreen = widthOfStreamComparedToScreen * 2; //then we double that since it's at most 50% of the screen
+                                        if(filterIntensityFactoringScreen > 1) filterIntensityFactoringScreen = 1; //and normalize it to at most 1
+                                        //and then we use this value to determine how much to sharpen the PIP window after the user's preference is considered in the second feComposite
+
+                                        ret.props.children.push(React.createElement('svg',{
+                                            children: [
+                                                React.createElement("filter",{
+                                                    id: "yabd-svgSharpen-" + userId + "-pip",
+                                                    colorInterpolationFilters: "sRGB",
+                                                    children: [
+                                                        React.createElement('feConvolveMatrix',{
+                                                            order: "3",
+                                                            kernelMatrix: "0 -0.5 0 -0.5 3 -0.5 0 -0.5 0", //weaker kernel than the CallTiles since the PIP is always smaller than them and we want them to be fairly close in perceived sharpness
+                                                            result: "sharpen"
+                                                        }),
+                                                        React.createElement('feComposite',{
+                                                            in: "SourceGraphic",
+                                                            in2: "sharpen",
+                                                            operator: "arithmetic",
+                                                            k1: "0",k2: (normalPercent / 100),k3: (sharpnessPercent / 100),k4: "0",
+                                                            result: "userPreference"
+                                                        }),
+                                                        React.createElement('feComposite',{
+                                                            in: "SourceGraphic",
+                                                            in2: "userPreference",
+                                                            operator: "arithmetic",
+                                                            k1: "0",k2: (1 - filterIntensityFactoringScreen),k3: filterIntensityFactoringScreen,k4: "0"
+                                                        })
+                                                    ]
+                                                })
+                                            ]
+                                        }));
+
+                                        ret.props.style = {filter: `url(#yabd-svgSharpen-${userId}-pip)`};
+                                    }
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+        }else{
+            Logger.error("PictureInPicturePlayer not found!");
+        }
+    }
+    //#endregion
+
+    //#region Sharpen Context
+    streamContextPatch(reactElem,context) {
+        if(!settings.sharpenStreams) return;
+
+        if(reactElem?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.id == "mute"){ //Makes the sharpness slider only appear on other user's stream while you are watching it
+            let userId = context.stream.ownerId;
+
+            if(userId){
+                let initialValue = 0;
+    
+                if(settings.userSharpenPreferences?.[userId]) {
+                    initialValue = settings.userSharpenPreferences[userId];
+                }
+    
+                const handleChange = (e) => {
+                    let percentSharpness = parseInt(e);
+                    let percentNormal = 100 - percentSharpness;
+    
+                    let filter = document.getElementById(`yabd-svgSharpen-${userId}`);
+                    if(filter){
+                        settings.userSharpenPreferences[userId] = percentSharpness;
+                        let feComposite = filter?.children[1];
+                        feComposite.k3.baseVal = (percentSharpness / 100).toString();
+                        feComposite.k2.baseVal = (percentNormal / 100).toString();
+                    }
+                }
+    
+                const handleSave = () => {
+                    Data.save("settings", settings);
+                }
+    
+                reactElem.props.children.props.children.splice(2,0,
+                    React.createElement(ContextMenu.Item,
+                        {
+                            id: "yabd-sharpness-slider",
+                            label: () => React.createElement(ContextMenuSlider,{
+                                initialValue,
+                                label: React.createElement(Components.Text, { //Default label is the wrong size so this uses the text component lol
+                                    children: "Sharpness",
+                                    style: {
+                                        fontSize: "14px",
+                                        fontWeight: "var(--font-weight-medium)"
+                                    }
+                                }),
+                                asValueChanges: handleChange,
+                                onValueChange: handleSave
+                            })
+                        }
+                    )
+                )   
+            }
+        }
+    }
+    //#endregion
+
+    //#region Extra Context
+    extraContextMenus(){
+        try{
+            ContextMenu.patch('expression-picker', this.expressionPickerFunction);
+        }catch(err){
+            Logger.error(err);
+        }
+
+        try{
+            if(GIFPickerRender){
+                Patcher.after(GIFPickerRender?.prototype, "render", (thisRef, __, ret) => {
+                    if(ret?.props){
+                        ret.props.onContextMenu = (e) => {
+                            let url;
+                            if(thisRef?.props?.item?.url)
+                                url = thisRef.props.item.url;
+                            else
+                                url = thisRef.props.src;
+        
+                            if(url.startsWith('//')){
+                                url = "https:" + url;
+                            }
+        
+                            ContextMenu.open(e, ContextMenu.buildMenu([{
+                                type: "text",
+                                label: "Copy Link",
+                                onClick: () => {
+                                    copyToClipboard(url);
+                                }
+                            },{
+                                type:"text",
+                                label: "Open Link",
+                                onClick: () => {
+                                    window.open(url);
+                                }
+                            }]))
+                        }
+                    }
+                });
+            }else{
+                Logger.error("GIF Picker element was not found!");
+            }
+        }catch(err){
+            Logger.error(err);
+        }
+    }
+    //#endregion
+
+    //#region Expression Picker Context
+    //GIF and Sticker Picker Context Menu
+    expressionPickerFunction(reactElem, context) {
+        //those variable names arent good but idk what else to call em lol
+
+        let src = context?.target?.src ? context?.target?.src : context?.target?.firstChild?.src;
+        if(src) {
+            if(src.includes('emojis')){
+                let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/;
+                let emojiId = src.match(idFromUrlRegex)[0];
+                if(emojiId){
+                    let emoji = EmojiStore.getCustomEmojiById(emojiId);
+                    if(emoji){
+                        if(!emoji.animated && settings.PNGemote)
+                            src = src.replace('.webp', '.png');
+                        if(emoji.animated){
+                            src = src.replace('.webp', '.gif');
+                            src = src.replace('.avif', '.gif');
+                        }    
+                    } 
+                }
+            }
+
+            src = src.split('?')[0] + "?size=4096";
+
+            try {
+                if(reactElem?.props?.children?.props?.children){
+                    //add copy url button only if the developer mode copy url isnt there already
+                    if(reactElem.props.children.props.children.filter(x=>x?.props?.id == "copy-image-link")?.length == 0){
+                        reactElem.props.children.props.children.push(
+                            ContextMenu.buildItem({
+                                id: "yabd-copy-url-expression-picker",
+                                label: "Copy URL",
+                                action: () => {
+                                    copyToClipboard(src);
+                                }
+                            })
+                        );
+                    }
+                    reactElem.props.children.props.children.push(
+                        ContextMenu.buildItem({
+                            id: "yabd-open-url-expression-picker",
+                            label: "Open URL",
+                            action: () => {
+                                window.open(src);
+                            }
+                        })
+                    )
+                }
+            } catch(err) {
+                Logger.error(err);
+            }
+        }
+    }
+    //#endregion
+
+    //#region Utilities
+    // Finds and returns the key of an object in a module/object using a filter, and warns if there is a potential problem. Useful when patching lazy loaded modules.
+	// If filter variable is a string, it uses an includes string filter.
+    findMangledName(module, filter, debugInfo){
+        if(module){
+            if(typeof filter === "string"){
+                filter = (x) => x.toString?.().includes?.(filter);
+            }
+            let keys = Object.keys(module);
+            let values = Object.values(module);
+            
+            let index = values.findIndex(filter);
+    
+            if(index >= 0) return keys[index];
+            else{
+                Logger.warn(`Couldn't find name from module for function ${debugInfo} because the filter returned no results.\nFilter: `, filter, "\n", module);
+                return null;
+            };
+        }else{
+            Logger.warn(`Couldn't find name from module for function ${debugInfo} because the module was undefined. This is not necessarily an error, it may be caused by lazy-loaded modules not being ready yet.`);
+            return null;
+        }
+    }
+
+    //this functionality was previously in getRevealedText, but it's been separated to allow it to be checked on its own
+    getRevealedTextPerServer(userId, shouldInclude){
+        //per-server pronoun field check
+        const guildId = SelectedGuildStore.getGuildId();
+        if(guildId){
+            let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+            if(userGuildProfile?.pronouns){
+                if(userGuildProfile.pronouns.includes(shouldInclude)){
+                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.pronouns));
+                    if(revealedText != undefined && revealedText != ""){
+                        return revealedText;
+                    }
+                }
+            }
+            //per-server bio check
+            if(userGuildProfile?.bio){
+                if(userGuildProfile.bio.includes(shouldInclude)){
+                    let revealedText = this.secondsightifyRevealOnly(String(userGuildProfile.bio));
+                    if(revealedText != undefined && revealedText != ""){
+                        return revealedText;
+                    }
+                }
+            }
+        }
+    }
+
+    //shouldInclude is a string containing the characters that the encoded text should contain
+    //that means that in order to check for "P{" for example, you check for the characters \uDB40\uDC50\uDB40\uDC7B since we're checking the encoded text
+    //but since the encoded text is over 2 bytes, you need to use the surrogate pairs ( you can calculate them here https://russellcottrell.com/greek/utilities/SurrogatePairCalculator.htm )
+    //if shouldInclude is blank, always return the revealed text if there is revealed text
+    getRevealedText(userId, shouldInclude=""){
+        let revealedText = ""; //init variable
+
+        let perServer = this.getRevealedTextPerServer(userId, shouldInclude);
+        if(perServer != undefined && perServer != "") return perServer;
+
+        //get the user's profile from the cached user profiles
+        let userProfile = UserProfileStore.getUserProfile(userId);
+        //if this user's profile has been downloaded
+        if(userProfile){
+            //if their bio is empty, move on to the next check.
+            if(userProfile?.bio != undefined){
+                if(userProfile.bio.includes(shouldInclude)){
+                    //reveal 3y3 encoded text
+                    revealedText = this.secondsightifyRevealOnly(String(userProfile.bio));
+                    //if there's no 3y3 text, move on to the next check.
+                    if(revealedText != undefined && revealedText != ""){
+                        //return bio with the 3y3 decoded
+                        return revealedText;
+                    }
+                }
+            }
+        }
+        
+        let customStatusActivity;
+        try{
+            //get Custom Status
+            //avoid using findActivity function due to conflict with ChatFilter (#290)
+            customStatusActivity = PresenceStore.getActivities(userId).find((e) => e.name == "Custom Status" || e.id == "custom");
+        }catch(err){
+            Logger.error("Something went wrong getting custom status, oh god oh shit!", err);
+        }
+        
+        //if the user has a custom status
+        if(customStatusActivity) {
+            //grab the text from the custom status
+            let customStatus = customStatusActivity.state;
+            //if something has gone horribly wrong, stop processing.
+            if(customStatus == undefined) return;
+            //reveal 3y3 encoded text
+            if(customStatus.includes(shouldInclude)){
+                revealedText = this.secondsightifyRevealOnly(String(customStatus));
+                //return custom status with the 3y3 decoded
+                return revealedText;
+            }
+        }
+    }
+    //#endregion
+
+    //#region Nameplates
+    // nameplate 3y3 format: n{asset/palette}
+    nameplates(){
+        Patcher.after(UserStore, "getUser", (_, [userId], ret) => {
+            if(!ret || !userId) return;
+            
+            let userNameplate = ret?.collectibles?.nameplate;
+
+            //if user has a nameplate
+            if(userNameplate) {
+                //filter out bad or existing nameplate
+                if(userNameplate.sku_id != 0 && userNameplate.sku_id != undefined && userNameplate.sku_id != null && data?.nameplatesV2?.[userNameplate.skuId] == undefined) {
+                    //get shortened asset name
+                    let nameplateAsset = userNameplate.asset.replace('nameplates/','').replaceAll('/','');
+                    //create name for nameplate since it's not provided through getUser
+                    let nameplateName = nameplateAsset.replaceAll('_',' '); //replace _ with space
+                    nameplateName = nameplateName.replace(/(^\w|\s\w)/g,m => m.toUpperCase()); //make every word start with uppercase letter
+
+                    //store seen nameplate
+                    data.nameplatesV2[userNameplate.sku_id] = {
+                        asset: userNameplate.asset.replace('nameplates/',''),
+                        palette: userNameplate.palette,
+                        name: nameplateName
+                    }
+                }
+            }
+
+            //Nameplate decoding
+                                    // check if it includes /n encoded
+            let revealedText = this.getRevealedText(userId, `\uDB40\uDC6E\uDB40\uDC7B`);
+
+            //if nothing's returned, or an empty string is returned, stop processing.
+            if(revealedText == undefined) return;
+            if(revealedText == "") return;
+            
+            //This regex matches n{*} . (Do not fuck with this)
+            let regex = /n\{[^}]*?\}/;
+
+            //Check if there are any matches in the revealed text.
+            let matches = revealedText.match(regex);
+            if(matches == undefined) return;
+
+            let firstMatch = matches[0];
+            if(firstMatch == undefined) return;
+
+            //slice off the n{ and the ending }
+            let nameplate = firstMatch.slice(2,-1);
+            if(nameplate){
+                let [skuId, palette] = nameplate.split(',');
+                let asset = data.nameplatesV2[skuId]?.asset;
+                
+                if(skuId != undefined && palette != undefined){
+                    if(ret.collectibles == undefined) ret.collectibles = {};
+                    ret.collectibles.nameplate = {
+                        asset,
+                        palette,
+                        skuId
+                    }
+                }
+            }
+        });
+    }
+    //#endregion
+
+    //#region Go Live Modal V2
+    async resolutionSwapperV2(){
+
+        //wait for lazy loaded modules
+        if(this.GoLiveV2ModalMod == undefined) this.GoLiveV2ModalMod = await Webpack.waitForModule(Webpack.Filters.bySource('GO_LIVE_MODAL_V2', 'getUseSystemScreensharePicker', 'canStreamQuality'), {defaultExport:false, signal: controller.signal});
+
+        //the sign of janky code inbound
+        let GLMV2Opt = {
+            resolutionToSet: undefined,
+            fpsToSet: undefined,
+            minBitrateToSet: undefined,
+            targetBitrateToSet: undefined,
+            maxBitrateToSet: undefined
+        };
+
+        let goLiveModalV2FnName = this.findMangledName(this.GoLiveV2ModalMod, x=>x, "GoLiveModalV2");
+        if(goLiveModalV2FnName){
+            Patcher.instead(this.GoLiveV2ModalMod, goLiveModalV2FnName, (_,[args],ogFunction) => {
+                let ret = ogFunction(args);
+
+                //maybe the worst amalgamation in this whole plugin?
+    
+                if(GLMV2Opt.resolutionToSet != undefined) {
+                    ret.props.state.resolution = GLMV2Opt.resolutionToSet;
+                    settings.CustomResolution = GLMV2Opt.resolutionToSet;
+                    GLMV2Opt.resolutionToSet = undefined;
+                }
+                if(GLMV2Opt.fpsToSet != undefined) {
+                    ret.props.state.fps = GLMV2Opt.fpsToSet;
+                    settings.CustomFPS = GLMV2Opt.fpsToSet;
+                    GLMV2Opt.fpsToSet = undefined;
+                }
+    
+                let RightButtonGroup = ret?.props?.children?.props?.children?.props?.children?.[1]?.props?.children?.[0]?.props?.children?.[1]?.props;
+                
+                //add YABD button
+                if(RightButtonGroup) {
+                    RightButtonGroup.children.splice(2,0,React.createElement("button",{
+                        class: "yabd-resolution-swapper-v2-button",
+                        children: 'YABD',
+                        onClick: () => {
+                            let localStreamOptions = {
+                                resolutionToSet: settings.CustomResolution, //set to apply on pressing Apply even if custom resolution/fps is disabled
+                                fpsToSet: settings.CustomFPS, // -------------^
+                                minBitrateToSet: undefined,
+                                targetBitrateToSet: undefined,
+                                maxBitrateToSet: undefined
+                            }
+    
+                            //defaults
+                            if(settings.CustomBitrateEnabled) {
+                                localStreamOptions.minBitrateToSet = settings.minBitrate;
+                                localStreamOptions.targetBitrateToSet = settings.targetBitrate;
+                                localStreamOptions.maxBitrateToSet = settings.maxBitrate;
+                            }
+    
+                            UI.showConfirmationModal("Configure Stream Settings",[
+                                React.createElement('div', {
+                                    children: [
+                                        React.createElement('div', {
+                                            style: {
+                                                display: "flex",
+                                                width: "100%",
+                                                justifyContent: "space-around"
+                                            },
+                                            children: [
+                                                React.createElement("h1",{
+                                                    children: "Resolution",
+                                                    className: `yabd-text-h5`
+                                                }),
+                                                React.createElement("h1",{
+                                                    children: "FPS",
+                                                    className: `yabd-text-h5`
+                                                }),
+                                            ]
+                                        }),
+                                        React.createElement('div', {
+                                            style: {
+                                                display: "flex",
+                                                width: "100%",
+                                                justifyContent: "space-around"
+                                            },
+                                            children: [
+                                                React.createElement(Components.NumberInput,{
+                                                    value: settings.CustomResolution,
+                                                    min: -1,
+                                                    onChange: (input) => {
+                                                        input = parseInt(input);
+                                                        if(isNaN(input)) input = 1440;
+                    
+                                                        localStreamOptions.resolutionToSet = input;
+                                                    }
+                                                }),
+                                                React.createElement(Components.NumberInput,{
+                                                    value: settings.CustomFPS,
+                                                    min: -1,
+                                                    onChange: (input) => {
+                                                        input = parseInt(input);
+                                                        if(isNaN(input)) input = 60;
+                    
+                                                        localStreamOptions.fpsToSet = input;
+                                                    }
+                                                }),
+                                            ]
+                                        }),
+                                    ]
+                                }),
+                                settings.CustomBitrateEnabled ? React.createElement("br") : undefined,
+                                settings.CustomBitrateEnabled ? React.createElement("h1",{
+                                    children: "Custom Bitrate (kbps)",
+                                    className: `yabd-text-h5`
+                                }) : undefined,
+                                settings.CustomBitrateEnabled ? React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        width: "100%",
+                                        justifyContent: "space-around",
+                                    },
+                                    children: [
+                                        React.createElement("h1", {
+                                            children: "Min",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                        React.createElement("h1", {
+                                            children: "Target",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                        React.createElement("h1", {
+                                            children: "Max",
+                                            style: {
+                                                marginBlock: "0 5px",
+                                            },
+                                            className: `yabd-text-h5`
+                                        }),
+                                    ]
+                                }) : undefined,
+                                React.createElement('div',{
+                                    style: {
+                                        display: "flex",
+                                        width: "100%",
+                                        justifyContent: "space-around",
+                                        marginBottom: "5px"
+                                    },
+                                    children: settings.CustomBitrateEnabled ? [
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.minBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.minBitrateToSet = input;
+                                            }
+                                        }),
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.targetBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.targetBitrateToSet = input;
+                                            }
+                                        }),
+                                        React.createElement(Components.NumberInput,{
+                                            value: settings.maxBitrate,
+                                            min: -1,
+                                            onChange: (input) => {
+                                                input = parseInt(input);
+                                                if(isNaN(input)) input = -1;
+                                                localStreamOptions.maxBitrateToSet = input;
+                                            }
+                                        }),
+                                    ] : undefined
+                                })
+                            ],
+                            {
+                                confirmText: "Apply",
+                                onConfirm: () => {
+                                    GLMV2Opt = localStreamOptions;
+    
+                                    if(localStreamOptions.minBitrateToSet != undefined) settings.minBitrate = localStreamOptions.minBitrateToSet;
+                                    if(localStreamOptions.targetBitrateToSet != undefined) settings.targetBitrate = localStreamOptions.targetBitrateToSet;
+                                    if(localStreamOptions.maxBitrateToSet != undefined) settings.maxBitrate = localStreamOptions.maxBitrateToSet;
+                                    Data.save("settings",settings);
+                                }
+                            }
+                            )
+                        }
+                    }
+                    ));
+
+                    //remove SD/HD pill upsell
+                    if(settings.removeScreenshareUpsell){
+                        RightButtonGroup.children = RightButtonGroup.children.filter(x=>!x.type?.toString?.()?.includes?.("pill"))
+                    }
+                }
+
+                //Remove Nitro upsell
+                if(settings.removeScreenshareUpsell){
+                    const footer = ret?.props?.children?.props?.children?.props?.children?.[1]?.props;
+                    if(footer?.children){
+                        footer.children = footer.children[0];
+                    }
+                }
+                
+                return ret;
+            });
+        }
+    }
+    // #endregion
+
+    unlockStickers(){
+        Patcher.instead(stickerSendabilityModule, "getStickerSendability", () => {
+            return 0; //SENDABLE
+        });
+        Patcher.instead(stickerSendabilityModule, "isSendableSticker", () => {
+            return true;
+        });
+    }
+
+    videoCodecs(){
+        Patcher.after(streamSettingsMod?.Connection?.prototype, "getCodecOptions", (_, args, ret) => {
+            ret.videoEncoder = ret.videoDecoders[settings.videoCodec2];
+        });
+    }
+
+    // #region Clips Bypasses
+    async clipsBypass(){
+
+        if(settings.enableClipsExperiment){
+            this.overrideVariant("2026-03-clips-experiment", 2);
+        }
+       
+        //spoof nitro file size limit
+        Patcher.instead(MaxFileSizeMod, "getMaxFileSize", (_,[serverId],originalFunction) => {
+            let originalOutput = originalFunction(serverId);
+            if(ORIGINAL_NITRO_STATUS === 2){
+                return 500 * 1024 * 1024; //500 MB
+            }else{
+                return Math.max((100 * 1024 * 1024), originalOutput); //100 MB or server's file size if greater
+            }
+        });
+        
+        //disable max file size message
+        Patcher.instead(MaxFileSizeMod, "exceedsMessageSizeLimit", (_,args) => {
+            return false;
+        });
+
+        // todo: maybe fix ActionBarClipsButton and ClipsButton button not appearing with experiments disabled eventually
+        // currently they use useExperiment to check if they should appear, which is a function that I can't patch
+        // and remaking the respective React elements sounds really difficult
+
+        if(ffmpeg == undefined) await this.loadFFmpeg();
+
+        async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
+            if(ffmpeg){
+                if(!ffmpegArguments)
+                    ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
+                        "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
+                    ];
+                if(arrayBuffer && inFileName){
+                    await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
+                }
+                console.log("Approximately equivalent ffmpeg command:");
+                console.log("ffmpeg " + ffmpegArguments.join(" "));
+                await ffmpeg.exec(ffmpegArguments);
+                const data = await ffmpeg.readFile(outFileName);
+                
+                if(inFileName) ffmpeg.deleteFile(inFileName);
+                if(outFileName) ffmpeg.deleteFile(outFileName);
+                
+                if(data.length == 0){
+                    throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + 
+                                    "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
+                                    "If you need assistance, please use the support channel in the Discord server.");
+                }
+
+                return data.buffer;
+            }
+            else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
+        }
+        async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
+
+            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=300x100","-i",inFileName,"-shortest","-fflags","+shortest", 
+                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
+                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune","stillimage","-r","1", outFileName];
+
+            return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
+        }
+
+        const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
+        const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
+
+        Patcher.instead(addFilesMod, "addFiles", async (_, [args], originalFunction) => {
+            /* If ffmpeg isn't loaded, or was unloaded for some reason,
+               when the user adds a file, make sure to load it again if it's undefined
+               If we don't do this check, then the user would have to
+               trigger saveAndUpdate or restart the plugin to
+               make ffmpeg load if it wasn't loaded properly the first time. */
+            if(ffmpeg == undefined) await this.loadFFmpeg();
+
+            //load append data only on first added file
+            if(!udta || !udtaBuffer){
+                udta = new Uint8Array([0,0,0,89,109,101,116,97,0,0,0,0,0,0,0,33,104,100,108,114,0,0,0,0,0,0,0,0,109,100,105,114,97,112,112,108,0,0,0,0,0,0,0,0,0,0,0,0,44,105,108,115,116,0,0,0,36,169,116,111,111,0,0,0,28,100,97,116,97,0,0,0,1,0,0,0,0,76,97,118,102,54,49,46,51,46,49,48,51,0,0,46,46,117,117,105,100,161,200,82,153,51,70,77,184,136,240,131,245,122,117,165,239]);
+                udtaBuffer = udta.buffer;
+            }
+
+            function errorHandler(err, currentFile) {
+                UI.showToast("Something went wrong. See console for details.", { type: "error", forceShow: true });
+                Logger.error(err);
+                if(currentFile) {
+                    Logger.info("Current file information for debugging:", currentFile);
+                    Logger.info(`File Type: "${currentFile.file?.type}"`);
+                }
+            }
+
+            function concatArrayBuffers(buf1, buf2){
+                let newArray = new Uint8Array(buf1.byteLength + buf2.byteLength);
+                newArray.set(new Uint8Array(buf1), 0);
+                newArray.set(new Uint8Array(buf2), buf1.byteLength);
+                return newArray.buffer;
+            }
+			
+            //for each file being added
+            for(let i = 0; i < args.files.length; i++){
+                const currentFile = args.files[i];
+
+               if(currentFile.file.name.endsWith(".dlfc")) return;
+
+                const clipData = {
+                    "id": 0,
+                    "version": 3,
+                    "applicationName": "",
+                    "applicationId": "1301689862256066560",
+                    "users": [
+                        CurrentUser.id
+                    ],
+                    "clipMethod": "manual",
+                    "length": currentFile.file.size,
+                    "thumbnail": "",
+                    "filepath": "",
+                    "name": currentFile.file.name.substring(0, currentFile.file.name.lastIndexOf('.'))
+                };
+
+                switch(settings.clipTimestamp){
+                    default:
+                    case 0: //January 1st, 2015
+                        clipData.id = 0;
+                        clipData.createdAt = 1420070400000;
+                        break;
+                    case 1: //Current Time
+                        clipData.id = (BigInt(Date.now()) - 1420070400000n) << 22n;
+                        clipData.createdAt = Date.now();
+                        break;
+                    case 2: //Last Modified Date
+                        clipData.id = (BigInt(currentFile.file.lastModified) - 1420070400000n) << 22n;
+                        clipData.createdAt = currentFile.file.lastModified;
+                        break;
+                }
+
+                // #region Video Clip
+                //larger than 10mb or force video clip enabled AND video clip bypass enabled AND is a video file AND is not a video type to skip AND is less than or equal to 100mb
+                if((currentFile.file.size > 10485759 || settings.forceClip) && settings.useClipBypass && currentFile.file.type.startsWith("video/") 
+                        && !skippedVideoTypes.includes(currentFile.file.type) && currentFile.file.size <= 104857590){
+                    if(currentFile.file.name.toLowerCase().endsWith(".mod") && currentFile.file.type == 'video/mpeg'){
+                        continue;
+                    }else{
+                        let outFileName = "output.mp4";
+
+                        //AVI file warning
+                        if(currentFile.file.type == "video/avi"){
+                            UI.showToast("[YABDP4Nitro] NOTE: AVI Files may send, but HTML5 and MP4 do not support all AVI video codecs, it may not play and FFmpeg may error!", { type: "warning" });
+                        }
+                        try {
+                            let arrayBuffer = await currentFile.file.arrayBuffer();
+                            const movTypes = ["video/flv", "video/ogg", "video/wmv", "video/mov"];
+                            if(movTypes.includes(currentFile.file.type)){
+                                Logger.info('Using MOV format for clip.');
+                                
+                                outFileName = "output.mov";
+                            }
+
+                            let array1 = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
+
+                            let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", { type: "video/mp4" });
+
+                            currentFile.file = video;
+
+                            //send as a "clip"
+                            currentFile.clip = clipData;
+                        } catch(err){
+                            errorHandler(err, currentFile);
+                            continue;
+                        }
+                    }
+                    //#endregion
+                }
+                // #region Audio Clip
+                //Audio file above 10mb or Force Audio Clip and it not an incompatible type and useAudioClipBypass is true and file below 100mb
+                else if(settings.useAudioClipBypass && (currentFile.file.size > 10485759 || settings.forceAudioClip) &&
+                   (currentFile.file.type.startsWith("audio/") && !skippedAudioTypes.includes(currentFile.file.type)) && currentFile.file.size <= 104857590){
+
+                    try {
+                        let arrayBuffer = await currentFile.file.arrayBuffer();
+
+                        let outFileName = "output.mp4";
+
+                        if(['audio/wav', 'audio/aiff', 'audio/x-ms-wma', 'audio/mpeg'].includes(currentFile.file.type)){
+                            Logger.info('Using MOV format for audio clip.');
+                            outFileName = 'output.mov';
+                        }
+                        if(currentFile.file.type == 'audio/vnd.dolby.dd-raw'){
+                            UI.showToast("AC3 will send but playback is only supported on mobile!", {type: "warn"});
+                        }
+
+                        let array1 = concatArrayBuffers(await ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
+
+                        let video = new File([new Uint8Array(array1)], clipData.name + ".mp4", { type: "video/mp4" });
+
+                        currentFile.file = video;
+
+                        //send as a "clip"
+                        currentFile.clip = clipData;
+                    } catch(err){
+                        errorHandler(err, currentFile);
+                        continue;
+                    }
+                }
+                //#endregion
+
+                // #region File Clip
+
+                //any file above 10mb and below 100mb that does not fit any previous criteria
+                else if(currentFile.file.size >= 10485759 && currentFile.file.size <= 104857590 && settings.zipClip) {
+
+                    //Calculate crcTable only once it's necessary
+                    if(crcTable == undefined){
+                        crcTable = Array.from({ length: 256 }, (_, i) =>
+                        Array.from({ length: 8 }, (_, j) => j).reduce(crc =>
+                            (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1, i));
+                    }
+
+                    //generate clipMaBuffer
+                    if(!clipMaBuffer){
+                        let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=128x96:duration=1","-f","lavfi",
+                            "-i","anullsrc=r=44100:cl=mono","-shortest","-fflags","+shortest",
+                            "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1",
+                            "-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4"];
+
+                        clipMaBuffer = await ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
+                        clipMaBuffer = concatArrayBuffers(clipMaBuffer, udtaBuffer);
+                    }
+
+                    if(clipMaBuffer){
+                        const archiveMimeTypes = ['x-7z-compressed','x-bzip','x-bzip2','x-rar-compressed','x-tar','gzip','x-gzip','zip','x-zip-compressed'];
+
+                        let zipFile;
+                        let fileArrayBuffer = await currentFile.file.arrayBuffer();
+
+                        //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
+                        if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
+
+                            zipFile = fileArrayBuffer;
+                            clipData.name = currentFile.file.name;
+                        }else{
+                            /* DeepSeek-R1 helped to write this createZip function.
+                            Don't worry, I'm not completely stupid, I understand what the code does, how it works, and made sure to optimize it.
+                            I was just not feeling like learning the ins and outs of the zip format totally from scratch. Sue me.
+                            An explanation of the function is below (yes I wrote the explanation):
+                            The function creates a basic zip file containing the data variable as a file with no compression and returns a Uint8Array of the zip file.
+                            The name variable is the file name of the file within the zip.
+                            The data variable can be ArrayBuffer, Uint8Array, or string.
+                            To make a zip file, a bunch of headers and data descriptors, including a CRC checksum and a bunch of info about the file, must be created, so that's what we're doing.
+                            https://en.wikipedia.org/wiki/ZIP_(file_format)#File_headers for more information on that.
+                            Writing all this shit would've been pretty tedious so yea. */
+                            function createZip(name, data) {
+
+                                // Convert input to Uint8Array
+                                const enc = new TextEncoder();
+                                const nameBytes = enc.encode(name);
+                                const dataBytes = data instanceof ArrayBuffer ? new Uint8Array(data) :
+                                    data instanceof Uint8Array ? data : enc.encode(data);
+    
+                                // Calculate CRC and lengths
+                                let crc = -1;  // Initial value
+                                const len = dataBytes.length;
+    
+                                // Process bytes in chunks
+                                for(let i = 0; i < len; i++) {
+                                    crc = (crc >>> 8) ^ crcTable[(crc ^ dataBytes[i]) & 0xFF];
+                                }
+    
+                                // Finalize CRC and convert to unsigned int
+                                crc = (crc ^ -1) >>> 0;
+    
+                                const dataLength = dataBytes.length;
+                                const headerLength = 30 + nameBytes.length;
+    
+                                // Local File Header (starts at 0)
+                                const localHeader = new DataView(new ArrayBuffer(headerLength));
+                                localHeader.setUint32(0, 0x04034B50, true);  // Signature
+                                localHeader.setUint16(4, 0x0A00, true);      // Version needed
+                                localHeader.setUint32(14, crc, true);        // CRC-32
+                                localHeader.setUint32(18, dataLength, true); // Compressed size
+                                localHeader.setUint32(22, dataLength, true); // Uncompressed size
+                                localHeader.setUint16(26, nameBytes.length, true);
+                                new Uint8Array(localHeader.buffer).set(nameBytes, 30);
+    
+                                // Central Directory (starts after file data)
+                                // Note: Omitted fields default to 0, since the length is set manually.
+                                const centralDir = new DataView(new ArrayBuffer(46 + nameBytes.length));
+                                centralDir.setUint32(0, 0x02014B50, true);   // Signature
+                                centralDir.setUint16(6, 0x0A00, true);       // Version needed
+                                centralDir.setUint32(16, crc, true);         // CRC-32
+                                centralDir.setUint32(20, dataLength, true);  // Sizes
+                                centralDir.setUint32(24, dataLength, true);
+                                centralDir.setUint16(28, nameBytes.length, true);
+                                new Uint8Array(centralDir.buffer).set(nameBytes, 46);
+    
+                                // End of Central Directory
+                                const end = new DataView(new ArrayBuffer(22));
+                                end.setUint32(0, 0x06054B50, true);         // Signature
+                                end.setUint16(8, 1, true);                  // Entry count
+                                end.setUint16(10, 1, true);                 // Total entries
+                                end.setUint32(12, centralDir.buffer.byteLength, true); // Dir size
+                                end.setUint32(16, headerLength + dataLength, true);    // Dir offset
+    
+                                //Allocating a Uint8Array large enough for the file
+                                const totalSize = localHeader.buffer.byteLength + dataBytes.length +
+                                    centralDir.buffer.byteLength + end.buffer.byteLength;
+                                const result = new Uint8Array(totalSize);
+    
+                                //Putting all the data together
+                                let offset = 0;
+                                [localHeader.buffer, dataBytes, centralDir.buffer, end.buffer].forEach(buf => {
+                                    result.set(new Uint8Array(buf), offset);
+                                    offset += buf.byteLength || buf.length;
+                                });
+    
+                                return result;
+                            }
+    
+                            zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
+                            
+                            clipData.name += ".zip";
+                        }
+    
+                        try {
+                            let newArrBuf = concatArrayBuffers(clipMaBuffer, zipFile);
+                            
+                            let newFile = new File([new Uint8Array(newArrBuf)], clipData.name + ".mp4", { type: "video/mp4" });
+                            currentFile.file = newFile;
+                            currentFile.clip = clipData;
+                        } catch(err) {
+                            errorHandler(err, currentFile);
+                        }
+                    }
+                    //#endregion
+                    currentFile.platform = 1;
+                }
+            }
+            originalFunction(args);
+        });
+
+        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
+            return true;
+        });
+        Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isViewerClippingAllowedForUser", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isClipsEnabledForUser", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isVoiceRecordingAllowedForUser", () => {
+            return true;
+        });
+    } //End of clipsBypass()
+    // #endregion
+
+    // #region Load FFmpeg.js
+    async loadFFmpeg(){
+        const defineTemp = window.global.define;
+
+        let ffmpegScript = document.getElementById("ffmpegScript");
+        if(ffmpegScript) {
+            ffmpegScript.remove();
+        }
+        delete window.FFmpegWASM;
+
+        function tryFetchFromDisk(filename, encoding){
+            const basepath = path.join(BdApi.Plugins.folder, "ffmpeg");
+            let filepath = path.join(basepath, filename);
+            try{
+                if(fs.existsSync(filepath)){
+                    let file = fs.readFileSync(filepath, encoding);
+                    Logger.info(`Fetch from disk for file ${filename} succeeded.`);
+                    return file;
+                }
+                else return false;
+            }catch(err){
+                Logger.warn("Tried to read " + filename + " from disk but an error occurred.");
+                Logger.warn(err);
+            }
+        }
+
+        async function fetchAndRetryWithNetFetch(filename){            
+            const ffmpeg_js_baseurl = "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/refs/heads/main/ffmpeg/";
+            let res = await fetch(ffmpeg_js_baseurl + filename, { timeout: 100000, cache: "force-cache" });
+            if(res.ok || res.status == 200) {
+                return res;
+            } else {
+                Logger.warn(res);
+                res = await Net.fetch(ffmpeg_js_baseurl + filename, { timeout: 100000 });
+                if(res.ok || res.status == 200){
+                    return res;
+                }else{
+                    Logger.error(res);
+                    throw new Error(filename + " failed to fetch.");
+                }
+            }
+        }
+
+        async function fetchBlobUrl(filename){
+            try{
+                let blobUrl;
+                let file = tryFetchFromDisk(filename, "");
+                if(file) blobUrl = URL.createObjectURL(new Blob([file]));
+                else blobUrl = URL.createObjectURL(await (await fetchAndRetryWithNetFetch(filename)).blob());
+                return blobUrl;
+            }catch(err){
+                Logger.error("An error occurred while fetching " + filename);
+                throw err;
+            }
+        }
+
+        let ffmpegWorkerURL, ffmpegCoreURL, ffmpegURL, ffmpegCoreWasmURL;
+        try {
+
+            //load 814.ffmpeg.js (ffmpeg worker)
+            ffmpegWorkerURL = await fetchBlobUrl("814.ffmpeg.js");
+
+            //load FFmpeg.js as text
+            let ffmpegSrc;
+            try{
+                let file = tryFetchFromDisk("ffmpeg.js");
+                if(file) ffmpegSrc = file;
+                else ffmpegSrc = await (await fetchAndRetryWithNetFetch("ffmpeg.js")).text();
+            }catch(err){
+                Logger.error("An error occurred while fetching ffmpeg.js");
+                throw err;
+            }
+
+            //patch worker URL in the source of ffmpeg.js (why is this a problem lmao)
+            ffmpegSrc = ffmpegSrc.replace(`new URL(e.p+e.u(814),e.b)`, `"${ffmpegWorkerURL.toString()}"`);
+            //blob ffmpeg
+            ffmpegURL = URL.createObjectURL(new Blob([ffmpegSrc]));
+
+            // for some reason, for ffmpeg.js to work we need to set global define to undefined temporarily.
+            // since for a brief moment it is undefined, any function that uses it may throw an error during that window.
+            window.global.define = undefined;
+
+            //load external JS as a script
+            await new Promise((load, err) => {
+                const ffmpegScriptElem = document.createElement("script");
+                ffmpegScriptElem.id = "ffmpegScript";
+                ffmpegScriptElem.src = ffmpegURL;
+                ffmpegScriptElem.onload = load;
+                ffmpegScriptElem.onerror = err;
+                document.head.appendChild(ffmpegScriptElem);
+            });
+
+            window.global.define = defineTemp;
+
+            //load ffmpeg core
+            ffmpegCoreURL = await fetchBlobUrl("ffmpeg-core.js");
+
+            ffmpegCoreWasmURL = await fetchBlobUrl("ffmpeg-core.wasm");
+
+            if(FFmpegWASM && ffmpegCoreURL && ffmpegCoreWasmURL && ffmpegWorkerURL) {
+                ffmpeg = new FFmpegWASM.FFmpeg();
+
+                await ffmpeg.load({
+                    coreURL: ffmpegCoreURL,
+                    wasmURL: ffmpegCoreWasmURL
+                });
+                Logger.info("FFmpeg load success!");
+                ffmpeg.on("log", ({ message }) => {
+                    console.log(message);
+                });
+            }else{
+                Logger.info("FFmpegWASM", FFmpegWASM);
+                Logger.info("ffmpegCoreURL", ffmpegCoreURL);
+                Logger.info("ffmpegCoreWasmURL", ffmpegCoreWasmURL);
+                Logger.info("ffmpegWorkerURL",ffmpegWorkerURL);
+                throw new Error("One or more of the necessary components failed to load.");
+            }
+        } catch(err) {
+            UI.showToast("An error occured trying to load FFmpeg.wasm. Check console for details.", { type: "error", forceShow: true });
+            Logger.info("FFmpeg failed to load. The clips bypass will not work without this unless the file is already the correct format! Include above and below error messages (if they exist) when reporting!");
+            Logger.error(err);
+        } finally {
+            //Ensure we return window.global.define to its regular state just in case we errored during the short window where it has to be set to undefined.
+            window.global.define = defineTemp;
+            //revoke blob urls since we dont actually need them anymore
+            if(ffmpegURL) URL.revokeObjectURL(ffmpegURL);
+            if(ffmpegCoreURL) URL.revokeObjectURL(ffmpegCoreURL);
+            if(ffmpegCoreWasmURL) URL.revokeObjectURL(ffmpegCoreWasmURL);
+            if(ffmpegWorkerURL) URL.revokeObjectURL(ffmpegWorkerURL);
+        }
+    } //End of loadFFmpeg()
+    // #endregion
+
+    // #region Experiments
+    async experiments(){
+        try {
+            //code heavily modified from https://gist.github.com/JohannesMP/afdf27383608c3b6f20a6a072d0be93c?permalink_comment_id=4784940#gistcomment-4784940
+            const currentUser = UserStore.getCurrentUser();
+            currentUser.flags |= 1;
+            const Stores = Object.values(UserStore._dispatcher._actionHandlers._dependencyGraph.nodes);
+            Stores.find((x) => x.name === "DeveloperExperimentStore").actionHandler["CONNECTION_OPEN"]();
+            try { Stores.find((x) => x.name === "ExperimentStore").actionHandler["OVERLAY_INITIALIZE"]({ user: { flags: 1 } }); } catch {}
+            Stores.find((x) => x.name === "ExperimentStore").storeDidChange();
+        } catch(err){
+            Logger.warn(err);
+        }
+    }
+
+    overrideExperiment(type, bucket){
+        //console.log("applying experiment override " + type + "; bucket " + bucket);
+        Dispatcher.dispatch({
+            type: "EXPERIMENT_OVERRIDE_BUCKET",
+            experimentId: type,
+            experimentBucket: bucket
+        });
+    }
+
+    overrideVariant(experimentName, variantId){
+        Dispatcher.dispatch({
+            type: "APEX_EXPERIMENT_OVERRIDE_CREATE",
+            experimentName,
+            variantId
+        });
+    }
+    // #endregion
+
+    applySavedClientTheme(){
+        //If last appearance choice was a preset nitro client theme
+        if(settings.lastGradientSettingStore != -1 && !settings.customUserThemeSettings.custom) {
+            //dispatch settings update event to change to the gradient the user chose
+            Dispatcher.dispatch({
+                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                changes: {
+                    appearance: {
+                        shouldSync: false,  //prevent sync to stop discord api from butting in
+                        settings: {
+                            theme: settings.customUserThemeSettings.theme, //dark or light theme
+                            clientThemeSettings: {
+                                backgroundGradientPresetId: settings.lastGradientSettingStore //preset ID for the gradient theme
+                            },
+                            developerMode: true
+                        }
+                    }
+                }
+            });
+
+            Dispatcher.dispatch({
+                type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+                presetId: settings.lastGradientSettingStore
+            });
+        } else if(settings.customUserThemeSettings.custom){
+
+            Dispatcher.dispatch({
+                type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                changes: {
+                    appearance: {
+                        shouldSync: false,
+                        settings: {
+                            clientThemeSettings: settings.customUserThemeSettings.custom,
+                            theme: settings.customUserThemeSettings.theme,
+                            developerMode: true
+                        }
+                    }
+                }
+            });
+
+            CustomUserThemeState.state.getState().setAll({
+                colors: settings.customUserThemeSettings.custom.colors,
+                chassisMixAmount: settings.customUserThemeSettings.custom.baseMix,
+                gradientAngle: settings.customUserThemeSettings.custom.gradientAngle
+            });
+        }
+    }
+
+    // #region Client Themes
+    clientThemes(){
+        try{
+            this.applySavedClientTheme();
+        }catch(err){
+            Logger.error(err);
+        }
+
+        //delete isPreview property so that we can set our own
+        delete clientThemesModule.isPreview;
+
+        //this property basically unlocks the preset client theme buttons
+        Object.defineProperty(clientThemesModule, "isPreview", { //Enabling the nitro theme settings
+            value: false,
+            configurable: true,
+            enumerable: true,
+            writable: true,
+        });
+
+        let saveClientTheme = this.findMangledName(themesModule,x=>typeof x === "function" && x.toString?.().includes?.('SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE'),"saveClientTheme");
+
+        if(saveClientTheme){
+            //Patching saveClientTheme function.
+            Patcher.instead(themesModule, saveClientTheme, (_, [args]) => {
+                //Support for custom gradient themes
+                if(args.customUserThemeSettings != undefined){
+                    //this dispatch is technically not necessary
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false,
+                                settings: {
+                                    clientThemeSettings: args.customUserThemeSettings,
+                                    theme: args.theme,
+                                    developerMode: true
+                                }
+                            }
+                        }
+                    });
+
+                    //save
+                    settings.customUserThemeSettings.custom = args.customUserThemeSettings;
+                    settings.customUserThemeSettings.theme = args.theme;
+
+                    Data.save("settings", settings);
+                } else if(args.customUserThemeSettings == undefined && args?.backgroundGradientPresetId != undefined && args.theme != undefined){ //preset gradient themes
+                    //Store the last gradient setting used in settings
+                    settings.lastGradientSettingStore = args.backgroundGradientPresetId;
+
+                    //indicate not custom
+                    settings.customUserThemeSettings.custom = false;
+                    //remove custom theme
+                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
+
+                    //dark/light
+                    settings.customUserThemeSettings.theme = args.theme;
+                    
+                    //save any changes to settings
+                    Data.save("settings", settings);
+    
+                    //dispatch settings update event to change to the gradient the user chose
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false,  //prevent sync to stop discord api from butting in
+                                settings: {
+                                    theme: args.theme, //gradient themes are based off of either dark or light, args.theme stores this information
+                                    clientThemeSettings: {
+                                        backgroundGradientPresetId: args.backgroundGradientPresetId //preset ID for the gradient theme
+                                    },
+                                    developerMode: true
+                                }
+                            }
+                        }
+                    });
+    
+                    //update background gradient preset to the one that was just chosen.
+                    Dispatcher.dispatch({
+                        type: "UPDATE_BACKGROUND_GRADIENT_PRESET",
+                        presetId: settings.lastGradientSettingStore
+                    });
+                } else if(args.customUserThemeSettings == undefined && args.backgroundGradientPresetId == undefined && !args.customUserThemeSettings){ //if user is trying to set the theme to a default theme
+
+                    //If this number is -1, that indicates to the plugin that the current theme we're setting to is not a gradient nitro theme.
+                    settings.lastGradientSettingStore = -1;
+
+                    //indicate not custom
+                    settings.customUserThemeSettings.custom = false;
+
+                    //remove custom theme
+                    CustomUserThemeState.state.setState(CustomUserThemeState.state.getInitialState());
+    
+                    //save any changes to settings
+                    Data.save("settings", settings);
+                    
+                    //dispatch settings update to change themes
+                    Dispatcher.dispatch({
+                        type: "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+                        changes: {
+                            appearance: {
+                                shouldSync: false, //prevent sync to stop discord api from butting in. Since this is not a nitro theme, shouldn't this be set to true? Idk, but I'm not touching it lol.
+                                settings: {
+                                    theme: args.theme,
+                                    developerMode: true //genuinely have no idea what this does.
+                                }
+                            }
+                        }
+                    });
+                }
+
+            }); //End of saveClientTheme patch.
+        }
+
+        //startSession patch. This function runs upon switching accounts.
+        Patcher.after(accountSwitchModule, "startSession", () => {
+            setTimeout(() => {
+                try{
+                    this.applySavedClientTheme();
+                }catch(err){
+                    Logger.error(err);
+                }
+            }, 3000);
+        });
+
+        Patcher.after(CustomThemesEditor, "render", (_,[args],ret) => {
+            //dont replace footer if user is premium
+            if(CurrentUser.premiumType == 2) return;
+
+            //take the onSaveTheme function from the original footer cause we still need it
+            const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
+
+            if(onSaveTheme){
+                //replace the original footer with a custom one
+                ret.props.children[1] = React.createElement('div', {
+                    style: {
+                        display: "flex",
+                        gap: "25px",
+                        padding: "16px 30px",
+                        borderTop: "1px solid var(--border-subtle)"
+                    },
+                    children: [
+                        React.createElement(Components.Button, {
+                            children: "Back",
+                            className: "yabd-secondary-button",
+                            style: {
+                                width: "100%",
+                            },
+                            onClick: () => {
+                                UserSettingsModal.openUserSettings('appearance_panel');
+                                
+                                //close theme customization panel
+                                CustomUserPanelState.state.setState({
+                                    activePanel: null,
+                                    metadata: null
+                                });
+                            }
+                        }),
+                        React.createElement(Components.Button, {
+                            children: "Apply",
+                            style: {
+                                width: "100%",
+                                fontSize: "16px"
+                            },
+                            onClick: (e) => {
+                                onSaveTheme(e);
+                            }
+                        }),
+                    ]
+                });
+            }else{
+                Logger.error('onSaveTheme is not defined.', ret);
+            }
+        });
+
+    } //End of clientThemes()
+    // #endregion
+
+    // #region Custom PFP Decode
+    customProfilePictureDecoding(){
+        Patcher.instead(getAvatarUrlModule.prototype, "getAvatarURL", (user, [userId, size, shouldAnimate], originalFunction) => {
+
+            //userpfp closer integration
+            //if we haven't fetched userPFP database yet and it's enabled
+            if((!fetchedUserPfp || this.userPfps == undefined) && settings.userPfpIntegration){
+
+                const userPfpJsonUrl = "https://raw.githubusercontent.com/UserPFP/UserPFP/main/source/data.json";
+
+                // download userPfp data
+                Net.fetch(userPfpJsonUrl)
+                    // parse as json
+                    .then(res => res.json())
+                    // store res.avatars in this.userPfps
+                    .then(res => this.userPfps = res.avatars);
+                //set fetchedUserPfp flag to true.
+                fetchedUserPfp = true;
+
+            }
+
+            //if userPfp database is not undefined, has been fetched, and is enabled
+            if((this.userPfps != undefined && fetchedUserPfp) && settings.userPfpIntegration){
+                //and this user is in the userPfp database,
+                if(this.userPfps[user.id] != undefined){
+                    //return UserPFP profile picture URL.
+                    return this.userPfps[user.id];
+                }
+            }
+            //get revealed text                               includes P{ encoded
+            let revealedText = this.getRevealedText(user.id, `\uDB40\uDC50\uDB40\uDC7B`);
+            //if there is no 3y3 encoded text, return original function.
+            if(revealedText == undefined) return originalFunction(userId,size,shouldAnimate);
+
+            //This regex matches P{*} . (Do not fuck with this)
+            let regex = /P\{[^}]*?\}/;
+
+            //Check if there are any matches in the custom status.
+            let matches = revealedText.toString().match(regex);
+            //if not, return orig function
+            if(matches == undefined || matches == "") return originalFunction(userId,size,shouldAnimate);
+
+            //if there is a match, take the first match and remove the starting "P{ and ending "}"
+            let matchedText = matches[0].replace("P{","").replace("}","");
+
+            //look for a file extension. If omitted, fallback to .gif .
+            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
+                matchedText += ".gif"; //No supported file extension detected. Falling back to a default file extension.
+            }
+
+            //add this user to the list of users who have the YABDP4Nitro user badge if we haven't added them already.
+            if(!badgeUserIDs.includes(user.id)) badgeUserIDs.push(user.id);
+
+            //return imgur url
+            return `https://i.imgur.com/${matchedText}`;
+        });
+    }
+    // #endregion
+
+    // #region Badges
+    //Apply custom badges.
+    honorBadge(){
+
+        // Use CSS to select badge elements via aria-label and change them to the correct icon.
+        DOM.addStyle("YABDP4NitroBadges", `
+            a[aria-label="A fellow YABDP4Nitro user!"] img {
+                content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
+            }
+            
+            div [aria-label="A fellow YABDP4Nitro user!"] > a > img {
+                content: url("https://raw.githubusercontent.com/riolubruh/riolubruh.github.io/main/badge.png") !important;
+            }
+
+            a[aria-label="YABDP4Nitro Creator!"] img, a[aria-label="YABDP4Nitro Contributor!"] img  {
+                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+            }
+            
+            div [aria-label="YABDP4Nitro Creator!"] > a > img {
+                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+            }
+            
+            div [aria-label="YABDP4Nitro Contributor!"] > a > img {
+                content: url("https://i.imgur.com/bYGGXnq.gif") !important;
+            }
+        `);
+
+        //User profile badge patches
+        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
+            //bad data checks
+            if(ret == undefined) return;
+            if(ret.userId == undefined) return;
+            if(ret.badges == undefined) return;
+
+            const badgesList = []; //list of the currently processed user's badge IDs
+
+            for(let i = 0; i < ret.badges.length; i++){ //for each of currently processed user's badges
+                badgesList.push(ret.badges[i].id); //add each of this user's badge IDs to badgesList
+            }
+
+            // if list of users that should have yabdp_user badge includes current user,
+            // and they don't already have the badge applied,
+            // and the user badge isn't disabled,
+            if(badgeUserIDs.includes(ret.userId) && !badgesList.includes("yabdp_user") && !settings.disableUserBadge){
+                //add the yabdp user badge to the user's list of badges.
+                ret.badges.push({
+                    id: "yabdp_user",
+                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    description: "A fellow YABDP4Nitro user!",
+                    link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
+                });
+            }
+
+            //remove user badge if it is disabled
+            if(settings.disableUserBadge){
+                let userBadgeIndex = ret.badges.findIndex(badge => badge.id == "yabdp_user");
+                if(userBadgeIndex > -1){
+                    ret.badges.splice(userBadgeIndex, 1);
+                    badgesList.splice(userBadgeIndex, 1);
+                }
+            }
+
+            //if this user is Riolubruh, and they don't already have the badge applied,
+            if(ret.userId == "359063827091816448" && !badgesList.includes("yabdp_creator")){
+                //add the yabdp creator badge to riolubruh's list of badges.
+                ret.badges.push({
+                    id: "yabdp_creator",
+                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    description: "YABDP4Nitro Creator!",
+                    link: "https://github.com/riolubruh/YABDP4Nitro" //this link opens upon clicking the badge.
+                });
+            }
+
+            // List of Discord User IDs of people who have made contributions to the plugin
+            // Special thanks to the following gamers:
+            const specialThanks = [
+                "122072911455453184", // Weblure,
+                "760274365853335563", // Kozhura_ubezhishe_player_fly,
+                "482224256730791967", // Moeefa,
+                "1106012563835195412",// HunBun (hunbun.net),
+                "917630027477159986"  // and Arven (zrodevkaan)!
+            ];
+
+            //if the currently processed user is included in specialThanks, and they don't already have the badge applied,
+            if(specialThanks.includes(ret.userId) && !badgesList.includes("yabdp_contributor")){
+                //add the yabdp contributor badge to the contributor's list of badges
+                ret.badges.push({
+                    id: "yabdp_contributor",
+                    icon: "2ba85e8026a8614b640c2837bcdfe21b", //Nitro icon, gets replaced later.
+                    description: "YABDP4Nitro Contributor!",
+                    link: "https://github.com/riolubruh/YABDP4Nitro#contributors" //this link opens upon clicking the badge.
+                });
+            }
+
+        }); //End of user profile badge patches
+    } //End of honorBadge()
+    // #endregion
+
+    // #region 3y3 Secondsightify
+    secondsightifyRevealOnly(t){
+        if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))){
+            // 3y3 text detected. Revealing...
+            return (t => ([...t].map(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f) ? String.fromCodePoint(x.codePointAt(0) - 0xe0000) : x).join("")))(t);
+        }else{
+            // no encoded text found, returning
+            return;
+        }
+    }
+
+    secondsightifyEncodeOnly(t){
+        if([...t].some(x => (0xe0000 < x.codePointAt(0) && x.codePointAt(0) < 0xe007f))){
+            // 3y3 text detected. returning...
+            return;
+        }else{
+            // no 3y3 text detected. encoding...
+            return (t => [...t].map(x => (0x00 < x.codePointAt(0) && x.codePointAt(0) < 0x7f) ? String.fromCodePoint(x.codePointAt(0) + 0xe0000) : x).join(""))(t);
+        }
+    }
+    // #endregion
+
+    // #region Profile Effects
+    async profileFX(secondsightifyEncodeOnly){
+
+        if(settings.killProfileEffects) return; //profileFX is mutually exclusive with killProfileEffects (obviously)
+
+        //trigger collectibles fetch
+        await FetchCollectibleCategories({
+            includeBundles: true,
+            includeUnpublished: false,
+            noCache: false,
+            paymentGateway: undefined
+        });
+
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
+            //error prevention
+            if(ret == undefined) return;
+            if(ret.bio == undefined) return;
+
+            let perServer = this.getRevealedTextPerServer(userId, `\uDB40\uDC66\uDB40\uDC78`);
+
+            //if main or server bio includes encoded fx 
+            if(perServer || ret.bio.includes(`\uDB40\uDC66\uDB40\uDC78`)){
+                let revealedText;
+                if(!perServer) revealedText = this.secondsightifyRevealOnly(ret.bio); //reveal 3y3 encoded text. this string will also include the rest of the bio
+                else revealedText = perServer;
+                
+                if(revealedText == undefined) return;
+
+                //if profile effect 3y3 is detected
+                if(revealedText.includes("fx")){
+                    const regex = /fx\d+/;
+                    let matches = revealedText.toString().match(regex);
+                    if(matches == undefined) return;
+                    let firstMatch = matches[0];
+                    if(firstMatch == undefined) return;
+
+                    //slice the fx and only take the number after it.
+                    let effectId = firstMatch.slice(2);
+                    
+                    //apply profile effect
+                    ret.profileEffect = {
+                        skuId: effectId,
+                        expiresAt: null
+                    };
+
+                    //if for some reason we dont know what this user's ID is, stop here
+                    if(userId == undefined) return;
+                    //otherwise add them to the list of users who show up with the YABDP4Nitro user badge
+                    if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
+                }
+            }
+        }); //end of getUserProfile patch.
+    } //End of profileFX()
+
+    killProfileFX(){ //self explanatory, just tries to make it so any profile that has a profile effect appears without it
+        Patcher.after(UserProfileStore, "getUserProfile", (_, args, ret) => {
+            if(ret?.profileEffect === undefined) return;
+            ret.profileEffect = undefined;
+        });
+    }
+    // #endregion
+
+    //fetch collectibles - decorations and nameplates are stored in data
+    storeProductsFromCategories = event => {
+        if(event?.categories?.categories){
+            event.categories.categories.forEach(category => {
+                category.products.forEach(product => {
+                    product.items.forEach(item => {
+                        switch(item.type){
+                            case 0:
+                                //store avatar decorations assets
+                                data.avatarDecorations[item.skuId] = item.asset;
+                                break;
+                            case 1:
+                                //profile effects
+                                profileEffects[item.skuId] = item;
+                                break;
+                            case 2:
+                                //store nameplates
+                                data.nameplatesV2[item.skuId] = {
+                                    asset: item.asset.replace('nameplates/', ''),
+                                    palette: item.palette,
+                                    name: product.name
+                                };
+                                break;
+                        }
+                    });
+                });
+            });
+            this.saveDataFile();
+        }
+    };
+
+    // #region Avatar Decorations
+    async fakeAvatarDecorations(){
+        //apply decorations
+        Patcher.after(UserStore, "getUser", (_, args, ret) => {
+            //basic error checking
+            if(args == undefined) return;
+            if(args[0] == undefined) return;
+            if(ret == undefined) return;
+
+            let avatarDecorations = data.avatarDecorations;
+
+            if(!avatarDecorations) return;
+
+            //user has an avatar decoration
+            if(ret.avatarDecorationData){
+                //error check
+                if(avatarDecorations){
+                    //dont process fake avatar decorations
+                    if(ret.avatarDecorationData.sku_id != "0"){
+                        //cache avatar decoration
+                        avatarDecorations[ret.avatarDecorationData.skuId] = ret.avatarDecorationData.asset;
+                    }
+                }
+            }
+
+            //                                      includes /a encoded?
+            let revealedText = this.getRevealedText(args[0], `\uDB40\uDC2F\uDB40\uDC61`);
+            //if nothing's returned, or an empty string is returned, stop processing.
+            if(revealedText == undefined) return;
+            if(revealedText == "") return;
+
+            //Matches the characters "/a" and any numbers after the a
+            const regex = /\/a\d+/;
+            let matches = revealedText.toString().match(regex);
+            if(matches == undefined) return;
+            let firstMatch = matches[0];
+            if(firstMatch == undefined) return;
+
+            //slice off the /a and just store the ID number
+            let assetId = firstMatch.slice(2);
+
+            //if this decoration is not in the list, return
+            if(avatarDecorations[assetId] == undefined) return;
+
+            //if this user does not have an avatar decoration, or the avatar decoration data does not match the one in the avatar decorations array,
+            if(ret.avatarDecorationData == undefined || ret.avatarDecorationData?.asset != avatarDecorations[assetId]){
+                //set avatar decoration data to fake avatar decoration
+                ret.avatarDecorationData = {
+                    asset: avatarDecorations[assetId],
+                    skuId: assetId
+                };
+
+                //add user to the list of users to show with the YABDP4Nitro user badge if we haven't already.
+                if(!badgeUserIDs.includes(ret.id)) badgeUserIDs.push(ret.id);
+            }
+        }); //end of getUser patch for avatar decorations
+    } //End of fakeAvatarDecorations()
+    // #endregion
+
+    //#region Emote Uploader
+    async UploadEmote(url, channelIdLmao, msg, emoji, runs, send){
+
+        if(!msg[2].attachmentsToUpload) msg[2].attachmentsToUpload = [];
+        if(emoji == undefined){
+            emoji = {animated: true, name: "default"};
+        }
+
+        if(msg == undefined){
+            msg = [channelIdLmao, {content: ""}, []];
+        }
+
+        let extension = ".gif";
+        if(!emoji.animated){
+            extension = ".png";
+            if(!settings.PNGemote){
+                extension = ".webp";
+            }
+        }
+
+        //Download emote by URL, convert to blob, then convert to File object
+        let file = await Net.fetch(url).then(r => r.blob()).then(blobFile => new File([blobFile], (emoji.name + extension)));
+        file.platform = 1; // Not exactly sure what this does, but it should be set to 1.
+        file.spoiler = false; //not marked as spoiler.
+
+        //Start file upload
+        let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelIdLmao, false, 0);
+        fileUp.isImage = true;
+
+        //if this is not the first emoji uploaded
+        if(runs >= 1){
+            //make the message attached to the upload have no text
+            msg[1].content = "";
+            //clear nonce so this is sent as a new message
+            msg[2].nonce = "";
+            //clear list of attachments
+            msg[2].attachmentsToUpload = [];
+        }
+
+        try {
+            //add attachment
+            msg[2].attachmentsToUpload.unshift(fileUp);
+
+            //send and wait till its sent before moving on
+            await send.apply(undefined, msg);
+           
+        } catch(err){
+            Logger.error(err);
+        }
+    }
+    // #endregion
+
+    //#region Soundmoji Uploader
+    async UploadSoundmojis(ids, channelId, msg, sounds, send){
+
+        if(ids != undefined && channelId != undefined && msg != undefined){
+            let files = [];
+            for(let i = 0; i < ids.length; i++){
+                let file = await fetch("https://cdn.discordapp.com/soundboard-sounds/" + ids[i])
+                    .then(res => res.blob())
+                    .then(blobFile => new File([blobFile], `${sounds[i].name}.mp3`));
+                file.platform = 1;
+                file.spoiler = false;
+                let fileUp = new CloudUploader({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelId, false, 0);
+                files.push(fileUp);
+                fileUp.isAudio = true;
+            }
+            if(files.length <= 10){
+                
+                try {
+                    send(channelId, msg, {attachmentsToUpload: files}) //finally finish the process of uploading
+                } catch(err){
+                    Logger.error(err);
+                }
+            }else{
+				//Upload 10 files at a time with a delay
+                let firstTime = true;
+                while (files.length){
+                    let tenFiles = files.splice(0, 10);
+                    // uploadOptions.uploads = tenFiles;
+                    if(!firstTime) msg.content = ""
+                    try {
+                        send(channelId, msg, {attachmentsToUpload: tenFiles});
+                    } catch(err){
+                        Logger.error(err);
+                    }
+                    firstTime = false;
+                    await new Promise(r => setTimeout(r, 3000));
+                }
+            }
+        }
+    }
+    // #endregion
+
+    //#region Stream Options Context Menu
+    customizeStreamButtons(){ //Apply custom resolution and fps options for Stream Options context menu
+
+        //If you're trying to figure this shit out yourself, I recommend uncommenting the line below.
+        //console.log(StreamButtons);
+
+        const settings = Data.load("settings");
+
+        //If custom resolution tick is disabled or custom resolution is set to 0, set it to 1440
+        let resolutionToSet = parseInt(settings.CustomResolution);
+        if(!settings.ResolutionEnabled || settings.CustomResolution == 0)
+            resolutionToSet = 1440;
+
+        //Some of these properties are marked as read only, but they still allow you to delete them
+        //So any time you see "delete", what we're doing is bypassing the read-only lock by deleting it and remaking it.        
+
+
+        //************************************Buttons below this point*****************************************
+
+        //Set value of button with suffix label to custom resolution
+        if(settings.CustomResolution){
+            delete ApplicationStreamResolutions.RESOLUTION_1440;
+            //Change 1440p resolution internally to custom resolution
+            ApplicationStreamResolutions.RESOLUTION_1440 = resolutionToSet;
+            ApplicationStreamResolutionButtonsWithSuffixLabel[3].value = resolutionToSet;
+            delete ApplicationStreamResolutionButtonsWithSuffixLabel[3].label;
+            //Set label of button with suffix label to custom resolution with "p" after it, ex: "1440p"
+            //This one is used in the dropdown kind of menu after you've started streaming
+            ApplicationStreamResolutionButtonsWithSuffixLabel[3].label = resolutionToSet + "p";
+        }
+
+        let fpsToSet = parseInt(settings.CustomFPS);
+        //If custom FPS toggle is disabled, set to the default 60.
+        if(!settings.CustomFPSEnabled)
+            fpsToSet = 60;
+
+        if(settings.CustomFPSEnabled){
+            //set suffix label button value to the custom number
+            ApplicationStreamFPSButtonsWithSuffixLabel[2].value = fpsToSet;
+            delete ApplicationStreamFPSButtonsWithSuffixLabel[2].label;
+            //set button suffix label with the correct number with " FPS" after it. ex: "75 FPS". This one is used in the dropdown kind of menu
+            ApplicationStreamFPSButtonsWithSuffixLabel[2].label = fpsToSet + " FPS";
+            ApplicationStreamFPS.FPS_60 = fpsToSet;
+        }
+
+        Data.save("settings", settings);
+    } //End of customizeStreamButtons()
+    //#endregion
+
+    //Whether we should skip the emoji bypass for a given emoji.
+    // true = skip bypass
+    // false = perform bypass
+    emojiBypassForValidEmoji(emoji, currentChannelId){
+        if(settings.emojiBypassForValidEmoji){
+            if((SelectedGuildStore.getLastSelectedGuildId() == emoji.guildId && !emoji.animated
+                && (ChannelStore.getChannel(currentChannelId.toString()).type <= 0 || ChannelStore.getChannel(currentChannelId.toString()).type == 11) && emoji.available)
+                //If emoji is from current guild, not animated, and we are actually in a guild channel,
+                //and emoji is "available" (could be unavailable due to Server Boost level dropping), cancel emoji bypass
+
+                || emoji.managed){
+                // OR if emoji is "managed" (emoji.managed = whether the emoji is managed by a Twitch integration)
+                return true;
+            }
+        }
+        return false;
+    }
+
+    _sendMessageInsteadPatch(){
+        if(settings.soundmojiEnabled){
+            this.overrideVariant("2026-03-soundmoji-rendering", 1);
+            this.overrideVariant("2026-03-soundmoji-sending", 2);
+        }
+
+        //#region _sendMessage Patch
+        Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
+            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
+                send.apply(_, msg);
+                return;
+            }
+
+            const currentChannelId = msg[0];
+            let emojis = [];
+            let emojiUrls = [];
+            //#region Upload Emojis
+            if(settings.emojiBypass && settings.emojiBypassType == 0){
+                //SimpleDiscordCrypt compat
+                let SDCEnabled = false;
+                if(document.getElementsByClassName("sdc-tooltip").length > 0) {
+                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+                    if(SDC_Tooltip.innerHTML == "Disable Encryption") {
+                        //SDC Encryption Enabled
+                        SDCEnabled = true;
+                    }
+                }    
+
+                if(!SDCEnabled){
+                    msg[1].validNonShortcutEmojis?.forEach?.(async emoji => {
+                        if(this.emojiBypassForValidEmoji(emoji, currentChannelId)) return; //Unlocked emoji. Skip.
+                        if(emoji.type == "UNICODE") return; //If this "emoji" is actually a unicode character, it doesn't count. Skip bypassing if so.
+                        if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
+                        if(settings.PNGemote) {
+                            emoji.forcePNG = true; //replace WEBP with PNG if the option is enabled.
+                        }
+                        let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
+                        if(emoji.animated) {
+                            emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+                        }
+
+                        let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+    
+                        let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
+
+                        //If there is a heiphen (-) before the emote we are processing,
+                        if(msg[1].content.includes("-" + emojiString)) {
+                            //remove the heiphen
+                            msg[1].content = msg[1].content.replace(("-" + emojiString), emojiString);
+                            //and skip bypass for that emote
+                            return;
+                        }
+    
+                        //remove existing URL parameters and add custom URL parameters for user's size preference. quality is always lossless.
+                        emojiUrl = emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&`;
+                        //remove emote from message.
+                        msg[1].content = msg[1].content.replace(emojiString, "");
+    
+                        //queue for upload
+                        emojis.push(emoji);
+                        emojiUrls.push(emojiUrl);
+                    });
+                }
+            }
+            //#endregion
+            
+            const channelId = msg[0];
+            let regex = /<sound:[0-9]\d+:[0-9]\d+>/g;
+            let ids = [];
+            let sounds = [];
+            if(settings.soundmojiEnabled){
+                let soundmojis = msg[1].content.match(regex);
+                if(soundmojis) {
+                    for(let i = 0; i < soundmojis.length; i++) {
+                        let id = soundmojis[i].slice(-20, -1);
+                        let sound = SoundboardStore.getSoundById(id);
+                        if(sound) {
+                            sounds.push(sound);
+                            ids.push(id);
+                            if(sound?.emojiId == null && sound?.emojiName != null) { //default / system emoji
+                                msg[1].content = msg[1].content.replace(soundmojis[i], `( ${sound.emojiName} ${sound.name} )`);
+                            }
+                            else if(sound?.emojiId != null) { // custom emoji
+                                let emoji = EmojiStore.getCustomEmojiById(sound.emojiId);
+                                msg[1].content = msg[1].content.replace(soundmojis[i], `( [${emoji?.name ? emoji.name : "someCustomEmoji"}](https://cdn.discordapp.com/emojis/${sound.emojiId}.${emoji?.animated ? "gif" : "png"}) ${sound.name} ) `);
+                            }
+                            else { //no emoji
+                                msg[1].content = msg[1].content.replace(soundmojis[i], `( ${sound.name} ) `);
+                            }
+                        } else continue;
+                    }
+                }
+            }
+
+            if(settings.emojiBypass && settings.emojiBypassType == 0 && emojis.length > 0) {
+                //upload all emotes
+                for(let i = 0;i < emojis.length;i++) {
+                    await this.UploadEmote(emojiUrls[i],currentChannelId,msg,emojis[i],i,send)
+                }
+                //reset message content since we dont want a repeated message if soundmoji upload happens next
+                msg[1].content = "";
+            }
+            
+            if(settings.soundmojiEnabled && sounds.length > 0){
+                await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
+            }
+
+            if(settings.stickerBypass){
+                let stickerIds = msg[2]?.stickerIds;
+                let currentChannelId = SelectedChannelStore.getChannelId();
+                if(stickerIds){
+                    for(let i = 0; i < stickerIds.length; i++){
+                        let stickerId = stickerIds[i];
+                        let stickerURL = "https://media.discordapp.net/stickers/" + stickerId + ".png?size=4096&quality=lossless";
+                        let msgtemp = [...msg];
+                        msgtemp[2].stickerIds = [];
+                        if(i > 0) msgtemp[1].content = "";
+        
+                        if(settings.uploadStickers){
+                            let emoji = new Object();
+                            emoji.animated = false;
+                            emoji.name = "sticker";
+                            this.UploadEmote(stickerURL, currentChannelId, msgtemp, emoji, 0, send);
+                            return;
+                        } else{
+                            let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
+                            MessageActions.sendMessage(currentChannelId, messageContent, undefined, {});
+                            return;
+                        }
+                    }
+                }
+    
+                
+            }
+
+            if(emojis.length == 0 && sounds.length == 0){
+                send.apply(_, msg);
+            }
+            
+        });
+    }
+
+    emojiBypass(){
+
+        Patcher.instead(isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
+            return false;
+        });
+        Patcher.instead(isEmojiAvailableMod, "isEmojiDisabled", () => {
+            return false;
+        });
+        Patcher.instead(isEmojiAvailableMod, "isEmojiFiltered", () => {
+            return false;
+        });
+        Patcher.instead(isEmojiAvailableMod, "isEmojiPremiumLocked", () => {
+            return false;
+        });
+        Patcher.instead(isEmojiAvailableMod, "getEmojiUnavailableReason", () => {
+            return;
+        });
+
+        //#region Classic Mode Patch
+        //Original method
+        if(settings.emojiBypassType == 2){
+
+            function classicModeMethod(msg, currentChannelId, self){
+                if(document.getElementsByClassName("sdc-tooltip").length > 0){
+                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+                        //SDC Encryption Enabled
+                        return;
+                    }
+                }
+                //refer to previous bypasses for comments on what this all is for.
+                let emojiInteration = 0;
+                msg.validNonShortcutEmojis.forEach(emoji => {
+                    if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
+                    if(emoji.type == "UNICODE") return;
+                    if(settings.PNGemote) emoji.forcePNG = true;
+
+                    let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
+                    if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
+                    if(emoji.animated){
+                        emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+                    }
+
+                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+
+                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
+                    if(msg.content.includes("-" + emojiString)){
+                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
+                        return; //If there is a heiphen before the emoji, skip it.
+                    }
+                    emojiInteration++;
+                    msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration} `);
+                });
+            }
+
+            //sending message in classic mode
+            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+                classicModeMethod(msg, currentChannelId, this);
+            });
+        }
+        //#endregion
+
+
+        //#region Vencord-like Patch
+        //Vencord-like bypass                    (ghost mode removed, fallback to hyperlink)
+        else if(settings.emojiBypassType == 3 || settings.emojiBypassType == 1){
+            function vencordModeMethod(msg, currentChannelId, self){
+                if(document.getElementsByClassName("sdc-tooltip").length > 0){
+                    let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
+                    if(SDC_Tooltip.innerHTML == "Disable Encryption"){
+                        //SDC Encryption Enabled
+                        return;
+                    }
+                }
+                //refer to previous bypasses for comments on what this all is for.
+                let emojiInteration = 0;
+                msg.validNonShortcutEmojis.forEach(emoji => {
+                    if(self.emojiBypassForValidEmoji(emoji, currentChannelId)) return;
+                    if(emoji.type == "UNICODE") return;
+                    if(settings.PNGemote) emoji.forcePNG = true;
+
+                    let emojiUrl = AvatarDefaults.getEmojiURL(emoji);
+                    if(emoji.guildId === undefined || emoji.id === undefined || emoji.useSpriteSheet) return; //Skip system emoji.
+                    if(emoji.animated){
+                        emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+                    }
+
+                    let allNamesString = emoji.originalName ? emoji.originalName : emoji.name;
+
+                    let emojiString = `<${emoji.animated ? "a:" : ":"}${allNamesString}:${emoji.id}>`;
+
+                    if(msg.content.includes("-" + emojiString)){
+                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
+                        return; //If there is a heiphen before the emoji, skip it.
+                    }
+                    emojiInteration++;
+                    msg.content = msg.content.replace(emojiString, `[${allNamesString}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration})`);
+                });
+            }
+
+            //sending message in vencord-like mode
+            Patcher.before(MessageActions, "sendMessage", (_, [currentChannelId, msg]) => {
+                vencordModeMethod(msg, currentChannelId, this);
+            });
+        }
+        //#endregion
+
+        if(settings.editMessageWithEmoji){
+            //applying edited message
+            Patcher.before(MessageActions, "editMessage", (_, [channelId, msgId, msg]) => {
+                if(msg.content.includes(":ENC:")) return; //Fix jank with editing SimpleDiscordCrypt encrypted messages.
+                                                          //...except SimpleDiscordCrypt has been broken for years, so really this does nothing and is only included as a tradition.
+    
+                let emojiInteration = 0;
+                
+                msg.content.match(/<a?:.+?:\d+>/g)?.forEach?.(emojiString => {
+    
+                    if(msg.content.includes("-" + emojiString)){
+                        msg.content = msg.content.replace(("-" + emojiString), emojiString);
+                        return; //If there is a heiphen before the emoji, skip it.
+                    }
+    
+                    let [animatedStr, name, id] = emojiString.replace("<","").replace(">","").split(":");
+                    let animatedBool = (animatedStr === "a");
+    
+                    let forcePNG = (!animatedBool && settings.PNGemote);
+                    let emojiUrl = AvatarDefaults.getEmojiURL({id, animated: animatedBool, size: settings.emojiSize, forcePNG });
+                    if(animatedBool){
+                        emojiUrl = emojiUrl.substr(0, emojiUrl.lastIndexOf(".")) + ".gif";
+                    }
+    
+                    
+                    emojiInteration++;
+                    switch(settings.emojiBypassType){
+                        default:
+                        case 0: //upload
+                        case 1: //ghost (removed)
+                        case 3: //vencord
+                            msg.content = msg.content.replace(emojiString, `[${name}](` + emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration})`);
+                            break;
+                        case 2: //classic
+                            msg.content = msg.content.replace(emojiString, emojiUrl.split("?")[0] + `?size=${settings.emojiSize}&quality=lossless&${emojiInteration} `);
+                            break;
+                        
+                    }
+                    
+                });
+            });
+            
+            //starting editing message
+            Patcher.before(MessageActions, "startEditMessageRecord", (_, [channelId, msg]) => {
+                lastEditedMsg = msg;
+                lastEditedMsgCopy = {...msg};
+    
+                let idFromUrlRegex = /(?<=emojis\/)(\d+?)(?=\.(png|webp|gif|avif|jpg|jpeg))/gi;
+                
+                //vencord mode undo
+                let vencordRegex = /\[.+?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/.+?\)/gi
+                if(msg.content.includes("[") && msg.content.includes("/emojis/")){
+                    msg.content.match(vencordRegex)?.forEach?.(matched => {
+                        let startOfName = matched.indexOf("[") + 1;
+                        let endOfName = matched.indexOf("]") - 1;
+                        let emojiName = matched.substring(startOfName, endOfName);
+                        
+                        let startOfUrl = matched.indexOf("(") + 1;
+                        let endOfUrl = matched.indexOf(")") - 1;
+                        let emojiUrl = matched.substring(startOfUrl, endOfUrl);
+                        
+                        let emojiId = emojiUrl.match(idFromUrlRegex)?.[0];
+                        
+                        let animated = (emojiUrl.includes(".gif") || emojiUrl.includes(".avif"));
+                        if(emojiId != undefined && emojiUrl != undefined && emojiName != undefined){
+                            msg.content = msg.content.replace(matched, `<${animated ? "a:" : ":"}${emojiName}:${emojiId}>`)
+                        }
+                    });
+                }
+                
+                const ghostmodetext = "||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​||||​|| _ _ _ _ _ ";
+                
+                //cleanup ghost mode text
+                if(msg.content.includes(ghostmodetext))
+                    msg.content = msg.content.replace(ghostmodetext, "");
+    
+                //classic / ghost mode undo
+                let emojiUrlRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?(?=$| )/gi
+                if(msg.content.includes("/emojis/")){
+                    msg.content.match(emojiUrlRegex)?.forEach?.(emojiUrl => {
+                        let emojiId = emojiUrl.match(idFromUrlRegex)?.[0];
+                        let animated = (emojiUrl.includes(".gif") || emojiUrl.includes(".avif"));
+    
+                        if(emojiId)
+                            msg.content = msg.content.replace(emojiUrl, `<${animated ? "a:" : ":"}emoji:${emojiId}>`)
+                    })
+                }
+            });
+        }
+
+        Patcher.before(MessageActions, "endEditMessage", () => {
+            if(lastEditedMsg?.content != undefined && lastEditedMsgCopy?.content != undefined)
+                //fix cancelling edit by restoring message to original state manually after cancellation
+                lastEditedMsg.content = lastEditedMsgCopy.content;
+        });
+
+        //#endregion
+    } //End of emojiBypass()
+
+    //#region Fake Inline Emoji
+    async inlineFakemojiPatch(){
+        //Somehow, this is the first time I've had to actually patch message rendering. (and it shows!)
+
+        if(!this.messageRenderMod) this.messageRenderMod = await Webpack.waitForModule(Webpack.Filters.bySource(".SEND_FAILED,"), {defaultExport: false, signal:controller.signal})
+        if(!this.messageRenderMod){
+            Logger.warn("messageRenderMod is undefined.");
+            return;
+        }
+        const messageRender = Object.values(this.messageRenderMod).find(o => typeof o === "object");
+
+        Patcher.before(messageRender, "type", (_, [args]) => {
+            for(let i = 0; i < args.content.length; i++){
+                let contentItem = args.content[i];
+
+                if(contentItem?.type?.type?.toString?.().includes?.("MASKED_LINK")){ //is it a hyperlink?
+
+                    if(contentItem.props.href.startsWith("https://cdn.discordapp.com/emojis/")){ //does this hyperlink have an emoji URL?
+
+                        if(contentItem.props.href == contentItem.props.title) continue;  //skip direct emoji URL (causes too much buggy behavior)
+
+                        let emojiName = contentItem.props?.children[0]?.props?.children;
+                        if(emojiName == undefined) emojiName = "unknownEmoji"; //fallback to default emoji name if unknown
+
+                        let key = contentItem.key; //store key
+
+                        //create discord emoji react element
+                        let emoteElement = React.createElement(MessageEmojiReact, {
+                            node: {
+                                name: `:${emojiName}:`,
+                                src: contentItem.props.href.split("?")[0] + "?size=48",
+                                type: "emoji",
+                                emojiId: contentItem.props.href.replace("https://cdn.discordapp.com/emojis/", "").split(".")[0],
+                                animated: true,
+                                jumboable: false //makes the emoji large or small. "jumboable" is a stupid ass name, Discord. 
+                            },
+                            channelId: args.message.channel_id,
+                            messageId: args.message.id,
+                            enableClick: true //I'm curious in what circumstance this value becomes false. Does what it says on the tin; enables or disables the emoji click menu.
+                        });
+
+                        //restore key
+                        emoteElement.key = key;
+                        //replace this content item with our fake emoji
+                        args.content[i] = emoteElement;
+                    }
+                }
+            }
+        });
+
+        //who knows what unholy compatibility issues this will bring me
+        //this code fucking sucks i think
+        Patcher.before(renderEmbedsMod, "renderEmbeds", (_,[args]) => {
+            const embeds = args?.message?.embeds;
+
+            if(embeds){
+                if(embeds.length > 0){
+                    for(let i = 0; i < embeds.length; i++){
+                        if(embeds[i]){
+                            if(embeds[i].url){
+                                let url = embeds[i].url;
+                                let isEmojiHyperlink = false;
+
+                                //this embed is an emoji
+                                if(url.startsWith("https://cdn.discordapp.com/emojis/")){
+
+                                    /* Is embed from a hyperlink? It can't tell if it's from a hyperlink *this time*, unfortunately, 
+                                     * so if someone has an emoji URL and a hyperlink with that same URL in the same message, it won't render correctly (or at least not how you might expect)!
+                                     * Let's just hope nobody notices that..! I didn't have this system initially cause I'm a dumbfuck and didn't think it over.
+                                    */
+                                    if(args.message.content.includes(`](${url})`)){
+                                        isEmojiHyperlink = true;
+                                    }
+
+                                    //if currently processed embed is an emoji and a hyperlink
+                                    if(isEmojiHyperlink){
+                                        if(embeds.length == 1){ //if there is only 1 fakemoji
+
+                                            //removes first instance of pattern [anyemojiname](https://cdn.discordapp.com/emojis/anynumber.ext) then checks if there is anything else in the message
+                                            if(args.message.content.replace(/\[.*?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.(png|webp|gif|avif|jpg|jpeg).*?\)/, "") //is regex necessary? probably.
+                                                .trim().length > 0){ //if there is other stuff in the message, delete the embed
+                                                delete embeds[i];
+                                            }
+                                            //if there is 1 fakemoji and nothing else in the message, it will keep the regular embed (default behavior)
+                                            //for some reason, if the fakemoji is in a message alone, it disappears, so keeping the embed was the easiest solution
+                                        }
+
+                                        //if there is more than 1 hyperlink
+                                        else{
+                                            delete embeds[i]; //if the hyperlink is an emoji url, delete the embed
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                //removes empty items from the array. def did not take from stackoverflow (trust)
+                args.message.embeds = args.message.embeds.filter(n => n);
+
+                
+            }else{ //if the original function returns undefined/null
+                //this should never happen, but in case it does, return an empty array
+                return [];
+            }
+        });
+        //#endregion
+    }
+    //#endregion
+
+    //#region Video Quality Patch
+    videoQualityModule(){ //Custom Bitrates, FPS, Resolution
+        Patcher.before(videoOptionFunctions.prototype, "updateVideoQuality", (e) => {
+            if(settings.CustomBitrateEnabled){
+                if(settings.minBitrate > 0){
+                    //Minimum Bitrate
+                    e.videoQualityManager.options.videoBitrateFloor = (settings.minBitrate * 1000);
+                    e.videoQualityManager.options.videoBitrate.min = (settings.minBitrate * 1000);
+                    e.videoQualityManager.options.desktopBitrate.min = (settings.minBitrate * 1000);
+                }else{
+                    e.videoQualityManager.options.videoBitrateFloor = 5e5;
+                    e.videoQualityManager.options.videoBitrate.min = 5e5;
+                    e.videoQualityManager.options.desktopBitrate.min = 5e5;
+                }
+
+                if(settings.targetBitrate > 0){
+                    //Target Bitrate
+                    e.videoQualityManager.options.desktopBitrate.target = (settings.targetBitrate * 1000);
+                }
+    
+                if(settings.maxBitrate > 0){
+                    //Maximum Bitrate
+                    e.videoQualityManager.options.videoBitrate.max = (settings.maxBitrate * 1000);
+                    e.videoQualityManager.options.desktopBitrate.max = (settings.maxBitrate * 1000);
+                    e.videoQualityManager.goliveMaxQuality.bitrateMax = (settings.maxBitrate * 1000);
+                }
+            }
+
+            if(settings.voiceBitrate > -1){
+                //Audio Bitrate
+                e.voiceBitrate = settings.voiceBitrate * 1000;
+
+                e.conn.setTransportOptions({
+                    encodingVoiceBitRate: e.voiceBitrate
+                });
+            }
+
+            //Video quality bypasses if Custom FPS is enabled.
+            if(settings.CustomFPSEnabled){
+                e.videoQualityManager.options.videoBudget.framerate = e.videoStreamParameters[0].maxFrameRate;
+                e.videoQualityManager.options.videoCapture.framerate = e.videoStreamParameters[0].maxFrameRate;
+            }
+
+            //If screen sharing bypasses are enabled,
+            if(settings.screenSharing){
+                //Ensure video quality parameters match the stream parameters.
+                const videoQuality = new Object({
+                    width: e.videoStreamParameters[0].maxResolution.width,
+                    height: e.videoStreamParameters[0].maxResolution.height,
+                    framerate: e.videoStreamParameters[0].maxFrameRate,
+                });
+
+                e.remoteSinkWantsMaxFramerate = e.videoStreamParameters[0].maxFrameRate;
+
+                //janky fix to #218
+                if(videoQuality.height <= 0){
+                    videoQuality.height = 1440;
+                }
+                if(videoQuality.width <= 0){
+                    videoQuality.width = 2160;
+                    if(parseInt(((e.videoStreamParameters[0].maxResolution.height * (16 / 9)) > (2160 * (16 / 9)))))
+                        videoQuality.width = parseInt(e.videoStreamParameters[0].maxResolution.height * (16 / 9));
+                }
+
+                //Ensure video budget and capture quality parameters match stream parameters
+                e.videoQualityManager.options.videoBudget = videoQuality;
+                e.videoQualityManager.options.videoCapture = videoQuality;
+
+                //Ladder bypasses
+                let pixelBudget = (videoQuality.width * videoQuality.height);
+                e.videoQualityManager.ladder.pixelBudget = pixelBudget;
+                e.videoQualityManager.ladder.ladder = LadderModule.calculateLadder(pixelBudget);
+                e.videoQualityManager.ladder.orderedLadder = LadderModule.calculateOrderedLadder(e.videoQualityManager.ladder.ladder);
+            }
+        });
+    } //End of videoQualityModule()
+    //#endregion
+
+
+    async stickerSending(){
+        Patcher.instead(MessageActions, "sendStickers", (_, args, originalFunction) => {
+            let stickerID = args[1][0];
+            let stickerURL = "https://media.discordapp.net/stickers/" + stickerID + ".png?size=4096&quality=lossless";
+            let currentChannelId = SelectedChannelStore.getChannelId();
+
+            if(settings.uploadStickers){
+                let emoji = new Object();
+                emoji.animated = false;
+                emoji.name = args[0];
+                let msg = [undefined, { content: "" }];
+                this.UploadEmote(stickerURL, currentChannelId, msg, emoji, 1, send);
+                return;
+            }
+            if(!settings.uploadStickers){
+                let messageContent = { content: stickerURL, tts: false, invalidEmojis: [], validNonShortcutEmojis: [] };
+                MessageActions.sendMessage(currentChannelId, messageContent, undefined, {});
+            }
+        });
+    }
+
+    //#region 3y3 Profile Colors
+    decodeAndApplyProfileColors(){
+        Patcher.after(UserProfileStore, "getUserProfile", (_, [userId], ret) => {
+            if(ret == undefined) return;
+            if(ret.bio == null) return;
+
+            function decodeProfileColors(string){
+                const colorString = string.match(
+                    /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]+?)\u{e005d}/u,
+                );
+                if(colorString == null) return false;
+                let parsed = [...colorString[0]].map((c) => String.fromCodePoint(c.codePointAt(0) - 0xe0000)).join("");
+                let colors = parsed
+                .substring(1, parsed.length - 1)
+                .split(",")
+                .map(x => parseInt(x.replace("#", "0x"), 16));
+                ret.themeColors = colors;
+                ret.premiumType = 2;
+                return true;
+            }
+
+            //per-server pronoun field check
+            const guildId = SelectedGuildStore.getGuildId();
+            if(guildId){
+                let userGuildProfile = UserProfileStore.getGuildMemberProfile(userId, guildId);
+                if(userGuildProfile?.pronouns){
+                    let success = decodeProfileColors(userGuildProfile.pronouns);
+                    if(success) return;
+                }
+                if(userGuildProfile?.bio){
+                    let success = decodeProfileColors(userGuildProfile.bio);
+                    if(success) return;
+                }
+            }
+
+            decodeProfileColors(ret.bio);
+        });
+    }
+    //#endregion
+
+    //#region Banner Decoding
+    //Decode 3y3 from profile bio and apply fake banners.
+    bannerUrlDecoding(){
+
+        let endpoint, bucket, prefix, usrBgData;
+
+        //if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
+        if(settings.userBgIntegration && !fetchedUserBg){
+
+            //userBg database url.
+            const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
+
+            //download, then store json
+            Net.fetch(userBgJsonUrl, { timeout: 100000 }).then(res => res.json().then(res => {
+                usrBgData = res;
+                endpoint = res.endpoint;
+                bucket = res.bucket;
+                prefix = res.prefix;
+                //mark db as fetched so we only fetch it once per load of the plugin
+                fetchedUserBg = true;
+            }));
+        }
+
+        //Patch getUserBannerURL function
+        Patcher.before(AvatarDefaults, "getUserBannerURL", (_, args) => {
+            args[0].canAnimate = true;
+        });
+
+        //set user to render with premium rendering
+        Patcher.after(UserProfileStore, "getUserProfile" ,(_, [userId], ret) => {
+            if(ret != undefined){
+                if(ret.bio?.includes?.(`\uDB40\uDC42\uDB40\uDC7B`)){
+                    ret.premiumType = 2;
+                    return;
+                }
+                let perServer = this.getRevealedTextPerServer(userId,`\uDB40\uDC42\uDB40\uDC7B`);
+                if(perServer){
+                    ret.premiumType = 2;
+                }
+            }
+        });
+
+        function getBannerUrl(user, self){
+            let profile = user?._userProfile;
+
+            if(profile == undefined) return;
+
+            if(settings.userBgIntegration){ //if userBg integration is enabled
+                //if we've fetched the userbg database
+                if(fetchedUserBg){
+                    //if user is in userBg database,
+                    if(usrBgData?.users[user.userId]){
+                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${usrBgData?.users[user.userId]}`; //return userBg banner URL and exit.
+                    }
+                }
+            }
+
+            //reveal 3y3 encoded text, store as parsed
+            let parsed = self.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
+            //if there is no 3y3 encoded text, return original function
+            if(parsed == undefined) return;
+
+            //This regex matches B{*} . Do not touch unless you know what you are doing.
+            let regex = /B\{[^}]*?\}/;
+
+            //find banner url in parsed
+            let matches = parsed.toString().match(regex);
+
+            //if there's no matches, return original function
+            if(matches == undefined) return;
+
+            //if there is matched text, grab the first match, replace the starting "B{" and ending "}" to get the clean filename
+            let matchedText = matches[0].replace("B{","").replace("}","");
+
+            //Checking for file extension. 
+            if(!String(matchedText).endsWith(".gif") && !String(matchedText).endsWith(".png") && !String(matchedText).endsWith(".jpg") && !String(matchedText).endsWith(".jpeg") && !String(matchedText).endsWith(".webp")) {
+                matchedText += ".gif"; //Fallback to a default file extension if one is not found.
+            }
+
+            //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
+            if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
+
+            //return final banner URL.
+            return `https://i.imgur.com/${matchedText}`;
+        }
+
+        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
+            nodePatcher.patch(ret, (props, res) => {
+                let bannerUrl = getBannerUrl(props.displayProfile, this);
+                if(bannerUrl){
+                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
+                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
+                    }
+                }
+            });
+        });
+    } //End of bannerUrlDecoding()
+    //#endregion
+
+    //save app icon on change
+    saveAppIcon({type, id}){
+        settings.appIcon = id;
+        Data.save("settings", settings);
+    }
+
+    //#region App Icons
+    appIcons(){
+        //restore app icon on start
+        Dispatcher.dispatch({
+            type: "APP_ICON_UPDATED",
+            id: settings.appIcon
+        });
+
+        Dispatcher.subscribe("APP_ICON_UPDATED", this.saveAppIcon);
+        
+        Patcher.instead(RegularAppIcon, "render", (_,[args],ogFunction) => {
+            const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
+            if(currentDesktopIcon == "AppIcon"){
+                return React.createElement(ogFunction, {
+                    size: "custom",
+                    color: "currentColor",
+                    width: 24,
+                    height: 24
+                });
+            }else{
+                return React.createElement(CustomAppIcon, {
+                    id: currentDesktopIcon,
+                    size: 40
+                });
+            }
+        });
+    }
+    //#endregion
+
+    //#region Meta and Updates
+    parseMeta(fileContent){
+        //zlibrary code
+        const splitRegex = /[^\S\r\n]*?\r?(?:\r\n|\n)[^\S\r\n]*?\*[^\S\r\n]?/;
+        const escapedAtRegex = /^\\@/;
+        const block = fileContent.split("/**", 2)[1].split("*/", 1)[0];
+        const out = {};
+        let field = "";
+        let accum = "";
+        for(const line of block.split(splitRegex)){
+            if(line.length === 0) continue;
+            if(line.charAt(0) === "@" && line.charAt(1) !== " "){
+                out[field] = accum;
+                const l = line.indexOf(" ");
+                field = line.substring(1, l);
+                accum = line.substring(l + 1);
+            }
+            else{
+                accum += " " + line.replace("\\n", "\n").replace(escapedAtRegex, "@");
+            }
+        }
+        out[field] = accum.trim();
+        delete out[""];
+        out.format = "jsdoc";
+        return out;
+    }
+
+    async checkForUpdate(){
+        try {
+            let res = await fetch(this.meta.updateUrl);
+
+            if(!res.ok && res.status != 200){
+                Logger.warn(res);
+                res = await Net.fetch(this.meta.updateUrl);
+                if(!res.ok && res.status != 200){
+                    Logger.error(res);
+                    throw new Error("Failed to check for updates!");
+                }
+            }
+
+            let fileContent = await res.text();
+            let remoteMeta = this.parseMeta(fileContent);
+            let remoteVersion = remoteMeta.version.trim().split('.');
+            let currentVersion = this.meta.version.trim().split('.');
+
+            if(parseInt(remoteVersion[0]) > parseInt(currentVersion[0])){
+                this.newUpdateNotify(remoteMeta, fileContent);
+                return true;
+            }else if(remoteVersion[0] == currentVersion[0] && parseInt(remoteVersion[1]) > parseInt(currentVersion[1])){
+                this.newUpdateNotify(remoteMeta, fileContent);
+                return true;
+            }else if(remoteVersion[0] == currentVersion[0] && remoteVersion[1] == currentVersion[1] && parseInt(remoteVersion[2]) > parseInt(currentVersion[2])){
+                this.newUpdateNotify(remoteMeta, fileContent);
+                return true;
+            }
+        }
+        catch(err){
+            UI.showToast("[YABDP4Nitro] Failed to check for updates", { type: "error" });
+            Logger.error(err);
+        }
+
+    }
+
+    newUpdateNotify(remoteMeta, remoteFile){
+        Logger.info(`Update ${remoteMeta.version} is available!`);
+
+        UI.showNotification({
+            title: "YABDP4Nitro Update Available!",
+            content: `Update ${remoteMeta.version} is now available!`,
+            actions: [{
+                label: "Update",
+                onClick: async (e) => {
+                    try {
+                        await new Promise(r => fs.writeFile(path.join(Plugins.folder,`${this.meta.name}.plugin.js`),remoteFile,r));
+                    } catch(err) {
+                        UI.showToast("An error occurred when trying to download the update!",{type: "error",forceShow: true});
+                        Logger.error(err);
+                    }
+                }
+            }]
+        })
+    }
+    //#endregion
+
+    saveDataFile(){
+        const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
+        try{
+            fs.writeFileSync(dataFilePath, JSON.stringify(data));
+        }catch(err){
+            UI.showToast(`[${this.meta.name}] Error saving dava JSON. See console for error message.`, { type: "error", forceShow: true });
+            Logger.error(err);
+        }
+    }
+
+    loadDataFile(){
+        try{
+            const dataFilePath = path.join(Plugins.folder, `${this.meta.name}.data.json`);
+            if(!fs.existsSync(dataFilePath)){
+                fs.writeFileSync(dataFilePath, '{}');
+            }
+
+            try{
+                data = Object.assign({}, defaultData, JSON.parse(fs.readFileSync(dataFilePath)));
+            }catch(err){
+                UI.showToast(`[${this.meta.name}] Error parsing or reading data JSON.`, { type: "error", forceShow: true });
+                Logger.error(`Error parsing or reading ${this.meta.name}.data.json.`, err);
+                data = defaultData;
+            }
+        }catch(err){
+            UI.showToast(`[${this.meta.name}] An error occurred loading the data file.`, { type: "error", forceShow: true });
+            Logger.error("An error occurred loading the data file.", err);
+        }
+    }
+
+    //#region Start, Stop
+    start(){
+        Logger.info("(v" + this.meta.version + ") has started.");
+
+        try {
+            //load settings from config
+            settings = Object.assign({}, defaultSettings, Data.load("settings"));
+        } catch(err){
+            //The super mega awesome data-unfucker 9000
+            Logger.warn(err);
+            Logger.info("Error parsing JSON. Resetting file to default...");
+            //watch this shit yo
+            fs.rmSync(path.join(Plugins.folder, `${this.meta.name}.config.json`));
+            Plugins.reload(this.meta.name);
+            Plugins.enable(this.meta.name);
+            return;
+        }
+
+        this.loadDataFile();
+
+        //update check
+        try {
+            let currentVersionInfo = {};
+            try {
+                currentVersionInfo = Object.assign({}, { version: this.meta.version, hasShownChangelog: false }, Data.load("currentVersionInfo"));
+            } catch(err){
+                currentVersionInfo = { version: this.meta.version, hasShownChangelog: false };
+            }
+            if(this.meta.version != currentVersionInfo.version) currentVersionInfo.hasShownChangelog = false;
+            currentVersionInfo.version = this.meta.version;
+            Data.save("currentVersionInfo", currentVersionInfo);
+
+            if(settings.checkForUpdates) this.checkForUpdate();
+
+            if(!currentVersionInfo.hasShownChangelog){
+                UI.showChangelogModal({
+                    title: "YABDP4Nitro Changelog",
+                    subtitle: config.changelog[0].title,
+                    changes: [{
+                        title: config.changelog[0].title,
+                        type: "changed",
+                        items: config.changelog[0].items
+                    }]
+                });
+                currentVersionInfo.hasShownChangelog = true;
+                Data.save("currentVersionInfo", currentVersionInfo);
+            }
+        }
+        catch(err){
+            Logger.error(err);
+        }
+
+        DOM.addStyle("YABDP4NitroGeneral", `
+            /*wow it's discord css code*/
+            .yabd-text-h5 {
+                line-height: 20px;
+                color: var(--header-primary);
+                font-size: 16px;
+                font-weight: 500;
+                margin-bottom: 8px;
+                text-transform: unset 
+            }
+            .yabd-generic-button {
+                align-items: center;
+                background: none;
+                border: 1px solid var(--control-primary-border-default);
+                border-radius: 8px;
+                box-sizing: border-box;
+                display: flex;
+                font-size: 14px;
+                font-weight: var(--font-weight-medium);
+                justify-content: center;
+                line-height: 16px;
+                padding: 2px 16px;
+                position: relative;
+                transition-duration: .2s;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                user-select: none;
+                cursor: pointer;
+                color: var(--control-primary-text-default);
+                background-color: var(--control-primary-background-default);
+                transition: background-color var(--custom-button-transition-duration) ease;
+            }
+
+            .yabd-generic-button:hover {
+                background-color: var(--control-primary-background-active);
+            }
+
+            .yabd-resolution-swapper-v2-button {
+                background-color: var(--control-secondary-background-default);
+                height: 40px;
+                width: 40px;
+                align-items: center;
+                color: var(--control-secondary-text-default);
+                border: 1px solid var(--control-secondary-border-default);
+                border-radius: 8px;
+                box-sizing: border-box;
+                display: flex;
+                font-size: 14px;
+                font-weight: var(--font-weight-medium);
+                justify-content: center;
+                line-height: 16px;
+                padding: 2px 16px;
+                position: relative;
+                transition-duration: .2s;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                user-select: none;
+                cursor: pointer;
+                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
+            }
+
+            .yabd-secondary-button {
+                background-color: var(--control-secondary-background-default) !important;
+                align-items: center;
+                color: var(--control-secondary-text-default);
+                border: 1px solid var(--control-secondary-border-default);
+                border-radius: 8px;
+                box-sizing: border-box;
+                display: flex;
+                font-size: 16px;
+                font-weight: var(--font-weight-medium);
+                justify-content: center;
+                line-height: 16px;
+                position: relative;
+                transition-duration: .2s;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                user-select: none;
+                cursor: pointer;
+                transition: background-color var(--custom-button-transition-duration) ease,color var(--custom-button-transition-duration) ease;
+            }
+
+            .yabd-resolution-swapper-v2-button:hover, .yabd-secondary-button:hover {
+                background-color: var(--control-secondary-background-active) !important;
+            }
+
+            .yabd-marginTop24 {
+                margin-top: 24px;
+            }
+
+            .yabd-hidden {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        `)
+
+        this.saveAndUpdate();
+    }
+
+    stop(){
+        controller.abort();
+        CurrentUser.premiumType = ORIGINAL_NITRO_STATUS;
+        Patcher.unpatchAll();
+        Dispatcher.unsubscribe("COLLECTIBLES_CATEGORIES_FETCH_SUCCESS", this.storeProductsFromCategories);
+        Dispatcher.unsubscribe("APP_ICON_UPDATED", this.saveAppIcon);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.experiments);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.applyPremiumType);
+        Dispatcher.unsubscribe("CURRENT_USER_UPDATE", this.updateCurrentUser);
+        DOM.removeStyle("YABDP4NitroBadges");
+        DOM.removeStyle("YABDP4NitroGeneral");
+        ContextMenu.unpatch('expression-picker', this.expressionPickerFunction);
+        ContextMenu.unpatch('stream-context', this.streamContextPatch);
+        
+        if(ffmpeg){
+            ffmpeg.terminate();
+            ffmpeg = undefined;
+        }
+        let ffmpegScript = document.getElementById("ffmpegScript");
+        if(ffmpegScript){
+            ffmpegScript.remove();
+        }
+        if(window.FFmpegWASM) delete window.FFmpegWASM;
+
+        Data.save("settings", settings);
+        this.saveDataFile();
+        Logger.info("(v" + this.meta.version + ") has stopped.");
+    }
+    // #endregion
+};
+// #endregion
 /*@end@*/

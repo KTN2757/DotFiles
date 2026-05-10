@@ -1,7 +1,7 @@
 {
     "PluginRepo": true,
     "BDFDB": true,
-    "BetterAnimations": true,
+    "BetterAnimations": false,
     "ZeresPluginLibrary": true,
     "CallTimeCounter": true,
     "DoNotTrack": true,
