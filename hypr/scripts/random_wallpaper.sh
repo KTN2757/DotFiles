@@ -4,6 +4,8 @@ wallpaper=$(find $HOME/Pictures/Wallpapers/ -type f -name "*.jpg" -o -name "*.pn
 awww img --transition-type wipe $wallpaper
 wal -i $wallpaper
 
+hyprctl reload
+
 pywalfox update
 ~/.config/hypr/scripts/notification.sh
 

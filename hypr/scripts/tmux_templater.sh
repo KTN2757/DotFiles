@@ -1,2 +1,2 @@
 #!/bin/bash
-cp ~/.config/tmux/resurrect/template.txt ~/.config/tmux/resurrect/last
+ln -sf ~/.config/tmux/resurrect/template.txt ~/.config/tmux/resurrect/last
