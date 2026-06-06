@@ -43,9 +43,6 @@ hl.bind("Print", hl.dsp.exec_cmd("~/.config/hypr/scripts/full-screenshot.sh"))
 -- Tmux Resurrect
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/tmux_templater.sh"))
 
--- Screenkey
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("screenkey --font-size large"))
-
 -- eww powermenu
 hl.bind(mainMod .. " + SHIFT + Escape", hl.dsp.exec_cmd("eww close powermenu"))
 
