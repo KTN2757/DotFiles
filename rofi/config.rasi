@@ -7,6 +7,7 @@ configuration {
 }
 
 @import "~/.cache/wal/colors-rofi-dark.rasi"
+@import "~/.cache/wal/colors-rofi.rasi"
 
 * {
     bg: @background;
@@ -32,7 +33,7 @@ window {
 
 mainbox {
     spacing: 15px;
-    children: ["inputbar", "listview"];
+    children: ["inputbar", "message", "listview"];
 }
 
 inputbar {
@@ -51,7 +52,7 @@ prompt {
 }
 
 entry {
-    placeholder: "Search Apps";
+    placeholder: "";
     placeholder-color: @color8;
     text-color: @fg;
 }
@@ -84,4 +85,17 @@ element-icon {
 
 element-text {
     vertical-align: 0.5;
+}
+
+message {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: @bg;
+    border: 2px solid;
+    border-color: @accent;
+}
+
+textbox {
+    text-color: @accent;
+    font: "CaskaydiaCove Nerd Font Bold 13";
 }

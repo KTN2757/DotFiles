@@ -44,19 +44,19 @@ hl.bind("Print", hl.dsp.exec_cmd("~/.config/hypr/scripts/full-screenshot.sh"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("~/.config/hypr/scripts/tmux_templater.sh"))
 
 -- Screenkey
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("screenkey --no-detach --opacity 0.8 --font-size large"))
-
--- Emoji Keyboard
-hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("rofi -show emoji"))
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("screenkey --font-size large"))
 
 -- eww powermenu
 hl.bind(mainMod .. " + SHIFT + Escape", hl.dsp.exec_cmd("eww close powermenu"))
 
+-- Emoji Keyboard
+hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("rofi -show emoji -no-show-icons"))
+
 -- Calculator
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("rofi -show calc -no-show-match -no-sort"))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("rofi -show calc -no-show-match -no-sort -no-show-icons"))
 
 -- Clipboard history
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu | cliphist decode | wl-copy"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu -no-show-icons | cliphist decode | wl-copy"))
 
 -- Playerctl
 hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
@@ -80,8 +80,8 @@ hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO
     { locked = true, repeating = true })
 
 -- Cycle through windows
-hl.bind("ALT + Tab", hl.dsp.layout("cyclenext"))
-hl.bind("ALT + SHIFT + Tab", hl.dsp.layout("cycleprev"))
+hl.bind("ALT + Tab", hl.dsp.window.cycle_next())
+hl.bind("ALT + SHIFT + Tab", hl.dsp.window.cycle_next({ next = false }))
 
 -- Move focus
 hl.bind(mainMod .. " + h", hl.dsp.focus({ direction = "left" }))
@@ -96,10 +96,10 @@ hl.bind(mainMod .. " + SHIFT + k", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + j", hl.dsp.window.move({ direction = "down" }))
 
 -- Resize active window
-hl.bind(mainMod .. " + up", hl.dsp.window.resize({ x = 0, y = -40 }))
-hl.bind(mainMod .. " + down", hl.dsp.window.resize({ x = 0, y = 40 }))
-hl.bind(mainMod .. " + left", hl.dsp.window.resize({ x = -40, y = 0 }))
-hl.bind(mainMod .. " + right", hl.dsp.window.resize({ x = 40, y = 0 }))
+hl.bind(mainMod .. " + up", hl.dsp.window.resize({ x = 0, y = -40, relative = true }))
+hl.bind(mainMod .. " + down", hl.dsp.window.resize({ x = 0, y = 40, relative = true }))
+hl.bind(mainMod .. " + left", hl.dsp.window.resize({ x = -40, y = 0, relative = true }))
+hl.bind(mainMod .. " + right", hl.dsp.window.resize({ x = 40, y = 0, relative = true }))
 
 -- Layouts
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))
@@ -122,3 +122,7 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Zoom
 hl.gesture({ fingers = 2, direction = "pinch", action = "cursorZoom", zoom_level = 1, mode = "live" })
+
+-- Autoclicker
+hl.bind("ALT + SHIFT + F4", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-left.sh"))
+hl.bind("ALT + SHIFT + F5", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-right.sh"))

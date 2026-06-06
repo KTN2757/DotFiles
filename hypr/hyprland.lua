@@ -88,9 +88,10 @@ hl.config({
     },
 })
 
--- hl.permission({ binary = "/usr/bin/grim", type = "screencopy", mode = "allow" })
--- hl.permission({ binary = "/usr/lib/xdg-desktop-portal-hyprland", type = "screencopy", mode = "allow" })
+hl.permission({ binary = "/usr/bin/grim", type = "screencopy", mode = "allow" })
+hl.permission({ binary = "/usr/lib/xdg-desktop-portal-hyprland", type = "screencopy", mode = "allow" })
 hl.permission({ binary = "/usr/bin/hyprpm", type = "plugin", mode = "allow" })
+hl.permission({ binary = "/usr/bin/hyprlock", type = "screencopy", mode = "allow" })
 
 
 -----------------------
@@ -214,4 +215,20 @@ hl.window_rule({
     no_initial_focus = true,
     max_size = { 1, 1 },
     no_blur = true,
+})
+
+-- Disable Animations in RuneLite & the window it spawns
+hl.window_rule({
+    name = "RuneLite-no-animations",
+    match = {
+        title = "RuneLite - BalenSarkar",
+    },
+    no_anim = true
+})
+hl.window_rule({
+    name = "win0-no-animations",
+    match = {
+        title = "win0",
+    },
+    no_anim = true
 })
