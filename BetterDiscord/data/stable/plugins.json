@@ -1,15 +1,17 @@
 {
-    "PluginRepo": true,
+    "PluginRepo": false,
     "BDFDB": true,
-    "BetterAnimations": false,
-    "ZeresPluginLibrary": true,
+    "BetterAnimations": true,
+    "ZeresPluginLibrary": false,
     "CallTimeCounter": true,
     "DoNotTrack": true,
     "HideDisabledEmojis": true,
     "ImageUtilities": true,
     "InvisibleTyping": true,
     "PermissionsViewer": true,
-    "ThemeRepo": true,
-    "SpotifyControls": true,
-    "YABDP4Nitro": true
+    "ThemeRepo": false,
+    "SpotifyControls": false,
+    "YABDP4Nitro": true,
+    "SplitLargeMessages": true,
+    "PinDMs": true
 }

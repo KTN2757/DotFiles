@@ -1,8 +1,13 @@
 {
-    "version": "1.13.13",
+    "version": "1.13.14",
     "drawerStates": {
         "settings": {
             "window": false
+        }
+    },
+    "addonlistControls": {
+        "theme-store": {
+            "sort": "downloads"
         }
     }
 }

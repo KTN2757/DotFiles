@@ -68,16 +68,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/wallpapers_slideshow.sh")
 
     -- Apps
-    hl.exec_cmd("zapzap")
-    hl.exec_cmd(
-        "env DISPLAY=:0 XAUTHORITY=/home/kritagya-dahal/.Xauthority DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus XDG_RUNTIME_DIR=/run/user/1000 /usr/local/bin/discord-vpn.sh")
-    hl.exec_cmd("keepassxc %f")
-
+    hl.exec_cmd("discord")
     -- Screenshare
-    hl.exec_cmd("xwaylandvideobridge")
+    hl.exec_cmd(
+        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP && xwaylandvideobridge")
 end)
-
-
 
 -----------------------
 ----- PERMISSIONS -----
@@ -213,6 +208,7 @@ hl.window_rule({
     opacity = "0.0 override 0.0 override",
     no_anim = true,
     no_initial_focus = true,
+    no_focus = true,
     max_size = { 1, 1 },
     no_blur = true,
 })

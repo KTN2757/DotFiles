@@ -2,7 +2,7 @@
  * @name YABDP4Nitro
  * @author Riolubruh
  * @authorLink https://github.com/riolubruh
- * @version 6.8.18
+ * @version 6.9.3
  * @invite HfFxUbgsBc
  * @source https://github.com/riolubruh/YABDP4Nitro
  * @donate https://github.com/riolubruh/YABDP4Nitro?tab=readme-ov-file#donate
@@ -87,11 +87,9 @@ const [
     stickerSendabilityModule,
     ClipsEnabledMod,
     MaxFileSizeMod,
-    CustomThemesEditor,
     UserSettingsModal,
     CustomUserThemeState,
     CustomUserPanelState,
-    UserContextMenuFunctions,
     UserAvatar,
     StreamButtons
 ] = Webpack.getBulk(
@@ -124,8 +122,12 @@ const [
     {filter: Webpack.Filters.byPrototypeKeys("uploadFileToCloud"), searchExports: true},
     {filter: Webpack.Filters.bySource("preset)&&","resolution&&","fps&&")}, //InvalidStreamSettingsModal
     {filter: Webpack.Filters.bySource("changes:{appearance:{settings:{clientThemeSettings:{"), defaultExport: false}, //themesModule
-    {filter: Webpack.Filters.bySource(".getFeatureValue("), defaultExport: false}, //CanUserUseMod
-    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")')}, //DMTag
+    {filter: Webpack.Filters.bySource(".getFeatureValue(", "isPremium"), mapDeclarations: true, map: {
+        canUserUse: x=>typeof x === "function" && x.toString?.().includes?.('.getFeatureValue(')
+    }}, //CanUserUseMod
+    {filter: Webpack.Filters.bySource('NOT_STAFF_WARNING', 'isStaff', 'id.startsWith("staff")'), mapDeclarations:true,map:{
+        render: x=>x?.toString?.().includes?.("NOT_STAFF_WARNING")
+    }}, //DMTag
     {filter: Webpack.Filters.byPrototypeKeys('renderGIF'), searchExports:true},
     {filter: Webpack.Filters.byStrings('await window.navigator.clipboard.writeText'), searchExports:true}, //DiscordCopyToClipboardFn
     {filter: Webpack.Filters.byStrings('initialValue', 'label', 'sortedMarkers'), searchExports: true},
@@ -142,18 +144,12 @@ const [
         getMaxFileSize: x=>x.toString().includes('getUserMaxFileSize'),
         exceedsMessageSizeLimit: x=>x.toString().includes('Array.from(', '.size>')
     }},
-    {filter: Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), map: { //CustomThemesEditor
-        render: x=>x
-    }},
     {filter: Webpack.Filters.byKeys('openUserSettings')}, //UserSettingsModal
     {filter: Webpack.Filters.bySource('setColors', 'setChassisMixAmount', 'setGradientAngle', 'setAll', 'colors:[],'), map: { //CustomUserThemeState
         state: x=>x?.setState
     }},
     {filter: Webpack.Filters.bySource('CLIENT_THEMES_EDITOR', 'activePanel', 'SHARE_MESSAGE'), map:{
         state: x=>x?.setState
-    }},
-    {filter: Webpack.Filters.bySource('isGroupDM', 'targetIsUser'), map: {
-        openUserContextMenu: x=>x?.toString?.().includes?.("targetIsUser", "showMute")
     }},
     {filter: Webpack.Filters.bySource('avatarDecoration', 'foreignObject', 'onClick', 'statusColor', 'isMobile', 'isVR'), map:{
         render: x=>x?.toString?.().includes?.('foreignObject')
@@ -243,7 +239,8 @@ const defaultSettings = {
         custom: false,
         theme: "dark"
     },
-    "appIcon": "AppIcon"
+    "appIcon": "AppIcon",
+    "voiceTileBannerBackground": false
 };
 const defaultData = {
     avatarDecorations: {},
@@ -269,18 +266,18 @@ const config = {
             "discord_id": "359063827091816448",
             "github_username": "riolubruh"
         }],
-        "version": "6.8.18",
+        "version": "6.9.3",
         "description": "Unlock all screensharing modes, use cross-server & GIF emotes, and more!",
         "github": "https://github.com/riolubruh/YABDP4Nitro",
         "github_raw": "https://raw.githubusercontent.com/riolubruh/YABDP4Nitro/main/YABDP4Nitro.plugin.js"
     },
     changelog: [
         {
-            title: "6.8.18",
+            title: "6.9.3",
             items: [
-                "Fix Soundmoji not applying experiment override since Discord moved it to the new \"Apex Experiments\" system.",
-                "Fix 'this.encodeProfileColors is not a function' error appearing in console.",
-                "Add more VSCode region markers to the code."
+                "Moved Clips insta-upload code into _sendMessage patch instead of patching sendMessage. Should hopefully improve compatibility with other plugins.",
+                "Fixed UserAvatar custom context menu (where you can open the user context menu in situations where vanilla does not allow it, like in the blocked user list) not working due to lazy-loading.",
+                "Made it so the UserAvatar custom context menu now only works when Extra Context Menus is enabled."
             ]
         }
     ],
@@ -378,7 +375,8 @@ const config = {
                 { type: "switch", id: "profileV2", name: "Profile Accents", note: "When enabled, you will see (almost) all users with the new Nitro-exclusive look for profiles (the sexier look). When disabled, the default behavior is used. Does not allow you to update your profile accent.", value: () => settings.profileV2 },
                 { type: "switch", id: "fakeProfileThemes", name: "Fake Profile Themes", note: "Uses invisible 3y3 encoding to allow profile theming by hiding the colors in your bio.", value: () => settings.fakeProfileThemes },
                 { type: "switch", id: "fakeProfileBanners", name: "Fake Profile Banners", note: "Uses invisible 3y3 encoding to allow setting profile banners by hiding the image URL in your bio. Only supports Imgur URLs for security reasons.", value: () => settings.fakeProfileBanners },
-                { type: "switch", id: "userBgIntegration", name: "UserBG Integration", note: "Downloads and parses the UserBG JSON database so that UserBG banners will appear for you.", value: () => settings.userBgIntegration },
+                { type: "switch", id: "userBgIntegration", name: "UsrBG Integration", note: "Downloads and parses the UsrBG JSON database so that UsrBG banners will appear for you.", value: () => settings.userBgIntegration },
+                { type: "switch", id: "voiceTileBannerBackground", name: "Call Tile Background", note: "Uses fake banners as the background for call tiles.", value: () => settings.voiceTileBannerBackground },
                 { type: "switch", id: "fakeAvatarDecorations", name: "Fake Avatar Decorations", note: "Uses invisible 3y3 encoding to allow setting avatar decorations by hiding information in your bio and/or your custom status.", value: () => settings.fakeAvatarDecorations },
                 { type: "switch", id: "profileEffects", name: "Fake Profile Effects", note: "Uses invisible 3y3 encoding to allow setting profile effects by hiding information in your bio.", value: () => settings.profileEffects },
                 { type: "switch", id: "killProfileEffects", name: "Kill Profile Effects", note: "Hate profile effects? Enable this and they'll be gone. All of them. Overrides all profile effects.", value: () => settings.killProfileEffects },
@@ -429,7 +427,7 @@ const config = {
                 { type: "switch", id: "removeScreenshareUpsell", name: "Remove Screen Share Nitro Upsell", note: "Removes the Nitro upsell in the Screen Share quality option menu.", value: () => settings.removeScreenshareUpsell },
                 { type: "switch", id: "unlockAppIcons", name: "App Icons", note: "Unlocks app icons.", value: () => settings.unlockAppIcons },
                 { type: "switch", id: "removeNotStaffWarning", name: "Remove Not Staff Warning", note: "Removes the \"NOT STAFF\" warning on DMs when Experiments are enabled.", value: () => settings.removeNotStaffWarning },
-                { type: "switch", id: "extraContextMenus", name: "Extra Context Menus and Options", note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker and adds a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker.", value: () => settings.extraContextMenus},
+                { type: "switch", id: "extraContextMenus", name: "Extra Context Menus and Options", note: "Adds a Copy URL and Open URL buttons to the context menu that appears when you right-click an Emoji or Sticker in the Expression Picker, a context menu that will appear with Copy Link and Open Link options when you right-click a GIF in the GIF picker, and a context menu that will appear when right-clicking on user avatars where a context menu wouldn't normally open (ex: blocked/ignored list).", value: () => settings.extraContextMenus},
                 { type: "switch", id: "experiments", name: "Experiments", note: "Unlocks experiments. Soundmoji and Enable Clips Experiments have to be disabled to turn this off. Use at your own risk.", value: () => (settings.experiments || settings.soundmojiEnabled || (settings.useClipBypass && settings.enableClipsExperiment))},
                 { type: "switch", id: "checkForUpdates", name: "Check for Updates", note: "Should the plugin check for updates on startup?", value: () => settings.checkForUpdates }
             ]
@@ -580,7 +578,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.emojiBypass && settings.emojiBypassType !== 0){
+        if(settings.emojiBypass){
             try {
                 this.emojiBypass();
             } catch(err){
@@ -704,9 +702,8 @@ module.exports = class YABDP4Nitro {
         }
 
         try{
-            let canUserUse = this.findMangledName(CanUserUseMod, x=>typeof x === "function" && x.toString?.().includes?.('getFeatureValue'), "canUserUse");
-            if(canUserUse){
-                Patcher.instead(CanUserUseMod, canUserUse, (_, [feature, user], originalFunction) => {
+            if(CanUserUseMod?.canUserUse){
+                Patcher.instead(CanUserUseMod, "canUserUse", (_, [feature, user], originalFunction) => {
                     if(settings.emojiBypass && (feature.name == "emojisEverywhere" || feature.name == "animatedEmojis"))
                         return true;
 
@@ -724,6 +721,8 @@ module.exports = class YABDP4Nitro {
 
                     return originalFunction(feature, user);
                 });
+            }else{
+                Logger.error("CanUserUse is undefined!!");
             }
         }catch(err){
             Logger.error(err);
@@ -746,7 +745,7 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0) || settings.stickerBypass){
+        if(settings.soundmojiEnabled || (settings.emojiBypass && settings.emojiBypassType == 0) || settings.stickerBypass || settings.zipClip || settings.useClipBypass || settings.useAudioClipBypass){
             try{
                 this._sendMessageInsteadPatch();
             }catch(err){
@@ -788,11 +787,11 @@ module.exports = class YABDP4Nitro {
         }
 
         try{
-            if(settings.removeNotStaffWarning && DMTag){
-                Patcher.after(DMTag, this.findMangledName(DMTag, x=>x.toString().includes('GROUP_DM') && !x.toString().includes('GUILD_DIRECTORY')), (_,[args],ret) => {
-                    if(ret?.props?.children){
-                        ret.props.children = ret.props.children.filter(o=>!o.type?.toString?.().includes?.("NOT_STAFF_WARNING"));
-                    }
+            if(settings.removeNotStaffWarning && DMTag?.render){
+                Patcher.instead(DMTag, "render", (_,[args],org) => {
+                    let ret = org(args);
+                    if(ret?.props?.type === 5) return;
+                    return ret;
                 });
             }
         }catch(err){
@@ -800,7 +799,16 @@ module.exports = class YABDP4Nitro {
         }
 
         if(settings.extraContextMenus){
-            this.extraContextMenus();
+            try{
+                this.extraContextMenus();
+            }catch(err){
+                Logger.error(err);
+            }
+            try{
+                this.pfpContextMenu();
+            }catch(err){
+                Logger.error(err);
+            }
         }
 
         if(settings.sharpenStreams){
@@ -823,30 +831,18 @@ module.exports = class YABDP4Nitro {
             }
         }
 
-        if(UserAvatar?.render){
-            Patcher.after(UserAvatar, "render", (_, [args], ret) => {
-                if(ret?.props && args?.src) {
-                    ret.props.onContextMenu = (e) => {
-                        let userId = args.src.replace("https://cdn.discordapp.com/avatars/",'').split('/')[0];
-                        let user = UserStore.getUser(userId);
-
-                        //get channel id of first selectable channel in first guild
-                        let channel = Object.values(GuildChannelStore.getAllGuilds()).filter(o=>o?.SELECTABLE?.[0]?.channel)?.[0]?.SELECTABLE?.[0]?.channel;
-
-                        //if we cant find one, look for last selected channel
-                        // unless there is no last selected channel id, in which case get the first available DM channel
-                        if(!channel) channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore.getSortedPrivateChannels()?.[0];
-
-                        if(channel) UserContextMenuFunctions.openUserContextMenu(e,user,channel)
-                    }
-                }
-            });
-        }
-
         try{
             this.settingsUI();
         }catch(err){
             Logger.error(err);
+        }
+
+        if(settings.voiceTileBannerBackground){
+            try{
+                this.userCallTileBannerBackground();
+            }catch(err){
+                Logger.error(err);
+            }
         }
 
         /* try{
@@ -857,6 +853,45 @@ module.exports = class YABDP4Nitro {
     } //End of saveAndUpdate()
     // #endregion
 
+
+    //TODO: this needs a rewrite to support users without profile pictures.
+    async pfpContextMenu(){
+        if(UserAvatar?.render){
+            if(!this.UserContextMenuFunctions) this.UserContextMenuFunctions = await Webpack.waitForModule(Webpack.Filters.bySource('isGroupDM', 'targetIsUser'), {signal: controller.signal});
+
+            let openUserContextMenu;
+            if(this.UserContextMenuFunctions){
+                openUserContextMenu = Object.values(this.UserContextMenuFunctions).find(x=>x?.toString?.().includes?.("targetIsUser", "showMute"));
+            }else{
+                Logger.warn("UserContextMenuFunctions is undefined");
+                return;
+            }
+            Patcher.after(UserAvatar,"render",(_,[args],ret) => {
+                if(ret?.props && args?.src) {
+                    ret.props.onContextMenu = (e) => {
+                        let userId = args.src.replace("https://cdn.discordapp.com/avatars/",'').split('/')[0];
+                        if(userId){
+                            let user = UserStore.getUser(userId);
+                            if(user){
+                                //get channel id of first selectable channel in first guild
+                                let channel = Object.values(GuildChannelStore.getAllGuilds()).filter(o => o?.SELECTABLE?.[0]?.channel)?.[0]?.SELECTABLE?.[0]?.channel;
+        
+                                //if we cant find one, look for last selected channel
+                                // unless there is no last selected channel id, in which case get the first available DM channel
+                                if(!channel) channel = SelectedChannelStore.getLastSelectedChannelId() ? ChannelStore.getChannel(SelectedChannelStore.getLastSelectedChannelId()) : ChannelStore.getSortedPrivateChannels()?.[0];
+        
+                                if(channel) openUserContextMenu(e,user,channel);
+                            }
+                        }
+                    }
+                }
+            });
+        }else{
+            Logger.error("UserAvatar.render is undefined");
+        }
+    }
+
+    //#region Settings UI
     async settingsUI(){
         if(!this.settingsUIMod) this.settingsUIMod = await Webpack.waitForModule(Webpack.Filters.bySource("userNameplate","guildNameplate","pendingNameplate", "titleIcon"), {raw:true, signal: controller.signal});
         if(!this.settingsUIMod){
@@ -864,7 +899,7 @@ module.exports = class YABDP4Nitro {
             return;
         }
         if(!this.settingsUIMod.declarations){
-            UI.showToast("[YABDP4Nitro] Update your BetterDiscord!",{type: "error",forceShow: true});
+            Logger.error("Declarations are undefined for settingsUIMod! If ZeresPluginLibrary is installed, please delete it!");
             return;
         }
 
@@ -1777,12 +1812,14 @@ module.exports = class YABDP4Nitro {
     }
     //#endregion
 
+    //#endregion Settings UI
+
     //#region Sharpen Streams
     //Adds sharpness slider to stream context menu, and applies sharpness effect to stream tiles and PIP player. Shoutouts to @me4u._.day for their suggestion. 
     async sharpenStreams(){
         ContextMenu.patch('stream-context', this.streamContextPatch);
 
-        this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
+        if(!this.VideoStream) this.VideoStream = await Webpack.waitForModule(Webpack.Filters.bySource('VideoStream', 'videoComponent'), {signal: controller.signal});
 
         if(!this.VideoStream) return;
         let videoStreamName = this.findMangledName(this.VideoStream, x=>x.type?.toString?.().includes?.('VideoStream'));
@@ -2525,45 +2562,6 @@ module.exports = class YABDP4Nitro {
 
         if(ffmpeg == undefined) await this.loadFFmpeg();
 
-        async function ffmpegTransmux(arrayBuffer, inFileName = "input.mp4", ffmpegArguments, outFileName = "output.mp4"){
-            if(ffmpeg){
-                if(!ffmpegArguments)
-                    ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
-                        "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
-                    ];
-                if(arrayBuffer && inFileName){
-                    await ffmpeg.writeFile(inFileName, new Uint8Array(arrayBuffer));
-                }
-                console.log("Approximately equivalent ffmpeg command:");
-                console.log("ffmpeg " + ffmpegArguments.join(" "));
-                await ffmpeg.exec(ffmpegArguments);
-                const data = await ffmpeg.readFile(outFileName);
-                
-                if(inFileName) ffmpeg.deleteFile(inFileName);
-                if(outFileName) ffmpeg.deleteFile(outFileName);
-                
-                if(data.length == 0){
-                    throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " + 
-                                    "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
-                                    "If you need assistance, please use the support channel in the Discord server.");
-                }
-
-                return data.buffer;
-            }
-            else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
-        }
-        async function ffmpegAudioTransmux(arrayBuffer, inFileName = "input.mp3", outFileName = "output.mp4"){
-
-            let ffmpegArgs = ["-f","lavfi","-i","color=c=black:s=300x100","-i",inFileName,"-shortest","-fflags","+shortest", 
-                "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1","-dn","-map_chapters","-1",
-                "-preset","ultrafast","-c:a","copy","-strict","-2","-tune","stillimage","-r","1", outFileName];
-
-            return await ffmpegTransmux(arrayBuffer, inFileName, ffmpegArgs, outFileName);
-        }
-
-        const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
-        const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
-
         Patcher.instead(addFilesMod, "addFiles", async (_, [args], originalFunction) => {
             /* If ffmpeg isn't loaded, or was unloaded for some reason,
                when the user adds a file, make sure to load it again if it's undefined
@@ -2571,6 +2569,72 @@ module.exports = class YABDP4Nitro {
                trigger saveAndUpdate or restart the plugin to
                make ffmpeg load if it wasn't loaded properly the first time. */
             if(ffmpeg == undefined) await this.loadFFmpeg();
+
+            //moved clips bypass into its own function so it can be used in sendMessage patch
+            await this.doClipsBypass(args);
+            originalFunction(args);
+        });
+
+        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
+            return true;
+        });
+        Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isViewerClippingAllowedForUser", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isClipsEnabledForUser", () => {
+            return true;
+        });
+        Patcher.instead(ClipsStore, "isVoiceRecordingAllowedForUser", () => {
+            return true;
+        });
+    } //End of clipsBypass()
+
+    async ffmpegTransmux(arrayBuffer,inFileName = "input.mp4",ffmpegArguments,outFileName = "output.mp4") {
+        if(ffmpeg) {
+            if(inFileName == outFileName) {
+                inFileName = "in_" + inFileName;
+            }
+            if(!ffmpegArguments)
+                ffmpegArguments = ["-i",inFileName,"-c:v","copy","-c:a","copy","-c:s","mov_text","-dn","-brand","isom/avc1",
+                    "-movflags","+faststart","-map","0","-map_metadata","-1","-map_chapters","-1","-map","-0:t","-strict","-2",outFileName
+                ];
+            if(arrayBuffer && inFileName) {
+                await ffmpeg.writeFile(inFileName,new Uint8Array(arrayBuffer));
+            }
+            console.log("Approximately equivalent ffmpeg command:");
+            console.log("ffmpeg " + ffmpegArguments.join(" "));
+            await ffmpeg.exec(ffmpegArguments);
+            const data = await ffmpeg.readFile(outFileName);
+
+            if(inFileName) ffmpeg.deleteFile(inFileName);
+            if(outFileName) ffmpeg.deleteFile(outFileName);
+
+            if(data.length == 0) {
+                throw new Error("An error occurred during muxing/encoding: Output file ended up empty or doesn't exist, " +
+                    "likely due to an FFmpeg error. Please check the FFmpeg logs above. " +
+                    "If you need assistance, please use the support channel in the Discord server.");
+            }
+
+            return data.buffer;
+        }
+        else throw new Error(`Can't mux/encode: ffmpeg is not loaded!`);
+    }
+    async ffmpegAudioTransmux(arrayBuffer,inFileName = "input.mp3",outFileName = "output.mp4") {
+        let ffmpegArgs = ["-i",inFileName,"-f","lavfi","-i","color=c=black:s=300x100","-shortest","-fflags","+shortest",
+            "-map","0:v?","-map","1:v","-map","0:a","-disposition:v","default","-brand","isom/avc1","-movflags","+faststart",
+            "-map_metadata","-1","-dn","-map_chapters","-1","-preset","ultrafast","-c:v","libx264","-c:a","copy","-strict","-2",
+            "-tune","stillimage","-r","1","-pix_fmt","yuv420p","-vf","crop=trunc(iw/2)*2:trunc(ih/2)*2",outFileName];
+
+        return await this.ffmpegTransmux(arrayBuffer,inFileName,ffmpegArgs,outFileName);
+    }
+
+    async doClipsBypass(args){
+            //unsupported file types
+            const skippedAudioTypes = ['audio/mid','audio/basic','audio/mpegurl','audio/3gp'];
+            const skippedVideoTypes = ['video/3gp',"video/asf",'video/ivf'];
 
             //load append data only on first added file
             if(!udta || !udtaBuffer){
@@ -2653,7 +2717,7 @@ module.exports = class YABDP4Nitro {
                                 outFileName = "output.mov";
                             }
 
-                            let array1 = concatArrayBuffers(await ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
+                            let array1 = concatArrayBuffers(await this.ffmpegTransmux(arrayBuffer, currentFile.file.name, undefined, outFileName), udtaBuffer);
 
                             let video = new File([new Uint8Array(array1)], currentFile.file.name.substr(0, currentFile.file.name.lastIndexOf(".")) + ".mp4", { type: "video/mp4" });
 
@@ -2686,7 +2750,7 @@ module.exports = class YABDP4Nitro {
                             UI.showToast("AC3 will send but playback is only supported on mobile!", {type: "warn"});
                         }
 
-                        let array1 = concatArrayBuffers(await ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
+                        let array1 = concatArrayBuffers(await this.ffmpegAudioTransmux(arrayBuffer, currentFile.file.name, outFileName), udtaBuffer);
 
                         let video = new File([new Uint8Array(array1)], clipData.name + ".mp4", { type: "video/mp4" });
 
@@ -2720,7 +2784,7 @@ module.exports = class YABDP4Nitro {
                             "-brand","isom/avc1","-movflags","+faststart","-map_metadata","-1",
                             "-preset","ultrafast","-vframes","5","-c:v","mjpeg","output.mp4"];
 
-                        clipMaBuffer = await ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
+                        clipMaBuffer = await this.ffmpegTransmux(undefined,"",ffmpegArgs,"output.mp4");
                         clipMaBuffer = concatArrayBuffers(clipMaBuffer, udtaBuffer);
                     }
 
@@ -2730,8 +2794,7 @@ module.exports = class YABDP4Nitro {
                         let zipFile;
                         let fileArrayBuffer = await currentFile.file.arrayBuffer();
 
-                        //if the file has an archive mime type or is a .001 through .999 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
-                        if(archiveMimeTypes.includes(currentFile.file.type.replace('application/','')) || parseInt(currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1, currentFile.file.name.length)) > 0) {
+                        if(archiveMimeTypes.includes(currentFile.file.type.replace('application/',''))) {
 
                             zipFile = fileArrayBuffer;
                             clipData.name = currentFile.file.name;
@@ -2814,8 +2877,14 @@ module.exports = class YABDP4Nitro {
                             }
     
                             zipFile = createZip(currentFile.file.name, fileArrayBuffer).buffer;
-                            
-                            clipData.name += ".zip";
+
+                            let fileExtension = currentFile.file.name.substring(currentFile.file.name.lastIndexOf('.') + 1);
+                            //if the file is a .001-.999 or .z01-.z99 part file. technically also would work with more than 999 parts but i dont think it goes that high lol
+                            if(parseInt(fileExtension) > 0 || fileExtension.match(/z\d+/)){
+                                clipData.name = currentFile.file.name + ".zip";
+                            }else{
+                                clipData.name += ".zip";
+                            }
                         }
     
                         try {
@@ -2832,25 +2901,7 @@ module.exports = class YABDP4Nitro {
                     currentFile.platform = 1;
                 }
             }
-            originalFunction(args);
-        });
-
-        Patcher.after(ClipsEnabledMod, "useEnableClips", () => {
-            return true;
-        });
-        Patcher.instead(ClipsEnabledMod, "areClipsEnabled", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isViewerClippingAllowedForUser", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isClipsEnabledForUser", () => {
-            return true;
-        });
-        Patcher.instead(ClipsStore, "isVoiceRecordingAllowedForUser", () => {
-            return true;
-        });
-    } //End of clipsBypass()
+        }
     // #endregion
 
     // #region Load FFmpeg.js
@@ -3068,7 +3119,7 @@ module.exports = class YABDP4Nitro {
     }
 
     // #region Client Themes
-    clientThemes(){
+    async clientThemes(){
         try{
             this.applySavedClientTheme();
         }catch(err){
@@ -3193,56 +3244,63 @@ module.exports = class YABDP4Nitro {
             }, 3000);
         });
 
-        Patcher.after(CustomThemesEditor, "render", (_,[args],ret) => {
-            //dont replace footer if user is premium
-            if(CurrentUser.premiumType == 2) return;
-
-            //take the onSaveTheme function from the original footer cause we still need it
-            const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
-
-            if(onSaveTheme){
-                //replace the original footer with a custom one
-                ret.props.children[1] = React.createElement('div', {
-                    style: {
-                        display: "flex",
-                        gap: "25px",
-                        padding: "16px 30px",
-                        borderTop: "1px solid var(--border-subtle)"
-                    },
-                    children: [
-                        React.createElement(Components.Button, {
-                            children: "Back",
-                            className: "yabd-secondary-button",
+        if(!this.CustomThemesEditor) this.CustomThemesEditor = await Webpack.waitForModule(Webpack.Filters.bySource('onSaveTheme', 'CUSTOM_THEMES_EDITOR', 'CUSTOM_THEME_COACHMARK'), {signal:controller.signal})
+        if(this.CustomThemesEditor){
+            let render = this.findMangledName(this.CustomThemesEditor, x=>x?.toString?.()?.includes?.("onSaveTheme"), "CustomThemesEditor");
+            if(render){
+                Patcher.instead(this.CustomThemesEditor, render, (_,[args],ogFunction) => {
+                    let ret = ogFunction(args);
+                    //dont replace footer if user is premium
+                    if(CurrentUser.premiumType == 2) return ret;
+        
+                    //take the onSaveTheme function from the original footer cause we still need it
+                    const onSaveTheme = ret?.props?.children?.[1]?.props?.onSaveTheme;
+        
+                    if(onSaveTheme){
+                        //replace the original footer with a custom one
+                        ret.props.children[1] = React.createElement('div', {
                             style: {
-                                width: "100%",
+                                display: "flex",
+                                gap: "25px",
+                                padding: "16px 30px",
+                                borderTop: "1px solid var(--border-subtle)"
                             },
-                            onClick: () => {
-                                UserSettingsModal.openUserSettings('appearance_panel');
-                                
-                                //close theme customization panel
-                                CustomUserPanelState.state.setState({
-                                    activePanel: null,
-                                    metadata: null
-                                });
-                            }
-                        }),
-                        React.createElement(Components.Button, {
-                            children: "Apply",
-                            style: {
-                                width: "100%",
-                                fontSize: "16px"
-                            },
-                            onClick: (e) => {
-                                onSaveTheme(e);
-                            }
-                        }),
-                    ]
+                            children: [
+                                React.createElement(Components.Button, {
+                                    children: "Back",
+                                    className: "yabd-secondary-button",
+                                    style: {
+                                        width: "100%",
+                                    },
+                                    onClick: () => {
+                                        UserSettingsModal.openUserSettings('appearance_panel');
+                                        
+                                        //close theme customization panel
+                                        CustomUserPanelState.state.setState({
+                                            activePanel: null,
+                                            metadata: null
+                                        });
+                                    }
+                                }),
+                                React.createElement(Components.Button, {
+                                    children: "Apply",
+                                    style: {
+                                        width: "100%",
+                                        fontSize: "16px"
+                                    },
+                                    onClick: (e) => {
+                                        onSaveTheme(e);
+                                    }
+                                }),
+                            ]
+                        });
+                    }else{
+                        Logger.error('onSaveTheme is not defined.', ret);
+                    }
+                    return ret;
                 });
-            }else{
-                Logger.error('onSaveTheme is not defined.', ret);
             }
-        });
-
+        }
     } //End of clientThemes()
     // #endregion
 
@@ -3738,15 +3796,15 @@ module.exports = class YABDP4Nitro {
         return false;
     }
 
+    //#region _sendMessage Patch
     _sendMessageInsteadPatch(){
         if(settings.soundmojiEnabled){
             this.overrideVariant("2026-03-soundmoji-rendering", 1);
             this.overrideVariant("2026-03-soundmoji-sending", 2);
         }
 
-        //#region _sendMessage Patch
         Patcher.instead(MessageActions, "_sendMessage", async (_, msg, send) => {
-            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].messageReference) { //fix polls, activity actions, forwarding
+            if(msg[2].poll != undefined || msg[2].activityAction != undefined || msg[2].location == "forwarding") { //fix polls, activity actions, forwarding
                 send.apply(_, msg);
                 return;
             }
@@ -3804,6 +3862,7 @@ module.exports = class YABDP4Nitro {
             }
             //#endregion
             
+            //#region Soundmoji
             const channelId = msg[0];
             let regex = /<sound:[0-9]\d+:[0-9]\d+>/g;
             let ids = [];
@@ -3831,6 +3890,7 @@ module.exports = class YABDP4Nitro {
                     }
                 }
             }
+            //#endregion
 
             if(settings.emojiBypass && settings.emojiBypassType == 0 && emojis.length > 0) {
                 //upload all emotes
@@ -3845,6 +3905,7 @@ module.exports = class YABDP4Nitro {
                 await this.UploadSoundmojis(ids, channelId, msg[1], sounds, send);
             }
 
+            //#region Sticker Bypass
             if(settings.stickerBypass){
                 let stickerIds = msg[2]?.stickerIds;
                 let currentChannelId = SelectedChannelStore.getChannelId();
@@ -3869,9 +3930,37 @@ module.exports = class YABDP4Nitro {
                         }
                     }
                 }
-    
-                
             }
+            //#endregion
+
+            //#region Clips Instant Upload Patch
+            let extraInfo = msg?.[2];
+            if(extraInfo?.location === "instant_upload" && (settings.zipClip || settings.useClipBypass || settings.useAudioClipBypass)){
+                //load ffmpeg if it isnt
+                if(ffmpeg == undefined) await this.loadFFmpeg();
+
+                if(extraInfo?.attachmentsToUpload?.length > 0){
+                    //convert to the format doClipsBypass function uses (array of files)
+                    let files = [];
+                    for(let i = 0; i < extraInfo.attachmentsToUpload.length; i++){
+                        let attachment = extraInfo.attachmentsToUpload[i];
+                        files.push(attachment.item);
+                    }
+                    let args = {files};
+    
+                    //let it do the work
+                    await this.doClipsBypass(args);
+    
+                    //apply changes in attachmentsToUpload
+                    for(let i = 0; i < args.files.length; i++){
+                        let attachment = extraInfo.attachmentsToUpload[i];
+                        attachment.item = args.files[i];
+                        attachment.clip = args.files[i].clip;
+                        attachment.filename = args.files[i].file.name;
+                    }
+                }
+            }
+            //#endregion
 
             if(emojis.length == 0 && sounds.length == 0){
                 send.apply(_, msg);
@@ -3879,9 +3968,10 @@ module.exports = class YABDP4Nitro {
             
         });
     }
+    //#endregion
 
+    //#region Other Emoji Bypasses
     emojiBypass(){
-
         Patcher.instead(isEmojiAvailableMod, "isEmojiFilteredOrLocked", () => {
             return false;
         });
@@ -3901,7 +3991,6 @@ module.exports = class YABDP4Nitro {
         //#region Classic Mode Patch
         //Original method
         if(settings.emojiBypassType == 2){
-
             function classicModeMethod(msg, currentChannelId, self){
                 if(document.getElementsByClassName("sdc-tooltip").length > 0){
                     let SDC_Tooltip = document.getElementsByClassName("sdc-tooltip")[0];
@@ -3941,7 +4030,6 @@ module.exports = class YABDP4Nitro {
             });
         }
         //#endregion
-
 
         //#region Vencord-like Patch
         //Vencord-like bypass                    (ghost mode removed, fallback to hyperlink)
@@ -4082,9 +4170,8 @@ module.exports = class YABDP4Nitro {
                 //fix cancelling edit by restoring message to original state manually after cancellation
                 lastEditedMsg.content = lastEditedMsgCopy.content;
         });
-
-        //#endregion
     } //End of emojiBypass()
+    //#endregion
 
     //#region Fake Inline Emoji
     async inlineFakemojiPatch(){
@@ -4192,7 +4279,6 @@ module.exports = class YABDP4Nitro {
                 return [];
             }
         });
-        //#endregion
     }
     //#endregion
 
@@ -4274,7 +4360,7 @@ module.exports = class YABDP4Nitro {
     } //End of videoQualityModule()
     //#endregion
 
-
+    //#region Sticker Uploader
     async stickerSending(){
         Patcher.instead(MessageActions, "sendStickers", (_, args, originalFunction) => {
             let stickerID = args[1][0];
@@ -4295,6 +4381,7 @@ module.exports = class YABDP4Nitro {
             }
         });
     }
+    //#endregion
 
     //#region 3y3 Profile Colors
     decodeAndApplyProfileColors(){
@@ -4339,21 +4426,14 @@ module.exports = class YABDP4Nitro {
     //#region Banner Decoding
     //Decode 3y3 from profile bio and apply fake banners.
     bannerUrlDecoding(){
-
-        let endpoint, bucket, prefix, usrBgData;
-
         //if userBg integration is enabled, and we havent already downloaded & parsed userBg data,
         if(settings.userBgIntegration && !fetchedUserBg){
 
             //userBg database url.
             const userBgJsonUrl = "https://usrbg.is-hardly.online/users";
-
             //download, then store json
             Net.fetch(userBgJsonUrl, { timeout: 100000 }).then(res => res.json().then(res => {
-                usrBgData = res;
-                endpoint = res.endpoint;
-                bucket = res.bucket;
-                prefix = res.prefix;
+                this.usrBgData = res;
                 //mark db as fetched so we only fetch it once per load of the plugin
                 fetchedUserBg = true;
             }));
@@ -4378,23 +4458,31 @@ module.exports = class YABDP4Nitro {
             }
         });
 
-        function getBannerUrl(user, self){
-            let profile = user?._userProfile;
+        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
+            nodePatcher.patch(ret, (props, res) => {
+                let bannerUrl = this.getBannerUrl(props.user.id);
+                if(bannerUrl){
+                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
+                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
+                    }
+                }
+            });
+        });
+    } //End of bannerUrlDecoding()
 
-            if(profile == undefined) return;
-
+    getBannerUrl(userId){
             if(settings.userBgIntegration){ //if userBg integration is enabled
                 //if we've fetched the userbg database
                 if(fetchedUserBg){
                     //if user is in userBg database,
-                    if(usrBgData?.users[user.userId]){
-                        return `${endpoint}/${bucket}/${prefix}${user.userId}?${usrBgData?.users[user.userId]}`; //return userBg banner URL and exit.
+                    if(this.usrBgData?.users?.[userId]){
+                        return `${this.usrBgData.endpoint}/${this.usrBgData.bucket}/${this.usrBgData.prefix}${userId}?${this.usrBgData.users[userId]}`; //return userBg banner URL and exit.
                     }
                 }
             }
 
             //reveal 3y3 encoded text, store as parsed
-            let parsed = self.getRevealedText(user.userId,`\uDB40\uDC42\uDB40\uDC7B`);
+            let parsed = this.getRevealedText(userId,`\uDB40\uDC42\uDB40\uDC7B`);
             //if there is no 3y3 encoded text, return original function
             if(parsed == undefined) return;
 
@@ -4416,23 +4504,11 @@ module.exports = class YABDP4Nitro {
             }
 
             //add this user to the list of users that show with the YABDP4Nitro user badge if we haven't aleady.
-            if(!badgeUserIDs.includes(user.userId)) badgeUserIDs.push(user.userId);
+            if(!badgeUserIDs.includes(userId)) badgeUserIDs.push(userId);
 
             //return final banner URL.
             return `https://i.imgur.com/${matchedText}`;
         }
-
-        Patcher.after(ProfileBanner, "renderBanner", (_, args, ret) => {
-            nodePatcher.patch(ret, (props, res) => {
-                let bannerUrl = getBannerUrl(props.displayProfile, this);
-                if(bannerUrl){
-                    if(res?.props?.children?.[1]?.props?.children?.[1]?.props?.style){
-                        res.props.children[1].props.children[1].props.style.backgroundImage = `url(${bannerUrl})`;
-                    }
-                }
-            });
-        });
-    } //End of bannerUrlDecoding()
     //#endregion
 
     //save app icon on change
@@ -4454,18 +4530,41 @@ module.exports = class YABDP4Nitro {
         Patcher.instead(RegularAppIcon, "render", (_,[args],ogFunction) => {
             const currentDesktopIcon = AppIconPersistedStoreState.getCurrentDesktopIcon();
             if(currentDesktopIcon == "AppIcon"){
-                return React.createElement(ogFunction, {
-                    size: "custom",
-                    color: "currentColor",
-                    width: 24,
-                    height: 24
-                });
+                return ogFunction(args);
             }else{
                 return React.createElement(CustomAppIcon, {
                     id: currentDesktopIcon,
                     size: 40
                 });
             }
+        });
+    }
+    //#endregion
+
+    //#region User Voice Call Tile Background
+    async userCallTileBannerBackground(){
+        if(!this.UserCallTile) this.UserCallTile = await Webpack.waitForModule(Webpack.Filters.bySource("getSelectedParticipant","CHANNEL_CALL_POPOUT","avatarDecorationSrc"), {signal: controller.signal});
+        if(!this.UserCallTile) return;
+
+        Patcher.instead(this.UserCallTile, this.findMangledName(this.UserCallTile, x=>x.toString?.().includes?.("getSelectedParticipant"), "UserCallTile"), (_,[args],ogFunction) => {
+            let ret = ogFunction(args);
+
+            if(args?.participant?.id){
+                let userId = args?.participant?.id;
+                let bannerUrl = this.getBannerUrl(userId);
+                if(bannerUrl && ret?.props){
+                    ret.props.style = {
+                        backgroundImage: `url('${bannerUrl}')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center center',
+                        backgroundRepeat: 'no-repeat'
+                    };
+                    nodePatcher.patch(ret.props.children, (__,props,res) => {
+                        props.props.style = {};
+                    });
+                }
+            }
+            return ret;
         });
     }
     //#endregion
@@ -4759,6 +4858,18 @@ module.exports = class YABDP4Nitro {
         }
         if(window.FFmpegWASM) delete window.FFmpegWASM;
 
+        if(udta) udta = null; 
+        if(udtaBuffer) udtaBuffer = null;
+        if(crcTable) crcTable = null;
+        if(clipMaBuffer) clipMaBuffer = null;
+        if(lastEditedMsg) lastEditedMsg = null;
+        if(lastEditedMsgCopy) lastEditedMsgCopy = null;
+        if(this.usrBgData) this.usrBgData = null;
+        if(this.userPfps) this.userPfps = null;
+        if(this.settingsUIMod) this.settingsUIMod = null;
+        if(this.CustomThemesEditor) this.CustomThemesEditor = null;
+        if(this.UserContextMenuFunctions) this.UserContextMenuFunctions = null;
+        
         Data.save("settings", settings);
         this.saveDataFile();
         Logger.info("(v" + this.meta.version + ") has stopped.");

@@ -29,20 +29,6 @@ img:not([src]), img[src=""], img[src="null"] {
 	align-self: center;
 }
 
-[REPLACE_CLASS_itemlayercontainerzindexdisabled] {
-	position: absolute !important;
-	z-index: unset !important;
-}
-[REPLACE_CLASS_itemlayercontainerzindexdisabled] > *:not([REPLACE_CLASS_itemlayercontainerclicktrap]) {
-	z-index: 1002;
-}
-[REPLACE_CLASS_itemlayer] ~ [REPLACE_CLASS_itemlayer] [REPLACE_CLASS_menu] {
-	z-index: 1001;
-}
-[REPLACE_CLASS_menu] [REPLACE_CLASS_itemlayer] {
-	z-index: 1002;
-}
-
 [REPLACE_CLASS_loadingiconwrapper] {
 	position: absolute;
 	bottom: 0;
@@ -115,16 +101,6 @@ img:not([src]), img[src=""], img[src="null"] {
 }
 [REPLACE_CLASS_settingspanel] [REPLACE_CLASS_slidermark] {
 	line-height: 10px;
-}
-
-[REPLACE_CLASS_switch][REPLACE_CLASS_switchmini] {
-	width: 26px;
-	height: 16px;
-}
-[REPLACE_CLASS_switch][REPLACE_CLASS_switchmini] [REPLACE_CLASS_switchslider] {
-	width: 16px;
-	height: 14px;
-	margin: 1px;
 }
 
 [REPLACE_CLASS_accountinfobutton][REPLACE_CLASS_accountinfobuttondisabled] {
@@ -627,17 +603,17 @@ img:not([src]), img[src=""], img[src="null"] {
 }
 [REPLACE_CLASS_settingstableheader] {
 	margin-bottom: 8px;
-	color: var(--text-subtle)
+	color: var(--text-subtle);
 }
 [REPLACE_CLASS_settingstableheadername] {
 	margin-left: 8px;
-	flex: 1 1 auto
+	flex: 1 1 auto;
 }
 [REPLACE_CLASS_settingstableheaderoption] {
 	cursor: default;
 	text-align: center;
 	width: 75px;
-	flex: 0 0 auto
+	flex: 0 0 auto;
 }
 [REPLACE_CLASS_settingstablelist] [REPLACE_CLASS_settingstableheader] {
 	min-height: 10px;
@@ -1358,6 +1334,7 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 }
 [REPLACE_CLASS_popoutthemedpopout] {
 	background-color: var(--background-base-lower);
+	color: var(--text-subtle);
 	border-radius: 5px;
 	-webkit-box-shadow: var(--elevation-stroke),var(--elevation-high);
 	box-shadow: var(--elevation-stroke),var(--elevation-high);
@@ -1456,6 +1433,10 @@ input[REPLACE_CLASS_input][REPLACE_CLASS_inputerror] {
 }
 .platform-osx [REPLACE_CLASS_noticewrapper] ~ * [REPLACE_CLASS_guildsscroller] {
 	padding-top: 4px;
+}
+[REPLACE_CLASS_guildsscroller] > [hidden]:has([REPLACE_CLASS_guildouter]) {
+	margin-top: unset;
+	visibility: unset;
 }
 
 [REPLACE_CLASS_tooltiprow]:has([REPLACE_CLASS_usersummarycontainer]:empty) {

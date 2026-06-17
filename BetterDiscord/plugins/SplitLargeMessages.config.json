@@ -1,0 +1,13 @@
+{
+	"all": {
+		"amounts": {
+			"splitCounter": 0,
+			"maxMessages": 0,
+			"attachmentLimit": 0
+		},
+		"general": {
+			"byNewlines": false,
+			"leaveGaps": false
+		}
+	}
+}

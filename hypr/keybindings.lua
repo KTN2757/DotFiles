@@ -121,5 +121,5 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 hl.gesture({ fingers = 2, direction = "pinch", action = "cursorZoom", zoom_level = 1, mode = "live" })
 
 -- Autoclicker
-hl.bind("ALT + SHIFT + F4", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-left.sh"))
-hl.bind("ALT + SHIFT + F5", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-right.sh"))
+hl.bind("ALT + SHIFT + F4", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-right.sh"))
+hl.bind("ALT + SHIFT + F5", hl.dsp.exec_cmd("~/.config/hypr/scripts/autoclicker-left.sh"))

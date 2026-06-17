@@ -1,6 +1,6 @@
 {
     "currentVersionInfo": {
-        "version": "6.8.18",
+        "version": "6.9.3",
         "hasShownChangelog": true
     },
     "settings": {
@@ -63,6 +63,7 @@
             "theme": "dark"
         },
         "appIcon": "AppIcon",
+        "voiceTileBannerBackground": false,
         "alwaysTransmuxClips": false,
         "videoCodec": 0,
         "ghostMode": false,

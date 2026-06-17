@@ -1,7 +1,7 @@
 /**
  * @name PermissionsViewer
  * @description Allows you to view all the permissions for users, servers, and channels!
- * @version 1.0.0
+ * @version 1.0.1
  * @author Zerebos
  * @authorId 249746236008169473
  * @website https://github.com/zerebos/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer
@@ -183,37 +183,21 @@ var manifest = {
       github_username: "zerebos",
       twitter_username: "IAmZerebos"
     }],
-    version: "1.0.0",
+    version: "1.0.1",
     description: "Allows you to view all the permissions for users, servers, and channels!",
     github: "https://github.com/zerebos/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer",
     github_raw: "https://raw.githubusercontent.com/zerebos/BetterDiscordAddons/master/Plugins/PermissionsViewer/PermissionsViewer.plugin.js"
   },
   changelog: {
-    banner: "https://github.com/user-attachments/assets/a9cd5ef8-35fa-446e-8839-1b9cb1dc8962",
-    blurb: "It took me a long time but I finally sat down and rewrote the entire plugin to be more efficient, better looking, and more accurate. If you had issues with the old version, please give this one a try!",
+    // banner: "https://github.com/user-attachments/assets/a9cd5ef8-35fa-446e-8839-1b9cb1dc8962",
+    blurb: "Sorry for the delay in fixing, but I wanted to wait for the underlying issue to be fixed in Discord's code instead of patching around it. This update should fix all the issues with permissions showing up incorrectly and not showing up in popouts.",
     changes: [
       {
-        type: "added",
-        title: "Total Rewrite!",
-        items: [
-          "Switched from using stinky virgin React to based chad Svelte.",
-          "Completely revamped the UI to be more user friendly and look better.",
-          "Improved performance and reduced memory usage.",
-          'Users now have an "Effective Permissions" section that shows their overall permissions.',
-          "Roles and permissions are now searchable to make finding specific permissions easier.",
-          "Channel overwrites now make user and role overwrites more clear and easier to understand.",
-          "Added support for role icons and emojis.",
-          "Neutral permissions can now be toggled either in settings or in the modal itself."
-        ]
-      },
-      {
-        title: "Also Some Fixes",
+        title: "What's Fixed?",
         type: "fixed",
         items: [
-          "Permission badges in popouts now show up properly.",
-          "Improved accuracy of permission calculations.",
-          "Fixed an issue where some permissions would show up as denied when they were actually neutral.",
-          "Roles and permissions are now sorted by position instead of alphabetically."
+          "Permissions should appear in popouts again.",
+          "Context menu entries should show the modal when clicked."
         ]
       }
     ]
@@ -6839,7 +6823,11 @@ function PermissionViewerModal($$anchor, $$props) {
 var GuildStore = BdApi.Webpack.Stores.GuildStore;
 var UserStore = BdApi.Webpack.Stores.UserStore;
 var DiscordPermissions = BdApi.Webpack.getModule((m) => m.ADD_REACTIONS, { searchExports: true });
-var specManager = BdApi.Webpack.getByKeys("generateGuildPermissionSpec");
+var specManager = null;
+BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byKeys("generateGuildPermissionSpec")).then((mod) => {
+  if (!mod) throw new Error("Permission spec manager not found");
+  specManager = mod;
+});
 function getDefinitions(guildIdOrGuild) {
   if (!specManager) throw new Error("Permission spec manager not found");
   if (!guildIdOrGuild) guildIdOrGuild = BdApi.Webpack.Stores.SortedGuildStore.getFlattenedGuildIds()[0];
@@ -7093,9 +7081,8 @@ var PermissionsViewer = class extends Plugin {
     this.unbindContextMenus();
   }
   patchPopouts(e) {
-    const popoutMount = (props2) => {
+    const popoutMount = (popout2, props2) => {
       if (!props2 || !props2.displayProfile || !props2.user) return;
-      const popout2 = document.querySelector(`[class*="userPopout_"], [class*="outer_"]`);
       if (!popout2 || popout2.querySelector("#permissions-popout")) return;
       const user = MemberStore?.getMember(props2.displayProfile.guildId, props2.user.id);
       const guild = GuildStore2?.getGuild(props2.displayProfile.guildId);
@@ -7148,7 +7135,7 @@ var PermissionsViewer = class extends Plugin {
     const popout = element2.querySelector(`[class*="userPopout_"], [class*="outer_"]`) ?? element2;
     if (!popout || !popout.matches(`[class*="userPopout_"], [class*="outer_"]`)) return;
     const props = Utils.findInTree(ReactUtils.getInternalInstance(popout), (m) => m && m.user, { walkable: ["memoizedProps", "return"] });
-    popoutMount(props);
+    popoutMount(popout, props);
   }
   bindPopouts() {
     this.observer = this.patchPopouts.bind(this);

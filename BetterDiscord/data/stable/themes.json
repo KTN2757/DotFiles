@@ -1,6 +1,12 @@
 {
-    "ClearVision": false,
-    "Frosted Glass": true,
+    "ClearVision": true,
+    "Frosted Glass": false,
     "BasicBackground": true,
-    "ClearVision V7 for BetterDiscord": true
+    "ClearVision V7 for BetterDiscord": false,
+    "Dark Matter": false,
+    "Translucence": false,
+    "NotAnotherAnimeTheme": false,
+    "Dark+": false,
+    "Amethyst": false,
+    "Discord+": true
 }
